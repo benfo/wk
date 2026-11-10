@@ -42,6 +42,8 @@ Everything in the conversation is sent back to the model on every turn. Old file
 | Fresh session | The task is done and the next one is unrelated, the work moves to another epic, many files or long logs have been read, a compaction happened, or you notice you're repeating yourself or re-reading things |
 | Subagent | Read-heavy work where only the conclusion matters: surveying a codebase, wide searches, reviewing a diff, running a long command and summarising it |
 
+You can't see your own token count, so wk gives you two facts to go on. `wk done` counts the tasks finished since `wk brief` and says so from the third one on. `wk start` says when a task is from a different epic than the last one. Treat both as a fresh-session recommendation unless you can name what the next task needs from this session. Either way, say which it is and why.
+
 Don't use a subagent for work that needs back-and-forth with the user, for tightly connected edits, or for a lookup of a few tool calls. A subagent starts empty and re-reads what it needs, so small jobs cost more that way. Before recommending a fresh session, write the handoff. The test of a good handoff: a fresh session that runs only `wk brief` knows what to do first.
 
 ## Git
