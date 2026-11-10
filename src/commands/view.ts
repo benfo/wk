@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describeGit } from "../config.js";
 import type { Ctx } from "../context.js";
+import { startSession } from "../session.js";
 import { progressBar, result, WkError, type Result } from "../output.js";
 import { KINDS, label, str, tags, type Item, type Kind, type Store } from "../store.js";
 import { isBlocked, itemLine, needsDecision, nowTask, principlesDir, status, summary } from "./shared.js";
@@ -87,6 +88,7 @@ export function noPrinciples(ctx: Ctx): boolean {
 }
 
 export function brief(ctx: Ctx, store: Store): Result {
+  startSession(ctx);
   const handoff = readHandoff(ctx);
   const v = nextView(store, 3);
   const lines: string[] = [];

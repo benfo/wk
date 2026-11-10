@@ -4,6 +4,7 @@ import type { Ctx } from "../context.js";
 import { branchExists, checkoutBranch, createBranch, currentBranch, diffSummary } from "../git.js";
 import { checkLines, checkTitle, LIMITS } from "../limits.js";
 import { result, unescapeText, WkError, type Result } from "../output.js";
+import { FRESH_AFTER_TASKS, readSession, writeSession } from "../session.js";
 import { label, str, type Store } from "../store.js";
 import { assertState, commitHint, isBlocked, nowTask, status } from "./shared.js";
 import { HANDOFF_FILE } from "./view.js";
@@ -54,7 +55,16 @@ export function start(ctx: Ctx, store: Store, rawId: string, opts: { branch?: bo
   lines.unshift(`now   ${task.id} ${label(task)}`);
   if (branch) lines.push(`Branch: ${branch}`);
   else if (ctx.git) lines.push(`On branch: ${currentBranch(ctx.base) ?? "unknown"}`);
-  return result(lines, { id: task.id, status: "now", branch });
+
+  // A task from another epic rarely needs this session's context.
+  const session = readSession(ctx);
+  const epic = str(task, "epic");
+  const switched = session.lastEpic !== null && session.lastEpic !== epic;
+  if (switched) {
+    lines.push(`Different epic from the last task (${session.lastEpic || "no epic"}): suggest a fresh session, after a handoff.`);
+  }
+  writeSession(ctx, { ...session, lastEpic: epic });
+  return result(lines, { id: task.id, status: "now", branch, epic_switch: switched });
 }
 
 const TEST_LINE = /^Test:\s*/i;
@@ -132,13 +142,18 @@ export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: bool
   delete task.data.blocked_reason;
   store.save(task);
   const git = commitHint(ctx, "done");
+
+  const session = readSession(ctx);
+  const finished = session.done.includes(task.id) ? session.done : [...session.done, task.id];
+  writeSession(ctx, { ...session, done: finished });
+  const count = finished.length;
+  const advice =
+    count >= FRESH_AFTER_TASKS
+      ? `${count} tasks done this session: suggest a fresh session unless the next task builds on this one.`
+      : "Next task unrelated, or context heavy? Suggest a fresh session.";
   return result(
-    [
-      `done  ${task.id} ${label(task)}`,
-      ...(git ? [git] : []),
-      `Next: ${HANDOFF_NUDGE}. Next task unrelated, or context heavy? Suggest a fresh session.`,
-    ],
-    { id: task.id, status: "done", git },
+    [`done  ${task.id} ${label(task)}`, ...(git ? [git] : []), `Next: ${HANDOFF_NUDGE}. ${advice}`],
+    { id: task.id, status: "done", git, session_tasks: count },
   );
 }
 

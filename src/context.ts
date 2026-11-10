@@ -20,6 +20,8 @@ export interface Ctx {
   today: string;
   /** True when `base` is inside a git repo. */
   git: boolean;
+  /** wk's per-machine folder (~/.wk, or WK_HOME). Holds home-stored plans and session state. */
+  home: string;
 }
 
 export function todayString(): string {
@@ -92,5 +94,5 @@ export function loadContext(cwd: string, today: string, home?: string): Ctx {
   const found = findRoot(cwd, home);
   if (!found) throw new WkError("No wk plan found for this project. Run: wk init --store <repo|ignore|local|home>");
   const { root, base } = found;
-  return { cwd, base, root, config: readConfig(root), today, git: repoTop(base) !== null };
+  return { cwd, base, root, config: readConfig(root), today, git: repoTop(base) !== null, home: wkHome(home) };
 }
