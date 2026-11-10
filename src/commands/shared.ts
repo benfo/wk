@@ -54,6 +54,23 @@ export function guardSimilar(candidate: string, pool: Item[], force: boolean | u
   throw new WkError(lines.join("\n"));
 }
 
+/**
+ * What the git workflow says to do at a stop, or null when it says nothing (or there's no git).
+ * The agent follows this instead of its own git habits.
+ */
+export function commitHint(ctx: Ctx, moment: "checkpoint" | "done"): string | null {
+  if (!ctx.git) return null;
+  const { commit, branch } = ctx.config.git;
+  if (commit === null || branch === null) {
+    return "Git: workflow not chosen. Ask the user before any commit or branch, then save it with wk config set.";
+  }
+  if (commit === "ask") return "Git: ask the user before committing.";
+  // "task" commits once the task is done; "checkpoint" commits at every checkpoint.
+  const due = commit === "task" ? "done" : "checkpoint";
+  if (moment === due) return `Git: commit now (git.commit: ${commit}).`;
+  return null;
+}
+
 export function parseTags(raw: string | undefined): string[] {
   if (!raw) return [];
   return [...new Set(raw.split(",").map((t) => t.trim().toLowerCase()).filter(Boolean))];

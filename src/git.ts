@@ -15,8 +15,11 @@ export function repoTop(cwd: string): string | null {
 }
 
 export function currentBranch(cwd: string): string | null {
-  const r = git(cwd, ["rev-parse", "--abbrev-ref", "HEAD"]);
-  return r.ok ? r.out : null;
+  // symbolic-ref also works before the first commit, where rev-parse fails.
+  const r = git(cwd, ["symbolic-ref", "--short", "-q", "HEAD"]);
+  if (r.ok && r.out) return r.out;
+  const detached = git(cwd, ["rev-parse", "--abbrev-ref", "HEAD"]);
+  return detached.ok ? detached.out : null;
 }
 
 export function createBranch(cwd: string, name: string): { ok: boolean; message: string } {
@@ -71,4 +74,13 @@ export function todoCount(cwd: string): number | null {
     .split("\n")
     .filter(Boolean)
     .reduce((sum, line) => sum + Number(line.slice(line.lastIndexOf(":") + 1) || 0), 0);
+}
+
+export function branchExists(cwd: string, name: string): boolean {
+  return git(cwd, ["rev-parse", "--verify", "--quiet", `refs/heads/${name}`]).ok;
+}
+
+export function checkoutBranch(cwd: string, name: string): { ok: boolean; message: string } {
+  const r = git(cwd, ["checkout", name]);
+  return { ok: r.ok, message: r.ok ? name : r.err || "git checkout failed" };
 }

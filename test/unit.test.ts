@@ -111,7 +111,8 @@ describe("config", () => {
     fs.writeFileSync(path.join(dir, "config.yml"), defaultConfigText("repo") + extra);
     writeCounters(dir, { E: 3, T: 31, I: 7, D: 12, L: 4 });
     const text = fs.readFileSync(path.join(dir, "config.yml"), "utf8");
-    expect(text).toContain("# true creates a <id>-<slug> branch on wk start");
+    expect(text).toContain("# or an absolute path, shared across projects");
+    expect(text).toContain("git:\n  branch:\n  commit:");
     expect(text).toContain("counters: { E: 3, T: 31, I: 7, D: 12, L: 4 }");
     expect(text).toContain("name: Jira");
     expect(readConfig(dir).counters.T).toBe(31);

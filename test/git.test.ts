@@ -29,9 +29,9 @@ describe.skipIf(!hasGit)("git features", () => {
     expect(git(p.dir, "rev-parse", "--abbrev-ref", "HEAD")).toBe("T-001-refresh-token-endpoint");
   });
 
-  it("branch_on_start: true branches unless --no-branch", () => {
+  it("an old branch_on_start: true still branches, unless --no-branch", () => {
     const p = project({ git: true });
-    fs.writeFileSync(p.file("config.yml"), p.read("config.yml").replace("branch_on_start: false", "branch_on_start: true"));
+    fs.writeFileSync(p.file("config.yml"), "branch_on_start: true\n" + p.read("config.yml"));
     p.wk("add", "task", "First");
     p.wk("add", "task", "Second");
     expect(p.wk("start", "T-001")).toContain("Branch: T-001-first");

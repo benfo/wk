@@ -1,11 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { Ctx } from "../context.js";
-import { createBranch, currentBranch, diffSummary } from "../git.js";
+import { branchExists, checkoutBranch, createBranch, currentBranch, diffSummary } from "../git.js";
 import { checkLines, checkTitle, LIMITS } from "../limits.js";
 import { result, unescapeText, WkError, type Result } from "../output.js";
 import { label, str, type Store } from "../store.js";
-import { assertState, isBlocked, nowTask, status } from "./shared.js";
+import { assertState, commitHint, isBlocked, nowTask, status } from "./shared.js";
 import { HANDOFF_FILE } from "./view.js";
 
 export function slugify(title: string, max = 40): string {
@@ -29,15 +29,24 @@ export function start(ctx: Ctx, store: Store, rawId: string, opts: { branch?: bo
 
   const lines: string[] = [];
   let branch: string | null = null;
-  const wantBranch = opts.branch ?? ctx.config.branch_on_start;
-  if (wantBranch) {
+  // --branch / --no-branch win; otherwise follow git.branch. Not chosen means stay put.
+  const mode = opts.branch === true ? "task" : opts.branch === false ? "none" : (ctx.config.git.branch ?? "none");
+  if (mode !== "none") {
     if (!ctx.git) {
       lines.push("Not a git repo, no branch created.");
     } else {
-      const name = `${task.id}-${slugify(label(task))}`;
-      const r = createBranch(ctx.base, name);
-      if (!r.ok) throw new WkError(`Could not create branch ${name}: ${r.message}`);
-      branch = name;
+      const epic = mode === "epic" && str(task, "epic") ? store.find(str(task, "epic")) : undefined;
+      if (mode === "epic" && !epic) {
+        lines.push("No epic, so no epic branch.");
+      } else {
+        const owner = epic ?? task;
+        const name = `${owner.id}-${slugify(label(owner))}`;
+        if (currentBranch(ctx.base) !== name) {
+          const r = branchExists(ctx.base, name) ? checkoutBranch(ctx.base, name) : createBranch(ctx.base, name);
+          if (!r.ok) throw new WkError(`Could not switch to branch ${name}: ${r.message}`);
+        }
+        branch = name;
+      }
     }
   }
   task.data.status = "now";
@@ -97,12 +106,15 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; chec
       lines.push(`  ${shown.join(", ")}${diff.files.length > shown.length ? `, +${diff.files.length - shown.length} more` : ""}`);
     }
   }
+  const git = commitHint(ctx, "checkpoint");
+  if (git) lines.push(git);
   lines.push(`Next: ${HANDOFF_NUDGE}, then wk done ${task.id} once the user confirms.`);
   return result(lines, {
     id: task.id,
     status: "review",
     tests,
     checked,
+    git,
     changed: diff?.files ?? null,
     shortstat: diff?.shortstat ?? null,
   });
@@ -119,12 +131,14 @@ export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: bool
   task.data.blocked = false;
   delete task.data.blocked_reason;
   store.save(task);
+  const git = commitHint(ctx, "done");
   return result(
     [
       `done  ${task.id} ${label(task)}`,
+      ...(git ? [git] : []),
       `Next: ${HANDOFF_NUDGE}. Next task unrelated, or context heavy? Suggest a fresh session.`,
     ],
-    { id: task.id, status: "done" },
+    { id: task.id, status: "done", git },
   );
 }
 

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { describeGit } from "../config.js";
 import type { Ctx } from "../context.js";
 import { progressBar, result, WkError, type Result } from "../output.js";
 import { KINDS, label, str, tags, type Item, type Kind, type Store } from "../store.js";
@@ -10,6 +11,13 @@ export const HANDOFF_FILE = "handoff.md";
 export function readHandoff(ctx: Ctx): string {
   const file = path.join(ctx.root, HANDOFF_FILE);
   return fs.existsSync(file) ? fs.readFileSync(file, "utf8").trim() : "";
+}
+
+/** "Git: no branches, commit after each task." or a prompt to ask when it isn't chosen. */
+function gitLine(ctx: Ctx): string {
+  const { branch, commit } = ctx.config.git;
+  const line = `Git: ${describeGit(ctx.config.git)}.`;
+  return branch === null || commit === null ? `${line} Ask before any branch or commit.` : line;
 }
 
 /** When the handoff was written, and whether a task or epic changed after it. */
@@ -89,13 +97,16 @@ export function brief(ctx: Ctx, store: Store): Result {
   );
   if (emptyPlan) lines.push("Empty plan. Offer onboarding (see Onboarding in wk guide).");
   if (empty) lines.push("No principles yet.");
+  // Early in the output, so the line cap never hides the workflow from a fresh session.
+  const git = ctx.git ? gitLine(ctx) : null;
+  if (git) lines.push(git);
   const age = handoffAge(ctx, store);
   if (handoff) {
     const note = age.stale ? `${age.written}, older than the latest task change` : age.written;
     lines.push(`Handoff (${note}):`, ...handoff.split("\n").map((l) => `  ${l}`));
   } else lines.push("Handoff: none yet.");
   lines.push(...nextLines(v));
-  return result(lines, { handoff: handoff || null, ...nextData(v), no_principles: empty, empty_plan: emptyPlan, handoff_written: age.written, handoff_stale: age.stale });
+  return result(lines, { handoff: handoff || null, ...nextData(v), no_principles: empty, empty_plan: emptyPlan, handoff_written: age.written, handoff_stale: age.stale, git: ctx.git ? ctx.config.git : null });
 }
 
 export function show(_ctx: Ctx, store: Store, rawId: string): Result {

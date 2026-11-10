@@ -3,6 +3,7 @@ import path from "node:path";
 import { Command, CommanderError } from "commander";
 import { addEpic, addTask, addTasks, decide, idea, learn } from "./commands/capture.js";
 import { block, checkpoint, done, handoff, start, unblock } from "./commands/flow.js";
+import { configure } from "./commands/configure.js";
 import { guide } from "./commands/guide.js";
 import { init } from "./commands/init.js";
 import { edit, merge, supersede, tidy } from "./commands/tidy.js";
@@ -71,6 +72,13 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .description("print the agent rules; for agents that don't load the wk skill")
     .action(function (this: Command) {
       emit(this, guide());
+    });
+
+  program
+    .command("config [action] [key] [value]")
+    .description("show settings, or: wk config set git.branch none|task|epic, git.commit ask|task|checkpoint")
+    .action(function (this: Command, action?: string, key?: string, value?: string) {
+      act((ctx) => configure(ctx, action, key, value)).call(this);
     });
 
   program.command("brief").description("handoff, now task and what's next; first call of a session")
