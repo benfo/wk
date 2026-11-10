@@ -96,15 +96,15 @@ Every command prints plain text, 10 lines or fewer by default. `--json` gives ma
 | --- | --- |
 | `wk init --store <repo\|ignore\|local\|home>` | Creates the plan folder, `config.yml`, empty folders and empty principle files. Copies the skill to `.claude/skills/wk/`. Adds the pointer to `AGENTS.md` (and to `CLAUDE.md` if one exists) unless the store is personal. Safe to rerun: refreshes the skill, keeps the data. A fresh init also lists existing plans worth migrating. |
 | `wk guide` | Prints the agent rules, for agents that don't load the skill |
-| `wk brief` | Prints the handoff note, the `now` task and the top of `wk next`. First call of every session. On an empty plan it says so, to prompt onboarding. |
+| `wk brief` | Prints the handoff note, the `now` task and the top of `wk next`. First call of every session. On an empty plan it says so, to prompt onboarding. Shows the handoff's date, and flags it when a task or epic changed after it. |
 | `wk next` | Prints the `now` task, up to 5 `next` tasks, and anything blocked or needing a decision |
 | `wk add task "<title>" [--epic E-003] [--tags api,ui] [--later]` | Creates a task, prints its ID |
 | `wk add task --from <file\|-> [--epic] [--tags] [--later]` | One task per line (checklist markers are stripped). All or nothing: any title over the limit or similar to an open item stops the batch and lists every problem line. |
 | `wk add epic "<title>"` | Creates an epic with empty scope, out of scope and acceptance sections |
 | `wk show <id>` | Prints one item in full. The only way the agent reads an item body. |
 | `wk start <id> [--branch]` | Sets it to `now`. Refuses if another task is `now`. `--branch` creates `T-031-<slug>` from the current branch. Without it, stays where you are. |
-| `wk checkpoint [--test "<what to test>"]` | Moves the `now` task to `review`. Saves the suggested tests to the task. Prints them with a short git diff summary so I know what to look at. |
-| `wk done <id>` | Sets it to `done`. Expects `review` first; `--force` skips that for trivial tasks. |
+| `wk checkpoint [--checked "<result>"] [--test "<for me>"]` | Moves the `now` task to `review`. `--checked` records automated results the agent already ran (tests, types, build), so I never run them. `--test` is for things only a person can judge: look, feel, keyboard, how output reads. Both repeat. Prints them with a short git diff summary, says when there's nothing for a human to test, and reminds the agent to hand off. |
+| `wk done <id>` | Sets it to `done`. Expects `review` first; `--force` skips that for trivial tasks. Reminds the agent to hand off and to say whether a fresh session fits. |
 | `wk block <id> "<reason>"` / `wk unblock <id>` | Toggles the blocked flag |
 | `wk idea "<text>" [--epic E-003]` | Captures an idea in one line |
 | `wk decide "<what>" --why "<why>"` | Records a decision |
@@ -165,8 +165,9 @@ The rules ship inside the npm package as a skill. `wk init` copies it to `.claud
 5. Off-topic idea from the user: `wk idea`, say "captured as I-008", carry on.
 6. A choice gets made: `wk decide`. Something surprising: `wk learn`.
 7. New work found mid-task: `wk add task`. Don't silently grow the current task. If `wk add` reports a similar item, update or merge it instead.
-8. After each logical piece of work, stop. Run `wk checkpoint --test "..."`. Say what changed. Suggest specific things a human should test: flows, edge cases, how it looks and feels. Wait for the user before `wk done`.
-9. Before the session ends, run `wk handoff` with 5 lines or fewer: where we stopped, what's half done, what to do first next time.
+8. After each logical piece of work, stop. Run the automated checks that cover the change yourself and report them in one line with `--checked`, saying which ran. Give me `--test` items only for what a person interacts with: how it looks and feels, keyboard, how output reads, whether a flow makes sense. If unsure, ask whether it's worth my eyes. If there's nothing for me to test, say so and ask for a quick go-ahead. Wait for me before `wk done`.
+9. Hand off at every stop: after every `wk checkpoint` and `wk done`, run `wk handoff` with 5 lines or fewer: where we stopped, what's half done, what to do first next time. It overwrites, so it's cheap, and it makes clearing context safe at any moment. Always hand off when I say I'm stopping, before suggesting a clear, right after a compaction and before switching epics.
+10. At every stop, recommend one of: continue here (the next task builds on what's loaded), fresh session (unrelated next task, another epic, heavy context, a compaction, repeating itself), or subagent (read-heavy work where only the conclusion matters). One line, with the reason. Be honest: agents can't forget selectively, and everything in context is resent every turn.
 
 **Onboarding an existing project.** The CLI spots the moment. The skill does the judging. A fresh `wk init` scans for existing plans (TODO, ROADMAP, BACKLOG, TASKS and PLAN files at the top level or in `docs/`, ADR and plan folders, TODO/FIXME comments, a GitHub remote) and prints one line: "Existing plans: … Offer onboarding." `wk brief` on an empty plan prints "Empty plan." The skill then runs onboarding one step at a time:
 
@@ -230,5 +231,6 @@ Only start these after a week or two of real use. Expect the list to change.
 
 ## Open questions
 
+- When to run the full automated suite. Slow suites shouldn't run at every checkpoint. One option: quick checks (types plus tests related to the change) at every checkpoint, the full suite at major points (end of an epic, before a commit or PR, before the last handoff of a session), and `checks: { quick, full }` commands in config so the agent doesn't guess. Decide after a week of real use.
 - How the agent gets ticket drafts in my writing style: a template file, or the existing reply skill. Not needed until phase three.
 - Later, maybe: non-coding projects like building a bed or planning a holiday. The core loop already fits. Revisit after real use, not before.
