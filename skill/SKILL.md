@@ -19,6 +19,7 @@ Read and change the plan only through the `wk` CLI. If `wk` says there is no pla
 8. **After each logical piece of work, stop and check it.** See "Checking work". Then `wk checkpoint --checked "<result>" --test "<for the user>"` (each repeatable). Say what changed. **Wait for the user** before `wk done <id>`.
 9. **Hand off at every stop.** After every `wk checkpoint` and every `wk done`, run `wk handoff "<text>"`: 5 lines or fewer, covering where we stopped, what's half done and what to do first next time. Use `\n` between lines. It overwrites the last one, so it costs little, and it means the user can clear context at any moment. Always hand off when the user says they're stopping, before you suggest clearing, right after a compaction and before switching epics. If `wk brief` says the handoff is older than the latest task change, the last session skipped one, so check `wk next` before trusting it.
 10. **At every stop, say whether to continue.** See "Context". One line, with the reason.
+11. **Git follows the user's workflow, not your habits.** See "Git".
 
 Use `wk start <id>` to pick up a task (only one can be `now`). Use `wk block <id> "<reason>"` / `wk unblock <id>` when stuck. Use `wk status` for the whole plan.
 
@@ -42,6 +43,15 @@ Everything in the conversation is sent back to the model on every turn. Old file
 | Subagent | Read-heavy work where only the conclusion matters: surveying a codebase, wide searches, reviewing a diff, running a long command and summarising it |
 
 Don't use a subagent for work that needs back-and-forth with the user, for tightly connected edits, or for a lookup of a few tool calls. A subagent starts empty and re-reads what it needs, so small jobs cost more that way. Before recommending a fresh session, write the handoff. The test of a good handoff: a fresh session that runs only `wk brief` knows what to do first.
+
+## Git
+
+The user's git workflow lives in wk's config, and `wk brief` shows it in its `Git:` line. It replaces your own git defaults: never create a branch, commit, push or switch workflow unless the setting or the user says so.
+
+- **Branching (`git.branch`):** `none` means stay on the current branch, `task` means `wk start` makes a `T-001-slug` branch, and `epic` means one `E-003-slug` branch per epic. `wk start` does the branching, so don't branch yourself.
+- **Committing (`git.commit`):** `ask` means ask before every commit, `task` means commit after `wk done`, and `checkpoint` means commit at each `wk checkpoint`. `wk checkpoint` and `wk done` print a `Git:` line when it's time.
+- **Not chosen yet:** the first time a branch or commit comes up, ask one question with a recommendation. Early in a project, recommend no branches and a commit after each task. Save the answer with `wk config set git.branch <none|task|epic>` and `wk config set git.commit <ask|task|checkpoint>`. Don't promise a workflow in chat ("I'll commit after each task from now on"). The next session won't remember it. Save it instead.
+- The user's own instructions about commit style (message format, commit size) still apply.
 
 ## Onboarding an existing project
 
@@ -67,7 +77,3 @@ Plain words, concrete nouns, no filler. Don't restate the title in the body. One
 ## Keeping the plan clean
 
 Leave the plan a bit cleaner every time you touch it. After `wk checkpoint` and before the handoff, run `wk tidy`. Fix small things that touch the current epic: merge a duplicate (`wk merge`), tighten a wordy task (`wk edit`), close a task the work made pointless (`wk done <id> --force`, and say so), supersede a decision you just changed (`wk decide` then `wk supersede <old> <new>`; never edit a decision). `wk tidy --fix` archives old done items and closes finished epics. Ask the user about anything bigger in one line. Never delete without saying so.
-
-## Tracker
-
-wk never syncs with Jira or any other tracker. When a ticket needs updating, remind the user to do it by hand.
