@@ -19,7 +19,7 @@ export const KINDS: Record<Kind, KindInfo> = {
     prefix: "T",
     dir: "tasks",
     order: [
-      "id", "title", "epic", "status", "tags", "ref", "blocked", "blocked_reason", "needs_decision",
+      "id", "title", "epic", "status", "tags", "ref", "blocked", "blocked_reason", "needs_decision", "checked",
       "created", "updated", "done_on",
     ],
   },

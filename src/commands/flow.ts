@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Ctx } from "../context.js";
 import { createBranch, currentBranch, diffSummary } from "../git.js";
-import { checkLines, LIMITS } from "../limits.js";
+import { checkLines, checkTitle, LIMITS } from "../limits.js";
 import { result, unescapeText, WkError, type Result } from "../output.js";
 import { label, str, type Store } from "../store.js";
 import { assertState, isBlocked, nowTask, status } from "./shared.js";
@@ -50,10 +50,22 @@ export function start(ctx: Ctx, store: Store, rawId: string, opts: { branch?: bo
 
 const TEST_LINE = /^Test:\s*/i;
 
-export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[] }): Result {
+const HANDOFF_NUDGE = "wk handoff (keeps a fresh session safe)";
+
+function splitLines(values: string[] | undefined): string[] {
+  return (values ?? []).map(unescapeText).flatMap((t) => t.split("\n")).map((t) => t.trim()).filter(Boolean);
+}
+
+/**
+ * Moves the now task to review. `test` is for a human (how it looks, feels, reads, responds);
+ * `checked` records automated results the agent already ran (tests, types, build).
+ */
+export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; checked?: string[] }): Result {
   const task = nowTask(store);
   if (!task) throw new WkError("Nothing is now. Start a task first: wk start <id>");
-  const given = (opts.test ?? []).map(unescapeText).flatMap((t) => t.split("\n")).map((t) => t.trim()).filter(Boolean);
+  const given = splitLines(opts.test);
+  const checked = splitLines(opts.checked);
+  for (const c of checked) checkTitle(c, "A --checked line");
   const rest = task.body.split("\n").filter((l) => !TEST_LINE.test(l));
   let tests = task.body.split("\n").filter((l) => TEST_LINE.test(l)).map((l) => l.replace(TEST_LINE, ""));
   if (given.length) {
@@ -61,12 +73,20 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[] }): R
     const body = [...tests.map((t) => `Test: ${t}`), ...(rest.some((l) => l.trim()) ? ["", ...rest] : [])].join("\n");
     task.body = checkLines(body, LIMITS.taskBody, "Task body with tests");
   }
+  // Automated results live in frontmatter: they describe this checkpoint, not the task.
+  if (checked.length) task.data.checked = checked;
+  else delete task.data.checked;
   task.data.status = "review";
   store.save(task);
 
   const lines = [`review ${task.id} ${label(task)}`];
-  if (tests.length) lines.push(...tests.map((t) => `Test: ${t}`));
-  else lines.push('No tests recorded. Add some: wk checkpoint --test "<what to test>"');
+  lines.push(...tests.map((t) => `Test (you): ${t}`));
+  lines.push(...checked.map((c) => `Checked: ${c}`));
+  if (tests.length === 0 && checked.length === 0) {
+    lines.push('Nothing checked or tested. Add --checked "<automated result>" and/or --test "<for a human>".');
+  } else if (tests.length === 0) {
+    lines.push("Nothing for a human to test. Ask the user to confirm.");
+  }
 
   const diff = ctx.git ? diffSummary(ctx.base) : null;
   if (diff) {
@@ -77,8 +97,15 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[] }): R
       lines.push(`  ${shown.join(", ")}${diff.files.length > shown.length ? `, +${diff.files.length - shown.length} more` : ""}`);
     }
   }
-  lines.push(`After testing: wk done ${task.id}`);
-  return result(lines, { id: task.id, status: "review", tests, changed: diff?.files ?? null, shortstat: diff?.shortstat ?? null });
+  lines.push(`Next: ${HANDOFF_NUDGE}, then wk done ${task.id} once the user confirms.`);
+  return result(lines, {
+    id: task.id,
+    status: "review",
+    tests,
+    checked,
+    changed: diff?.files ?? null,
+    shortstat: diff?.shortstat ?? null,
+  });
 }
 
 export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: boolean }): Result {
@@ -92,7 +119,13 @@ export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: bool
   task.data.blocked = false;
   delete task.data.blocked_reason;
   store.save(task);
-  return result([`done  ${task.id} ${label(task)}`], { id: task.id, status: "done" });
+  return result(
+    [
+      `done  ${task.id} ${label(task)}`,
+      `Next: ${HANDOFF_NUDGE}. Next task unrelated, or context heavy? Suggest a fresh session.`,
+    ],
+    { id: task.id, status: "done" },
+  );
 }
 
 export function block(_ctx: Ctx, store: Store, rawId: string, reason: string): Result {

@@ -12,6 +12,19 @@ export function readHandoff(ctx: Ctx): string {
   return fs.existsSync(file) ? fs.readFileSync(file, "utf8").trim() : "";
 }
 
+/** When the handoff was written, and whether a task or epic changed after it. */
+export function handoffAge(ctx: Ctx, store: Store): { written: string | null; stale: boolean } {
+  const file = path.join(ctx.root, HANDOFF_FILE);
+  if (!fs.existsSync(file) || !readHandoff(ctx)) return { written: null, stale: false };
+  const at = fs.statSync(file).mtimeMs;
+  const d = new Date(at);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const written = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const items = [...store.list("task"), ...store.list("epic")];
+  const stale = items.some((i) => fs.existsSync(i.file) && fs.statSync(i.file).mtimeMs > at);
+  return { written, stale };
+}
+
 interface NextView {
   now: Item | undefined;
   review: Item[];
@@ -76,10 +89,13 @@ export function brief(ctx: Ctx, store: Store): Result {
   );
   if (emptyPlan) lines.push("Empty plan. Offer onboarding (see Onboarding in wk guide).");
   if (empty) lines.push("No principles yet.");
-  if (handoff) lines.push("Handoff:", ...handoff.split("\n").map((l) => `  ${l}`));
-  else lines.push("Handoff: none yet.");
+  const age = handoffAge(ctx, store);
+  if (handoff) {
+    const note = age.stale ? `${age.written}, older than the latest task change` : age.written;
+    lines.push(`Handoff (${note}):`, ...handoff.split("\n").map((l) => `  ${l}`));
+  } else lines.push("Handoff: none yet.");
   lines.push(...nextLines(v));
-  return result(lines, { handoff: handoff || null, ...nextData(v), no_principles: empty, empty_plan: emptyPlan });
+  return result(lines, { handoff: handoff || null, ...nextData(v), no_principles: empty, empty_plan: emptyPlan, handoff_written: age.written, handoff_stale: age.stale });
 }
 
 export function show(_ctx: Ctx, store: Store, rawId: string): Result {

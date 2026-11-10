@@ -132,8 +132,9 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
 
   program
     .command("checkpoint")
-    .description("move the now task to review, save and print what to test")
-    .option("--test <text>", "what a human should test (repeatable)", collect)
+    .description("move the now task to review; record automated checks and what a human should test")
+    .option("--test <text>", "for a human: how it looks, feels, reads or responds (repeatable)", collect)
+    .option("--checked <result>", "an automated check you already ran, e.g. \"75 tests pass\" (repeatable)", collect)
     .action(function (this: Command) {
       const o = this.opts();
       act((ctx, s) => checkpoint(ctx, s, o)).call(this);

@@ -1,6 +1,13 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
-import { project } from "./helpers.js";
+import { project, type Project } from "./helpers.js";
+
+/** The handoff file's local date, as wk brief prints it. */
+function handoffDate(p: Project): string {
+  const d = fs.statSync(p.file("handoff.md")).mtime;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 describe("adding tasks and epics", () => {
   it("creates a task file in the spec's format and bumps the counter", () => {
@@ -60,11 +67,11 @@ describe("the task flow", () => {
     expect(p.raw("done", "T-001").stderr).toMatch(/not review/);
     const cp = p.wk("checkpoint", "--test", "Click save, expect a toast", "--test", "Empty form shows errors");
     expect(cp).toContain("review T-001 First thing");
-    expect(cp).toContain("Test: Click save, expect a toast");
-    expect(cp).toContain("After testing: wk done T-001");
+    expect(cp).toContain("Test (you): Click save, expect a toast");
+    expect(cp).toContain("Next: wk handoff (keeps a fresh session safe), then wk done T-001 once the user confirms.");
     expect(p.read("tasks", "T-001.md")).toContain("Test: Click save, expect a toast\nTest: Empty form shows errors");
 
-    expect(p.wk("done", "T-001")).toBe("done  T-001 First thing");
+    expect(p.wk("done", "T-001").split("\n")[0]).toBe("done  T-001 First thing");
     expect(p.read("tasks", "T-001.md")).toContain("done_on: 2026-11-10");
     expect(p.wk("start", "T-002")).toBe("now   T-002 Second thing");
   });
@@ -79,7 +86,7 @@ describe("the task flow", () => {
     expect(body).toBe("Test: new one\n\nUse the v2 API.\n");
 
     p.wk("start", "T-001");
-    expect(p.wk("checkpoint")).toContain("Test: new one");
+    expect(p.wk("checkpoint")).toContain("Test (you): new one");
   });
 
   it("checkpoint refuses tests that push the body over 6 lines", () => {
@@ -94,7 +101,7 @@ describe("the task flow", () => {
   it("done --force skips review", () => {
     const p = project();
     p.wk("add", "task", "Typo fix");
-    expect(p.wk("done", "T-001", "--force")).toBe("done  T-001 Typo fix");
+    expect(p.wk("done", "T-001", "--force")).toContain("Next: wk handoff");
   });
 
   it("block and unblock toggle the flag, and blocked tasks can't start", () => {
@@ -157,7 +164,7 @@ describe("wk next and wk brief", () => {
     p.wk("handoff", "Stopped mid refactor.\\nRun tests first.");
     const out = p.wk("brief");
     expect(out).toBe(
-      ["No principles yet.", "Handoff:", "  Stopped mid refactor.", "  Run tests first.", "now   (nothing in progress)", "next  T-001 Do the thing"].join("\n"),
+      ["No principles yet.", `Handoff (${handoffDate(p)}):`, "  Stopped mid refactor.", "  Run tests first.", "now   (nothing in progress)", "next  T-001 Do the thing"].join("\n"),
     );
     fs.writeFileSync(p.file("principles", "arch.md"), "# arch\n\n1. Keep modules small.\n");
     expect(p.wk("brief")).not.toContain("No principles yet.");
