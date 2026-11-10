@@ -16,9 +16,9 @@ Phase one keeps `.work/` in the repo. Build it, use it for a week or two, then e
 | Language | TypeScript on Node 20+ | Runs on Windows, macOS and Linux. Same stack as my frontend work. |
 | Distribution | npm package with a `wk` bin | `npm i -g` or `npx wk`. No native deps. |
 | Paths | Node `path` and `os.homedir()` only | No hardcoded slashes. Works on Windows. |
-| Tracker | Companion, never synced | Jira or anything else is a manual step the CLI reminds me about. |
-| Tracker field | `ref`, never `jira` | Keeps the code tracker-neutral. Details live in config. |
-| Branching | Config default plus `--branch` flag | `wk start` stays on the current branch unless `branch_on_start` or `--branch` says otherwise. |
+| Tracker | Not wk's job | wk never talks to a tracker. Other skills or tools in a repo can, and wk only stores a `ref`. |
+| Tracker field | `ref`, a free-text field | Keeps wk tracker-neutral. |
+| Git workflow | Chosen by me, saved in config | `git.branch` (none, task, epic) and `git.commit` (ask, task, checkpoint). Unset means the agent asks once and saves the answer. It never applies its own git defaults. |
 | Generic layer | Config only, no adapters | Generalise when a second real person uses it. |
 | Personal vs shareable | Principles and templates live apart from the CLI | Sharing means "bring your own principles". |
 | Agent integration | Rules shipped inside the npm package, no MCP server | Any agent that can run a shell uses `wk` directly. `wk guide` prints the rules, `AGENTS.md` points at it, and Claude also gets them as a skill. MCP would duplicate the CLI and cost context every session. |
@@ -102,7 +102,8 @@ Every command prints plain text, 10 lines or fewer by default. `--json` gives ma
 | `wk add task --from <file\|-> [--epic] [--tags] [--later]` | One task per line (checklist markers are stripped). All or nothing: any title over the limit or similar to an open item stops the batch and lists every problem line. |
 | `wk add epic "<title>"` | Creates an epic with empty scope, out of scope and acceptance sections |
 | `wk show <id>` | Prints one item in full. The only way the agent reads an item body. |
-| `wk start <id> [--branch]` | Sets it to `now`. Refuses if another task is `now`. `--branch` creates `T-031-<slug>` from the current branch. Without it, stays where you are. |
+| `wk start <id> [--branch\|--no-branch]` | Sets it to `now`. Refuses if another task is `now`. Follows `git.branch`: stays put, switches to `T-031-<slug>`, or switches to the epic's `E-003-<slug>`, creating it if needed. Unset means stay put. `--branch` and `--no-branch` override for one task. |
+| `wk config [set <key> <value>]` | Prints the settings, or sets `git.branch`, `git.commit` or `principles_dir` |
 | `wk checkpoint [--checked "<result>"] [--test "<for me>"]` | Moves the `now` task to `review`. `--checked` records automated results the agent already ran (tests, types, build), so I never run them. `--test` is for things only a person can judge: look, feel, keyboard, how output reads. Both repeat. Prints them with a short git diff summary, says when there's nothing for a human to test, and reminds the agent to hand off. |
 | `wk done <id>` | Sets it to `done`. Expects `review` first; `--force` skips that for trivial tasks. Reminds the agent to hand off and to say whether a fresh session fits. |
 | `wk block <id> "<reason>"` / `wk unblock <id>` | Toggles the blocked flag |
@@ -111,7 +112,7 @@ Every command prints plain text, 10 lines or fewer by default. `--json` gives ma
 | `wk learn "<text>"` | Records a learning |
 | `wk ls [tasks\|ideas\|decisions] [--epic] [--tag] [--status]` | Filtered one-line-per-item list |
 | `wk status [--epic E-003]` | Terminal view of the whole plan: each epic with a progress bar and done/total, its `now` and `next` tasks, then a count of `later` tasks and ideas. |
-| `wk handoff "<text>"` | Overwrites `handoff.md`. Last call of every session. |
+| `wk handoff "<text>"` | Overwrites `handoff.md`. Run at every stop, so clearing context is always safe. |
 | `wk principles --tags ui,api` | Prints the rules for those tags, or says which tags have none |
 | `wk tidy [--fix]`, `wk merge`, `wk supersede`, `wk edit` | See "Keeping the plan clean". |
 
@@ -132,25 +133,21 @@ Tech notes: `commander` for args, `gray-matter` for frontmatter, `simple-git` or
 
 ## Config
 
-`config.yml` sits in the root. Phase one only reads `store`, `branch_on_start`, `counters` and `principles_dir`. The tracker and branch keys are there so phase three slots in later without a format change. wk never enforces team process; a repo's own skill does that by calling `wk`.
+`config.yml` sits in the root. Phase one reads `store`, `git`, `counters` and `principles_dir`. `wk config` prints the settings and `wk config set <key> <value>` changes one without touching the rest of the file. wk never enforces team process, and never talks to a tracker. A repo's own skills do that, calling `wk` where they need to.
 
 ```
-branch_on_start: false        # true creates a <id>-<slug> branch on wk start
+store: local                  # repo, ignore, local or home; chosen at wk init
 principles_dir: principles   # or an absolute path, shared across projects
 counters: { E: 3, T: 31, I: 7, D: 12, L: 4 }
+git:
+  branch: none                # none, task (T-031-slug) or epic (E-003-slug); empty = not chosen
+  commit: task                # ask, task (after wk done) or checkpoint; empty = not chosen
 
 # phase three
 require_ref_on_start: false   # optional gate, off by default
-tracker:
-  name: Jira
-  ref_pattern: "[A-Z]+-\\d+"
-  url: "https://acme.atlassian.net/browse/{ref}"
-  states:
-    pr: In Review
-    merged: Done
-  ticket_template: templates/ticket.md
-branch: "{ref}-{slug}"
 ```
+
+**The git workflow is mine to choose, never the agent's.** Agents bring their own git habits (branch before committing, commit when they think it's right). The `git` keys replace those habits. While a key is empty, `wk start` never branches, `wk brief` says the workflow isn't chosen, and the skill asks me once, with a recommendation, the first time a branch or commit comes up. It then saves my answer with `wk config set`. `wk brief` prints the workflow in one line every session, so a fresh agent sees it before touching git. `wk checkpoint` and `wk done` print a `Git:` line when the workflow says to commit or to ask. `--branch` and `--no-branch` on `wk start` override `git.branch` for one task. An old `branch_on_start: true` still reads as `git.branch: task`.
 
 `principles_dir` can point outside the project. That lets one set of principles serve every project, and keeps them out of a shared CLI repo.
 
@@ -226,11 +223,10 @@ Only start these after a week or two of real use. Expect the list to change.
 | Phase | Adds |
 | --- | --- |
 | Two | `wk promote <idea>` into a task, `wk promote <learning\|decision> --to <tag>` into a principle |
-| Three | Optional `require_ref_on_start`, `{ref}-{slug}` branch names, `wk link`, optional `pr` and `merged` states, tracker reminders from config. Ticket drafts and other team process live in the work repo's own skill. |
+| Three | Optional `require_ref_on_start`, `{ref}-{slug}` branch names, `wk link`, optional `pr` and `merged` states. Tickets, ticket drafts and other team process live in the work repo's own skills. |
 | Four | `wk board`: one static HTML file with a kanban for the current epic, progress per epic and a now/next/later roadmap. `wk refresh` reads PR status through `gh`. |
 
 ## Open questions
 
 - When to run the full automated suite. Slow suites shouldn't run at every checkpoint. One option: quick checks (types plus tests related to the change) at every checkpoint, the full suite at major points (end of an epic, before a commit or PR, before the last handoff of a session), and `checks: { quick, full }` commands in config so the agent doesn't guess. Decide after a week of real use.
-- How the agent gets ticket drafts in my writing style: a template file, or the existing reply skill. Not needed until phase three.
 - Later, maybe: non-coding projects like building a bed or planning a holiday. The core loop already fits. Revisit after real use, not before.
