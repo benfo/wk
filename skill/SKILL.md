@@ -11,9 +11,9 @@ Read and change the plan only through the `wk` CLI. If `wk` says there is no pla
 
 1. **Start every session with `wk brief`.** Do not read `.work/` or `~/.wk/` files directly. Use `wk show <id>` when you need an item's body.
 2. **"What's next"** means run `wk next` and summarise it in a few lines.
-3. **New work starts with a grilling session**, one question at a time with a recommended answer. The outcome becomes `wk add epic "<title>"` plus the first known tasks (`wk add task "<title>" --epic E-00N --tags <tags>`). Write the scope, out of scope and acceptance into the epic with `wk edit E-00N --body "..."`.
+3. **New work starts with a grilling session**, one question at a time with a recommended answer. If `wk brief` says "No project summary yet.", start there. Ask what the project is, who it's for, the goal, what's out of scope and what done means. Save the answers with `wk project "<text>"`, 8 lines or fewer, one `Label: …` per line, with `\n` between lines. Then move on to the epic. The outcome becomes `wk add epic "<title>"` plus the first known tasks (`wk add task "<title>" --epic E-00N --tags <tags>`). Write the scope, out of scope and acceptance into the epic with `wk edit E-00N --body "..."`.
 4. **Before coding a task**, run `wk principles --tags <the task's tags>` and follow what it returns. If it reports a gap, see "Capturing principles".
-5. **Off-topic idea from the user:** `wk idea "<text>"`, say "captured as I-008", and carry on.
+5. **Off-topic idea from the user:** `wk idea "<text>"`, say "captured as I-008", and carry on. If an idea or task looks out of scope (`wk project` shows the full summary), say so in one line before adding it.
 6. **A choice gets made:** `wk decide "<what>" --why "<why>" [--rejected "<what we didn't pick>"]`. **Something surprising:** `wk learn "<text>"`.
 7. **New work found mid-task:** `wk add task`. Don't silently grow the current task. If `wk add` prints `Similar: …`, update the existing item (`wk edit`) or merge (`wk merge <keep> <drop>`) instead. Use `--force` only when it really is different.
 8. **After each logical piece of work, stop and check it.** See "Checking work". Then `wk checkpoint --checked "<result>" --test "<for the user>"` (each repeatable). Say what changed. **Wait for the user** before `wk done <id>`.
@@ -60,7 +60,7 @@ The user's git workflow lives in wk's config, and `wk brief` shows it in its `Gi
 Offer this when `wk init` prints "Existing plans: …" or `wk brief` prints "Empty plan.". The user can skip it. Go one step at a time and wait for the user between steps.
 
 1. **Survey.** Read the README, `git log --oneline -30`, open branches, and every file `wk init` listed. List TODO/FIXME comments with `git grep -n -E "TODO|FIXME"`. Read GitHub issues (`gh issue list`) only if the user says yes. Summarise what you found in 5 lines or fewer.
-2. **Propose.** Suggest epics for the work already in flight, the tasks under each, and a `later` pile for the rest. Leave out anything done, stale or vague. Ask the user to confirm or trim, one epic at a time.
+2. **Propose.** First draft a project summary from the README and history. Ask the user to correct it, then save it with `wk project`. Then suggest epics for the work already in flight, the tasks under each, and a `later` pile for the rest. Leave out anything done, stale or vague. Ask the user to confirm or trim, one epic at a time.
 3. **Migrate.** Create each confirmed epic with `wk add epic`. Then add its tasks in one go: pipe one title per line into `wk add task --from - --epic E-00N --tags <tags>` (add `--later` for the later pile). It adds all or nothing and lists every problem line, so fix those and rerun. Migrate ADRs and past choices with `wk decide`, and open questions with `wk idea`. Rewrite titles to fit the writing rules rather than copying them.
 4. **Old files.** Never delete them silently. Ask whether to keep each one, delete it, or replace it with a one-line pointer to wk. Leave TODO comments in the code unless the user asks otherwise.
 5. **Principles.** Run the principles session below. An existing codebase gives it plenty to work with.
@@ -68,7 +68,7 @@ Offer this when `wk init` prints "Existing plans: …" or `wk brief` prints "Emp
 
 ## Writing rules
 
-Plain words, concrete nouns, no filler. Don't restate the title in the body. One task is one thing a person can test. The CLI refuses text over its limits: titles 70 characters, task body 6 lines, ideas and learnings 2 lines, decision why 2 lines, handoff 5 lines. If it refuses, shorten the text. Don't split it to get around the limit.
+Plain words, concrete nouns, no filler. Don't restate the title in the body. One task is one thing a person can test. The CLI refuses text over its limits: titles 70 characters, task body 6 lines, ideas and learnings 2 lines, decision why 2 lines, handoff 5 lines, project summary 8 lines. If it refuses, shorten the text. Don't split it to get around the limit.
 
 ## Capturing principles
 

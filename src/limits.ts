@@ -7,6 +7,7 @@ export const LIMITS = {
   decisionRejected: 1,
   note: 2, // ideas and learnings
   handoff: 5,
+  project: 8,
 } as const;
 
 export function lineCount(text: string): number {

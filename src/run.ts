@@ -7,7 +7,7 @@ import { configure } from "./commands/configure.js";
 import { guide } from "./commands/guide.js";
 import { init } from "./commands/init.js";
 import { edit, merge, supersede, tidy } from "./commands/tidy.js";
-import { brief, ls, next, principles, show, statusView } from "./commands/view.js";
+import { brief, ls, next, principles, project, show, statusView } from "./commands/view.js";
 import { loadContext, todayString, type Ctx } from "./context.js";
 import { render, WkError, type Result } from "./output.js";
 import { Store } from "./store.js";
@@ -211,6 +211,11 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .action(function (this: Command) {
       const o = this.opts();
       act((ctx, s) => statusView(ctx, s, o)).call(this);
+    });
+
+  program.command("project [text]").description("show the project summary, or overwrite it (8 lines max)")
+    .action(function (this: Command, text?: string) {
+      act((ctx, s) => project(ctx, s, text)).call(this);
     });
 
   program.command("handoff <text>").description("overwrite the handoff note, 5 lines max; last call of a session")

@@ -41,6 +41,7 @@ One item per file. Markdown with YAML frontmatter. Small files keep diffs clean 
 ```
 .work/
   config.yml
+  project.md                  what this is, who for, goal, out of scope, done when
   handoff.md
   epics/E-003.md
   tasks/T-031.md
@@ -70,7 +71,7 @@ Test: log in with an expired token, expect a redirect to /login.
 Notes go here. Keep it short.
 ```
 
-IDs are a prefix plus a zero-padded counter. The CLI keeps counters in `config.yml`. Epics hold scope, out of scope and acceptance criteria from the grilling session. Decisions hold what, why and what was rejected. Principles are one numbered rule per line, grouped by tag, one file per tag.
+The project summary sits above everything: the why. Epics are chunks of work, tasks are testable steps, and decisions, learnings and principles support all three. IDs are a prefix plus a zero-padded counter. The CLI keeps counters in `config.yml`. Epics hold scope, out of scope and acceptance criteria from the grilling session. Decisions hold what, why and what was rejected. Principles are one numbered rule per line, grouped by tag, one file per tag.
 
 ## States
 
@@ -96,7 +97,7 @@ Every command prints plain text, 10 lines or fewer by default. `--json` gives ma
 | --- | --- |
 | `wk init --store <repo\|ignore\|local\|home>` | Creates the plan folder, `config.yml`, empty folders and empty principle files. Copies the skill to `.claude/skills/wk/`. Adds the pointer to `AGENTS.md` (and to `CLAUDE.md` if one exists) unless the store is personal. Safe to rerun: refreshes the skill, keeps the data. A fresh init also lists existing plans worth migrating. |
 | `wk guide` | Prints the agent rules, for agents that don't load the skill |
-| `wk brief` | Prints the handoff note, the `now` task and the top of `wk next`. First call of every session. On an empty plan it says so, to prompt onboarding. Shows the handoff's date, and flags it when a task or epic changed after it. Starts the session count. |
+| `wk brief` | Prints the project summary's first line, the handoff note, the `now` task and the top of `wk next`. First call of every session. On an empty plan it says so, to prompt onboarding. Shows the handoff's date, and flags it when a task or epic changed after it. Starts the session count. |
 | `wk next` | Prints the `now` task, up to 5 `next` tasks, and anything blocked or needing a decision |
 | `wk add task "<title>" [--epic E-003] [--tags api,ui] [--later]` | Creates a task, prints its ID |
 | `wk add task --from <file\|-> [--epic] [--tags] [--later]` | One task per line (checklist markers are stripped). All or nothing: any title over the limit or similar to an open item stops the batch and lists every problem line. |
@@ -112,6 +113,7 @@ Every command prints plain text, 10 lines or fewer by default. `--json` gives ma
 | `wk learn "<text>"` | Records a learning |
 | `wk ls [tasks\|ideas\|decisions] [--epic] [--tag] [--status]` | Filtered one-line-per-item list |
 | `wk status [--epic E-003]` | Terminal view of the whole plan: each epic with a progress bar and done/total, its `now` and `next` tasks, then a count of `later` tasks and ideas. |
+| `wk project ["<text>"]` | Shows `project.md` in full, or overwrites it. `wk brief` prints its first line, or "No project summary yet." |
 | `wk handoff "<text>"` | Overwrites `handoff.md`. Run at every stop, so clearing context is always safe. |
 | `wk principles --tags ui,api` | Prints the rules for those tags, or says which tags have none |
 | `wk tidy [--fix]`, `wk merge`, `wk supersede`, `wk edit` | See "Keeping the plan clean". |
@@ -157,7 +159,7 @@ The rules ship inside the npm package as a skill. `wk init` copies it to `.claud
 
 1. Start every session with `wk brief`. Do not read `.work/` or `~/.wk/` files directly. Use `wk show` for detail.
 2. "What's next" means run `wk next` and summarise it in a few lines.
-3. A new piece of work starts with a grilling session. Its outcome becomes `wk add epic` plus the first known tasks.
+3. A new piece of work starts with a grilling session. Its outcome becomes `wk add epic` plus the first known tasks. A new project first gets its summary: what it is, who it's for, the goal, out of scope, and what done means, saved with `wk project`. Work that falls outside it gets flagged, not quietly added.
 4. Before coding a task, run `wk principles --tags <task tags>` and follow what it returns. If it reports a gap, see "Capturing principles" below.
 5. Off-topic idea from the user: `wk idea`, say "captured as I-008", carry on.
 6. A choice gets made: `wk decide`. Something surprising: `wk learn`.
@@ -171,7 +173,7 @@ The rules ship inside the npm package as a skill. `wk init` copies it to `.claud
 **Onboarding an existing project.** The CLI spots the moment. The skill does the judging. A fresh `wk init` scans for existing plans (TODO, ROADMAP, BACKLOG, TASKS and PLAN files at the top level or in `docs/`, ADR and plan folders, TODO/FIXME comments, a GitHub remote) and prints one line: "Existing plans: … Offer onboarding." `wk brief` on an empty plan prints "Empty plan." The skill then runs onboarding one step at a time:
 
 1. Survey the README, recent history, the listed sources, and GitHub issues only if I say yes. Summarise in 5 lines.
-2. Propose epics for work in flight, tasks under each, and a `later` pile. I confirm or trim one epic at a time.
+2. Propose a project summary drafted from the README and history, then epics for work in flight, tasks under each, and a `later` pile. I confirm or trim one epic at a time.
 3. Migrate through `wk add epic`, `wk add task --from -`, `wk decide` for ADRs and `wk idea` for open questions, so limits and the duplicate check still apply.
 4. Ask before touching old files: keep, delete, or replace with a pointer. Never delete silently.
 5. Run the principles session, then `wk tidy` and a first `wk handoff`.
@@ -201,6 +203,7 @@ The plan only helps if it stays small and true. The CLI enforces what it can. Th
 | Decision | What: 1 line. Why: 2 lines. Rejected: 1 line. |
 | Idea, learning | 2 lines |
 | Handoff | 5 lines |
+| Project summary | 8 lines |
 
 Writing rules for the agent: plain words, concrete nouns, no filler, no restating the title in the body. One task is one thing a person can test.
 

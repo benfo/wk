@@ -3,11 +3,32 @@ import path from "node:path";
 import { describeGit } from "../config.js";
 import type { Ctx } from "../context.js";
 import { startSession } from "../session.js";
-import { progressBar, result, WkError, type Result } from "../output.js";
+import { checkLines, LIMITS } from "../limits.js";
+import { progressBar, result, unescapeText, WkError, type Result } from "../output.js";
 import { KINDS, label, str, tags, type Item, type Kind, type Store } from "../store.js";
 import { isBlocked, itemLine, needsDecision, nowTask, principlesDir, status, summary } from "./shared.js";
 
 export const HANDOFF_FILE = "handoff.md";
+export const PROJECT_FILE = "project.md";
+
+export function readProject(ctx: Ctx): string {
+  const file = path.join(ctx.root, PROJECT_FILE);
+  return fs.existsSync(file) ? fs.readFileSync(file, "utf8").trim() : "";
+}
+
+/** Shows the project summary, or overwrites it when text is given. */
+export function project(ctx: Ctx, _store: Store, raw: string | undefined): Result {
+  if (raw === undefined) {
+    const text = readProject(ctx);
+    if (!text) return result(['No project summary yet. Write one: wk project "<what, who for, goal, out of scope, done when>"'], { project: null });
+    return { lines: text.split("\n"), data: { project: text }, full: true };
+  }
+  const text = checkLines(unescapeText(raw), LIMITS.project, "Project summary");
+  if (!text) throw new WkError("Project summary is empty.");
+  fs.writeFileSync(path.join(ctx.root, PROJECT_FILE), text + "\n");
+  const n = text.split("\n").length;
+  return result([`Project summary saved (${n} line${n === 1 ? "" : "s"}).`], { project: text });
+}
 
 export function readHandoff(ctx: Ctx): string {
   const file = path.join(ctx.root, HANDOFF_FILE);
@@ -98,6 +119,8 @@ export function brief(ctx: Ctx, store: Store): Result {
     (k) => store.list(k, { archived: "both" }).length === 0,
   );
   if (emptyPlan) lines.push("Empty plan. Offer onboarding (see Onboarding in wk guide).");
+  const about = readProject(ctx);
+  lines.push(about ? `Project: ${about.split("\n")[0]}` : "No project summary yet.");
   if (empty) lines.push("No principles yet.");
   // Early in the output, so the line cap never hides the workflow from a fresh session.
   const git = ctx.git ? gitLine(ctx) : null;
@@ -108,7 +131,7 @@ export function brief(ctx: Ctx, store: Store): Result {
     lines.push(`Handoff (${note}):`, ...handoff.split("\n").map((l) => `  ${l}`));
   } else lines.push("Handoff: none yet.");
   lines.push(...nextLines(v));
-  return result(lines, { handoff: handoff || null, ...nextData(v), no_principles: empty, empty_plan: emptyPlan, handoff_written: age.written, handoff_stale: age.stale, git: ctx.git ? ctx.config.git : null });
+  return result(lines, { project: about || null, handoff: handoff || null, ...nextData(v), no_principles: empty, empty_plan: emptyPlan, handoff_written: age.written, handoff_stale: age.stale, git: ctx.git ? ctx.config.git : null });
 }
 
 export function show(_ctx: Ctx, store: Store, rawId: string): Result {

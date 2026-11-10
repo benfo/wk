@@ -164,7 +164,7 @@ describe("wk next and wk brief", () => {
     p.wk("handoff", "Stopped mid refactor.\\nRun tests first.");
     const out = p.wk("brief");
     expect(out).toBe(
-      ["No principles yet.", `Handoff (${handoffDate(p)}):`, "  Stopped mid refactor.", "  Run tests first.", "now   (nothing in progress)", "next  T-001 Do the thing"].join("\n"),
+      ["No project summary yet.", "No principles yet.", `Handoff (${handoffDate(p)}):`, "  Stopped mid refactor.", "  Run tests first.", "now   (nothing in progress)", "next  T-001 Do the thing"].join("\n"),
     );
     fs.writeFileSync(p.file("principles", "arch.md"), "# arch\n\n1. Keep modules small.\n");
     expect(p.wk("brief")).not.toContain("No principles yet.");
