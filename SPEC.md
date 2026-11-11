@@ -4,7 +4,7 @@
 
 wk is a small CLI plus an agent skill for tracking software work in plain text files. It lets me start fresh agent sessions often without losing the thread. The agent asks the CLI for what it needs. It never reads the files directly.
 
-It tracks epics, tasks, ideas, decisions and learnings. It answers "what's next" in a few lines. It pauses after each piece of work so a human can test it. It keeps my principles in front of the agent, but only the ones that matter for the task at hand.
+It tracks epics, tasks, ideas, decisions and learnings. It answers "what's next" in a few lines. It pauses after each task so a human can try it. It keeps my principles in front of the agent, but only the ones that matter for the task at hand.
 
 Phase one keeps `.work/` in the repo. Build it, use it for a week or two, then extend.
 
@@ -161,14 +161,30 @@ The rules ship inside the npm package as a skill. `wk init` copies it to `.claud
 2. "What's next" means run `wk next` and summarise it in a few lines.
 3. A new piece of work starts with a grilling session. Its outcome becomes `wk add epic` plus the first known tasks. A new project first gets its summary: what it is, who it's for, the goal, out of scope, and what done means, saved with `wk project`. Work that falls outside it gets flagged, not quietly added.
 4. Before coding a task, run `wk principles --tags <task tags>` and follow what it returns. If it reports a gap, see "Capturing principles" below.
-5. Off-topic idea from the user: `wk idea`, say "captured as I-008", carry on.
+5. Off-topic idea from the user: `wk idea`, say "Saved that idea for later", carry on.
 6. A choice gets made: `wk decide`. Something surprising: `wk learn`.
 7. New work found mid-task: `wk add task`. Don't silently grow the current task. If `wk add` reports a similar item, update or merge it instead.
-8. After each logical piece of work, stop. Run the automated checks that cover the change yourself and report them in one line with `--checked`, saying which ran. Give me `--test` items only for what a person interacts with: how it looks and feels, keyboard, how output reads, whether a flow makes sense. If unsure, ask whether it's worth my eyes. If there's nothing for me to test, say so and ask for a quick go-ahead. Wait for me before `wk done`.
-9. Hand off at every stop: after every `wk checkpoint` and `wk done`, run `wk handoff` with 5 lines or fewer: where we stopped, what's half done, what to do first next time. It overwrites, so it's cheap, and it makes clearing context safe at any moment. Always hand off when I say I'm stopping, before suggesting a clear, right after a compaction and before switching epics.
-10. At every stop, recommend one of: continue here (the next task builds on what's loaded), fresh session (unrelated next task, another epic, heavy context, a compaction, repeating itself), or subagent (read-heavy work where only the conclusion matters). One line, with the reason. Be honest: agents can't forget selectively, and everything in context is resent every turn.
+8. Work through the whole task, then stop once. No stops partway to show progress, ask whether to continue, or confirm what the task or principles already settle. Stop early only when blocked, when a decision is mine (two fair options with different trade-offs, or something hard to undo), or when the task can't be finished without new work, which becomes a task first.
+9. At the end of a task, run the automated checks that cover the change and report them with `--checked`, saying which ran. Give me `--test` items only for what a person interacts with: how it looks and feels, keyboard, how output reads, whether a flow makes sense. For plumbing with nothing to try, give a review instead: what changed, why, and which files to look at. Then check in (see "Check-in" below) and wait for me before `wk done`. My "looks good" also accepts the `Next:` line: the agent closes the task and either starts the next one or hands off and tells me to start a fresh session.
+10. Hand off at every stop, without comment: after every `wk checkpoint` and `wk done`, run `wk handoff` with 5 lines or fewer: where we stopped, what's half done, what to do first next time. It overwrites, so it's cheap, and it makes clearing context safe at any moment. Always hand off when I say I'm stopping, before suggesting a clear, right after a compaction and before switching epics.
+11. In every check-in's `Next:` line, recommend one of: continue here (the next task builds on what's loaded), fresh session (unrelated next task, another epic, heavy context, a compaction, repeating itself), or subagent (read-heavy work where only the conclusion matters). Say why in a few words. Be honest: agents can't forget selectively, and everything in context is resent every turn.
 
    An agent can't see its own token count, so wk supplies facts instead. `wk brief` starts a session count, kept per machine in `~/.wk/sessions/` so a committed `.work/` doesn't churn. `wk done` says "3 tasks done this session" from the third task on. `wk start` says when the task's epic differs from the last one started. The agent treats both as a fresh-session recommendation unless it can name what the next task needs from this session. The threshold of 3 is a guess, to revisit after real use.
+
+**Talking to me.** I'm in the zone while the agent works, so everything it says is short and easy to scan. It talks about the product, not the plan: no item IDs and no wk commands unless I ask.
+
+**Check-in.** One per task, four labelled lines in plain words:
+
+```
+Done: ideas can be deleted, or folded into the task they became.
+Checked: tests, types and build pass.
+Try: delete an old idea; it's gone from the later list.
+Next: clean up stale tasks. Same code, so continue here.
+```
+
+`Review:` replaces `Try:` for plumbing. Handoff, tidy and git run without comment unless something needs me.
+
+**Sizing tasks.** Every task ends with something I can try: run a command, click through a screen, call an endpoint. Setup, config, wiring and refactors go inside the first task that needs them, never on their own. Plumbing with nothing to see (CI, a dependency upgrade) can stand alone if it ends with something worth reviewing. When the agent picks up a task with nothing to try or review, it folds it into the next one and says so in a line.
 
 **Onboarding an existing project.** The CLI spots the moment. The skill does the judging. A fresh `wk init` scans for existing plans (TODO, ROADMAP, BACKLOG, TASKS and PLAN files at the top level or in `docs/`, ADR and plan folders, TODO/FIXME comments, a GitHub remote) and prints one line: "Existing plans: … Offer onboarding." `wk brief` on an empty plan prints "Empty plan." The skill then runs onboarding one step at a time:
 
@@ -205,7 +221,7 @@ The plan only helps if it stays small and true. The CLI enforces what it can. Th
 | Handoff | 5 lines |
 | Project summary | 8 lines |
 
-Writing rules for the agent: plain words, concrete nouns, no filler, no restating the title in the body. One task is one thing a person can test.
+Writing rules for the agent: plain words, concrete nouns, no filler, no restating the title in the body. Tasks are sized as in "Sizing tasks" above.
 
 **Tidy as you go.**
 
@@ -214,6 +230,7 @@ Writing rules for the agent: plain words, concrete nouns, no filler, no restatin
 | `wk tidy` | Prints problems, 10 lines max: likely duplicates, `next` tasks untouched for 30 days, ideas older than 60 days, epics with every task done, tasks pointing at a missing epic |
 | `wk tidy --fix` | Archives `done` items older than 7 days and closes finished epics. Everything else stays a suggestion. |
 | `wk merge <keep> <drop>` | Folds one task or idea into another, keeps the shorter text, deletes the duplicate. An idea can fold into a task; the task keeps its text. |
+| `wk drop <idea>` | Deletes an idea that is no longer wanted |
 | `wk supersede <old> <new>` | Marks an old decision as replaced. Never edit a decision's history. |
 | `wk edit <id> --title/--body` | Rewrites an item in place, same limits apply |
 

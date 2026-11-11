@@ -28,7 +28,7 @@ describe("checkpoint: automated checks vs human tests", () => {
     const p = started();
     const out = p.wk("checkpoint", "--checked", "12 related tests pass, full suite not run");
     expect(out).toContain("Checked: 12 related tests pass, full suite not run");
-    expect(out).toContain("Nothing for a human to test. Ask the user to confirm.");
+    expect(out).toContain("Nothing for a human to try. Use Review: what changed, why, which files.");
     expect(p.read("tasks", "T-001.md").split("---\n")[2] ?? "").toBe("");
   });
 

@@ -104,7 +104,7 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; chec
   if (tests.length === 0 && checked.length === 0) {
     lines.push('Nothing checked or tested. Add --checked "<automated result>" and/or --test "<for a human>".');
   } else if (tests.length === 0) {
-    lines.push("Nothing for a human to test. Ask the user to confirm.");
+    lines.push("Nothing for a human to try. Use Review: what changed, why, which files.");
   }
 
   const diff = ctx.git ? diffSummary(ctx.base) : null;
@@ -118,7 +118,7 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; chec
   }
   const git = commitHint(ctx, "checkpoint");
   if (git) lines.push(git);
-  lines.push(`Next: ${HANDOFF_NUDGE}, then wk done ${task.id} once the user confirms.`);
+  lines.push(`Next: ${HANDOFF_NUDGE}, send the check-in (Done/Checked/Try/Next), then wk done ${task.id} once the user confirms.`);
   return result(lines, {
     id: task.id,
     status: "review",

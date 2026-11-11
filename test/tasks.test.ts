@@ -68,7 +68,7 @@ describe("the task flow", () => {
     const cp = p.wk("checkpoint", "--test", "Click save, expect a toast", "--test", "Empty form shows errors");
     expect(cp).toContain("review T-001 First thing");
     expect(cp).toContain("Test (you): Click save, expect a toast");
-    expect(cp).toContain("Next: wk handoff (keeps a fresh session safe), then wk done T-001 once the user confirms.");
+    expect(cp).toContain("Next: wk handoff (keeps a fresh session safe), send the check-in (Done/Checked/Try/Next), then wk done T-001 once the user confirms.");
     expect(p.read("tasks", "T-001.md")).toContain("Test: Click save, expect a toast\nTest: Empty form shows errors");
 
     expect(p.wk("done", "T-001").split("\n")[0]).toBe("done  T-001 First thing");
