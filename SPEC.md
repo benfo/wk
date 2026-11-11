@@ -219,7 +219,7 @@ Writing rules for the agent: plain words, concrete nouns, no filler, no restatin
 
 Archived items move to `archive/`. `wk ls` and `wk next` ignore them, which keeps every command's output small. `wk ls --archived` still finds them.
 
-**When the agent tidies.** After `wk checkpoint` and before `wk handoff`, run `wk tidy`. Fix anything small that touches the current epic: merge a duplicate, tighten a wordy task, drop a task the work made pointless, supersede a decision we just changed. Anything bigger goes to me as a one-line question. Never delete without saying so.
+**When the agent tidies.** After `wk checkpoint` and before `wk handoff`, run `wk tidy`. Fix anything small that touches the current epic: merge a duplicate, drop a dead idea, tighten a wordy task, drop a task the work made pointless, supersede a decision we just changed. Anything bigger goes to me as a one-line question. Never delete without saying so.
 
 ## Later phases
 

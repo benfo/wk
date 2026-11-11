@@ -92,6 +92,17 @@ describe("wk merge", () => {
   });
 });
 
+describe("wk drop", () => {
+  it("deletes an idea and refuses other kinds", () => {
+    const p = project();
+    p.wk("idea", "Passkeys");
+    p.wk("add", "task", "Refresh token flow");
+    expect(p.wk("drop", "I-001")).toBe("Dropped I-001 Passkeys");
+    expect(fs.existsSync(p.file("ideas", "I-001.md"))).toBe(false);
+    expect(p.raw("drop", "T-001").code).not.toBe(0);
+  });
+});
+
 describe("wk supersede", () => {
   it("marks the old decision as replaced and links both ways", () => {
     const p = project();
