@@ -213,7 +213,7 @@ Writing rules for the agent: plain words, concrete nouns, no filler, no restatin
 | --- | --- |
 | `wk tidy` | Prints problems, 10 lines max: likely duplicates, `next` tasks untouched for 30 days, ideas older than 60 days, epics with every task done, tasks pointing at a missing epic |
 | `wk tidy --fix` | Archives `done` items older than 7 days and closes finished epics. Everything else stays a suggestion. |
-| `wk merge <keep> <drop>` | Folds one task or idea into another, keeps the shorter text, deletes the duplicate |
+| `wk merge <keep> <drop>` | Folds one task or idea into another, keeps the shorter text, deletes the duplicate. An idea can fold into a task; the task keeps its text. |
 | `wk supersede <old> <new>` | Marks an old decision as replaced. Never edit a decision's history. |
 | `wk edit <id> --title/--body` | Rewrites an item in place, same limits apply |
 

@@ -99,11 +99,16 @@ export function merge(_ctx: Ctx, store: Store, rawKeep: string, rawDrop: string)
   const keep = store.get(rawKeep, ["task", "idea"]);
   const drop = store.get(rawDrop, ["task", "idea"]);
   if (keep.id === drop.id) throw new WkError("Cannot merge an item into itself.");
-  if (keep.kind !== drop.kind) throw new WkError(`${keep.id} and ${drop.id} are different kinds. Merge tasks with tasks, ideas with ideas.`);
+  if (keep.kind === "idea" && drop.kind === "task") {
+    throw new WkError(`Keep the task, drop the idea: wk merge ${drop.id} ${keep.id}`);
+  }
   if (keep.archived || drop.archived) throw new WkError("Cannot merge archived items.");
   if (status(drop) === "now") throw new WkError(`${drop.id} is now. Keep it instead: wk merge ${drop.id} ${keep.id}`);
 
-  if (keep.kind === "task") {
+  if (keep.kind !== drop.kind) {
+    // An idea folded into a task: the task keeps its own title and body.
+    if (!str(keep, "epic") && str(drop, "epic")) keep.data.epic = str(drop, "epic");
+  } else if (keep.kind === "task") {
     keep.data.title = shorter(str(keep, "title"), str(drop, "title"));
     const allTags = [...new Set([...tags(keep), ...tags(drop)])];
     keep.data.tags = allTags;
@@ -112,7 +117,7 @@ export function merge(_ctx: Ctx, store: Store, rawKeep: string, rawDrop: string)
   } else if (!str(keep, "epic") && str(drop, "epic")) {
     keep.data.epic = str(drop, "epic");
   }
-  keep.body = shorter(keep.body, drop.body);
+  if (keep.kind === drop.kind) keep.body = shorter(keep.body, drop.body);
   store.save(keep);
   store.remove(drop);
   return result([`Merged ${drop.id} into ${keep.id} ${label(keep)}`, `Deleted ${drop.id}`], {

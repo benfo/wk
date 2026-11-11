@@ -241,7 +241,7 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
       act((ctx, s) => tidy(ctx, s, o)).call(this);
     });
 
-  program.command("merge <keep> <drop>").description("fold one task or idea into another and delete the duplicate")
+  program.command("merge <keep> <drop>").description("fold a task or idea into another (or an idea into a task) and delete the duplicate")
     .action(function (this: Command, keep: string, drop: string) {
       act((ctx, s) => merge(ctx, s, keep, drop)).call(this);
     });

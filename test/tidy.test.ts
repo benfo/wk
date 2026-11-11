@@ -66,16 +66,29 @@ describe("wk merge", () => {
     expect(fs.existsSync(p.file("tasks", "T-002.md"))).toBe(false);
   });
 
-  it("merges ideas and refuses mixed kinds or the now task", () => {
+  it("merges ideas and refuses keeping an idea over a task or dropping the now task", () => {
     const p = project();
     p.wk("idea", "Dark mode");
     p.wk("idea", "Dark mode with a toggle in settings", "--force");
     p.wk("add", "task", "Build dark mode", "--force");
     p.wk("add", "task", "Build dark theme", "--force");
     expect(p.wk("merge", "I-002", "I-001")).toContain("Merged I-001 into I-002 Dark mode");
-    expect(p.raw("merge", "T-001", "I-002").stderr).toMatch(/different kinds/);
+    expect(p.raw("merge", "I-002", "T-001").stderr).toMatch(/Keep the task, drop the idea: wk merge T-001 I-002/);
     p.wk("start", "T-002");
     expect(p.raw("merge", "T-001", "T-002").stderr).toMatch(/T-002 is now/);
+  });
+
+  it("folds an idea into a task, keeping the task's text and taking the idea's epic", () => {
+    const p = project();
+    p.wk("add", "epic", "Theming");
+    p.wk("idea", "Dark mode toggle", "--epic", "E-001");
+    p.wk("add", "task", "Build dark mode", "--body", "Toggle in settings.", "--force");
+    expect(p.wk("merge", "T-001", "I-001")).toBe("Merged I-001 into T-001 Build dark mode\nDeleted I-001");
+    const kept = p.read("tasks", "T-001.md");
+    expect(kept).toContain("title: Build dark mode\n");
+    expect(kept).toContain("epic: E-001");
+    expect(kept).toContain("Toggle in settings.");
+    expect(fs.existsSync(p.file("ideas", "I-001.md"))).toBe(false);
   });
 });
 
