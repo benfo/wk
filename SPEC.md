@@ -165,9 +165,9 @@ The rules ship inside the npm package as a skill. `wk init` copies it to `.claud
 6. A choice gets made: `wk decide`. Something surprising: `wk learn`.
 7. New work found mid-task: `wk add task`. Don't silently grow the current task. If `wk add` reports a similar item, update or merge it instead.
 8. Work through the whole task, then stop once. No stops partway to show progress, ask whether to continue, or confirm what the task or principles already settle. Stop early only when blocked, when a decision is mine (two fair options with different trade-offs, or something hard to undo), or when the task can't be finished without new work, which becomes a task first.
-9. At the end of a task, run the automated checks that cover the change and report them with `--checked`, saying which ran. Give me `--test` items only for what a person interacts with: how it looks and feels, keyboard, how output reads, whether a flow makes sense. For plumbing with nothing to try, give a review instead: what changed, why, and which files to look at. Then check in (see "Check-in" below) and wait for me before `wk done`. My "looks good" also accepts the `Next:` line: the agent closes the task and either starts the next one or hands off and tells me to start a fresh session.
+9. At the end of a task, run the automated checks that cover the change and report them with `--checked`, saying which ran. Give me `--test` items only for what a person interacts with: how it looks and feels, keyboard, how output reads, whether a flow makes sense. For plumbing with nothing to try, give a review instead: what changed, why, and which files to look at. Then check in (see "Check-in" below) and wait for me before `wk done`. My "looks good" also accepts the `Next:` line: the agent closes the task and starts the next one, or, if it recommended a fresh session, hands off and stops.
 10. Hand off at every stop, without comment: after every `wk checkpoint` and `wk done`, run `wk handoff` with 5 lines or fewer: where we stopped, what's half done, what to do first next time. It overwrites, so it's cheap, and it makes clearing context safe at any moment. Always hand off when I say I'm stopping, before suggesting a clear, right after a compaction and before switching epics.
-11. In every check-in's `Next:` line, recommend one of: continue here (the next task builds on what's loaded), fresh session (unrelated next task, another epic, heavy context, a compaction, repeating itself), or subagent (read-heavy work where only the conclusion matters). Say why in a few words. Be honest: agents can't forget selectively, and everything in context is resent every turn.
+11. At every check-in, the agent decides whether the next task runs here or in a fresh session. Here is the default and isn't mentioned: `Next:` just asks if I'm ready to go on. A fresh session (unrelated next task, another epic, heavy context, a compaction, repeating itself) is only mentioned when recommended, with the reason in plain words: faster, cheaper, fewer mix-ups from old work, and where we are is saved. Subagents for read-heavy work are the agent's own call, not something to ask me. Agents can't forget selectively, and everything in context is resent every turn, so this matters even when I don't see it.
 
    An agent can't see its own token count, so wk supplies facts instead. `wk brief` starts a session count, kept per machine in `~/.wk/sessions/` so a committed `.work/` doesn't churn. `wk done` says "3 tasks done this session" from the third task on. `wk start` says when the task's epic differs from the last one started. The agent treats both as a fresh-session recommendation unless it can name what the next task needs from this session. The threshold of 3 is a guess, to revisit after real use.
 
@@ -179,7 +179,13 @@ The rules ship inside the npm package as a skill. `wk init` copies it to `.claud
 Done: ideas can be deleted, or folded into the task they became.
 Checked: tests, types and build pass.
 Try: delete an old idea; it's gone from the later list.
-Next: clean up stale tasks. Same code, so continue here.
+Next: clean up stale tasks. Ready to go on?
+```
+
+When a fresh session is the better call, say so in `Next:` with the reason in plain words:
+
+```
+Next: the shell hook. It's new code, and this chat is full of the last task, so a fresh session will be faster and cheaper. Where we are is saved.
 ```
 
 `Review:` replaces `Try:` for plumbing. Handoff, tidy and git run without comment unless something needs me.

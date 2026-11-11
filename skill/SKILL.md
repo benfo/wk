@@ -21,7 +21,7 @@ wk runs in the background. The user is in the zone, so keep every check-in, ques
 6. **A choice gets made:** `wk decide "<what>" --why "<why>" [--rejected "<what we didn't pick>"]`. **Something surprising:** `wk learn "<text>"`.
 7. **New work found mid-task:** `wk add task`. Don't silently grow the current task. If `wk add` prints `Similar: …`, update the existing item (`wk edit`) or merge (`wk merge <keep> <drop>`) instead. Use `--force` only when it really is different.
 8. **Work through the whole task, then stop once.** Don't stop partway to show progress, ask whether to continue, or confirm an approach the task or principles already settle. Stop early only when you're blocked, when a decision is the user's (two fair options with different trade-offs, or something hard to undo), or when the task can't be finished without new work (add that as a task first).
-9. **At the end of the task, check it and check in.** See "Checking work". Run `wk checkpoint --checked "<result>" --test "<for the user>"` (each repeatable), then send the check-in (see "Check-in"). **Wait for the user** before `wk done <id>`. Their "looks good" also accepts your `Next:` line: run `wk done`, then start the next task if you said continue here, or hand off and tell them to start a fresh session.
+9. **At the end of the task, check it and check in.** See "Checking work". Run `wk checkpoint --checked "<result>" --test "<for the user>"` (each repeatable), then send the check-in (see "Check-in"). **Wait for the user** before `wk done <id>`. Their "looks good" also accepts your `Next:` line: run `wk done`, then start the next task, or, if you recommended a fresh session, hand off and stop.
 10. **Hand off at every stop, quietly.** After every `wk checkpoint` and every `wk done`, run `wk handoff "<text>"`: 5 lines or fewer, covering where we stopped, what's half done and what to do first next time. Use `\n` between lines. It overwrites the last one, so it costs little, and it means the user can clear context at any moment. Always hand off when the user says they're stopping, before you suggest clearing, right after a compaction and before switching epics. If `wk brief` says the handoff is older than the latest task change, the last session skipped one, so check `wk next` before trusting it.
 11. **Git follows the user's workflow, not your habits.** See "Git".
 
@@ -43,24 +43,31 @@ One check-in per task, four short labelled lines, plain words:
 Done: ideas can be deleted, or folded into the task they became.
 Checked: tests, types and build pass.
 Try: delete an old idea; it's gone from the later list.
-Next: clean up stale tasks. Same code, so continue here.
+Next: clean up stale tasks. Ready to go on?
 ```
 
-For plumbing, `Review:` replaces `Try:`. `Next:` names the next task and your context call (see "Context"). Handoff, tidy and git run without comment; mention them only when something needs the user.
+When a fresh session is the better call, say so in `Next:` with the reason in plain words:
+
+```
+Next: the shell hook. It's new code, and this chat is full of the last task, so a fresh session will be faster and cheaper. Where we are is saved.
+```
+
+For plumbing, `Review:` replaces `Try:`. `Next:` names the next task. By default it just asks whether to go on; it only mentions sessions when you recommend a fresh one (see "Context"). Handoff, tidy and git run without comment; mention them only when something needs the user.
 
 ## Context
 
-Everything in the conversation is sent back to the model on every turn. Old file reads, logs and finished tasks cost tokens and blur attention, and you can't forget them selectively. Only a fresh session clears them. Be honest with the user about this. In every check-in's `Next:` line, recommend one of these:
+Everything in the conversation is sent back to the model on every turn. Old file reads, logs and finished tasks cost tokens and blur attention, and you can't forget them selectively. Only a fresh session clears them. At every check-in, decide whether the next task should run here or in a fresh session.
 
-| Recommend | When |
-| --- | --- |
-| Continue here | The next task builds on what's loaded now: same files, same epic, a half-found bug, a decision just made |
-| Fresh session | The task is done and the next one is unrelated, the work moves to another epic, many files or long logs have been read, a compaction happened, or you notice you're repeating yourself or re-reading things |
-| Subagent | Read-heavy work where only the conclusion matters: surveying a codebase, wide searches, reviewing a diff, running a long command and summarising it |
+- **Here (the default, say nothing about it):** the next task builds on what's loaded now: same files, a half-found bug, a decision just made.
+- **Fresh session (tell the user, with the reason):** the next task is unrelated, the work moves to another epic, many files or long logs have been read, a compaction happened, or you notice you're repeating yourself or re-reading things.
 
-You can't see your own token count, so wk gives you two facts to go on. `wk done` counts the tasks finished since `wk brief` and says so from the third one on. `wk start` says when a task is from a different epic than the last one. Treat both as a fresh-session recommendation unless you can name what the next task needs from this session. Either way, say which it is and why.
+The user doesn't think in context windows, so never just say "continue here" or "fresh session". When you recommend a fresh one, say what it buys them in plain words (faster, cheaper, fewer mix-ups from old work) and that where we are is saved. Write the handoff first.
 
-Don't use a subagent for work that needs back-and-forth with the user, for tightly connected edits, or for a lookup of a few tool calls. A subagent starts empty and re-reads what it needs, so small jobs cost more that way. Before recommending a fresh session, write the handoff. The test of a good handoff: a fresh session that runs only `wk brief` knows what to do first.
+Use a subagent yourself for read-heavy work where only the conclusion matters: surveying a codebase, wide searches, reviewing a diff, running a long command and summarising it. That's your call, not the user's.
+
+You can't see your own token count, so wk gives you two facts to go on. `wk done` counts the tasks finished since `wk brief` and says so from the third one on. `wk start` says when a task is from a different epic than the last one. Treat both as a fresh-session recommendation unless you can name what the next task needs from this session.
+
+Don't use a subagent for work that needs back-and-forth with the user, for tightly connected edits, or for a lookup of a few tool calls. A subagent starts empty and re-reads what it needs, so small jobs cost more that way. The test of a good handoff: a fresh session that runs only `wk brief` knows what to do first.
 
 ## Git
 
