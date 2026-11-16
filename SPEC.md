@@ -105,8 +105,8 @@ Every command prints plain text, 10 lines or fewer by default. `--json` gives ma
 | `wk show <id>` | Prints one item in full. The only way the agent reads an item body. |
 | `wk start <id> [--branch\|--no-branch]` | Sets it to `now`. Refuses if another task is `now`. Follows `git.branch`: stays put, switches to `T-031-<slug>`, or switches to the epic's `E-003-<slug>`, creating it if needed. Unset means stay put. `--branch` and `--no-branch` override for one task. Says when the task's epic differs from the last task started this session. Then prints the task's body and the principles for its tags, uncapped, so starting needs no `wk show` or `wk principles` call. |
 | `wk config [set <key> <value>]` | Prints the settings, or sets `git.branch`, `git.commit` or `principles_dir` |
-| `wk checkpoint [--checked "<result>"] [--test "<for me>"] [--handoff "<text>"]` | Moves the `now` task to `review`. `--checked` records automated results the agent already ran (tests, types, build), so I never run them. `--test` is for things only a person can judge: look, feel, keyboard, how output reads. Both repeat. `--handoff` saves the handoff in the same call. Prints them with a short git diff summary and the first `wk tidy` problem, and says when there's nothing for a human to test. |
-| `wk done <id> [--handoff "<text>"]` | Sets it to `done`. Expects `review` first; `--force` skips that for trivial tasks. Archives done items older than 7 days (epics stay open for `wk tidy --fix`) and writes the handoff: the given text, or one naming this task and the next. Says whether a fresh session fits; from the third task finished this session, it recommends one outright. |
+| `wk checkpoint [--checked "<result>"] [--test "<for me>"] [--handoff "<text>"]` | Moves the `now` task to `review`. `--checked` records automated results the agent already ran (tests, types, build), so I never run them. `--test` is for things only a person can judge: look, feel, keyboard, how output reads. Both repeat. `--handoff` saves the handoff in the same call, and `--fresh` marks it as recommending a fresh session. Prints them with a short git diff summary and the first `wk tidy` problem, and says when there's nothing for a human to test. |
+| `wk done <id> [--handoff "<text>"]` | Sets it to `done`. Expects `review` first; `--force` skips that for trivial tasks. Archives done items older than 7 days (epics stay open for `wk tidy --fix`) and writes the handoff: the given text, or one naming this task and the next. A `--fresh` mark from the checkpoint carries over, and done then says to stop. Says whether a fresh session fits; from the third task finished this session, it recommends one outright. |
 | `wk block <id> "<reason>"` / `wk unblock <id>` | Toggles the blocked flag |
 | `wk idea "<text>" [--epic E-003]` | Captures an idea in one line |
 | `wk decide "<what>" --why "<why>"` | Records a decision |
@@ -114,7 +114,7 @@ Every command prints plain text, 10 lines or fewer by default. `--json` gives ma
 | `wk ls [tasks\|ideas\|decisions] [--epic] [--tag] [--status]` | Filtered one-line-per-item list |
 | `wk status [--epic E-003]` | Terminal view of the whole plan: each epic with a progress bar and done/total, its `now` and `next` tasks, then a count of `later` tasks and ideas. |
 | `wk project ["<text>"]` | Shows `project.md` in full, or overwrites it. `wk brief` prints its first line, or "No project summary yet." |
-| `wk handoff "<text>"` | Overwrites `handoff.md`. Run at every stop, so clearing context is always safe. |
+| `wk handoff "<text>" [--fresh]` | Overwrites `handoff.md`. Run at every stop, so clearing context is always safe. `--fresh` makes `wk brief` show "fresh session recommended" in the handoff header. |
 | `wk principles --tags ui,api` | Prints the rules for those tags, or says which tags have none |
 | `wk tidy [--fix]`, `wk merge`, `wk supersede`, `wk edit` | See "Keeping the plan clean". |
 

@@ -92,6 +92,17 @@ describe("handoff at every stop", () => {
     expect(p.wk("tidy")).toContain("Finished: E-001");
   });
 
+  it("a fresh-session handoff shows in brief and carries from checkpoint to done", () => {
+    const p = started();
+    p.wk("checkpoint", "--checked", "ok", "--handoff", "Waiting on review.", "--fresh");
+    expect(p.wk("brief")).toMatch(/^Handoff \(.+, fresh session recommended\):$/m);
+    expect(p.wk("brief")).not.toContain("<!--");
+    expect(p.wk("done", "T-001")).toContain("You recommended a fresh session: stop here.");
+    expect(p.wk("brief")).toContain("fresh session recommended");
+    p.wk("handoff", "Plain note.");
+    expect(p.wk("brief")).not.toContain("fresh session recommended");
+  });
+
   it("brief flags a handoff older than the latest task change", () => {
     const p = project();
     p.wk("add", "task", "First");

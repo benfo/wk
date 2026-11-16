@@ -30,9 +30,21 @@ export function project(ctx: Ctx, _store: Store, raw: string | undefined): Resul
   return result([`Project summary saved (${n} line${n === 1 ? "" : "s"}).`], { project: text });
 }
 
-export function readHandoff(ctx: Ctx): string {
+/** Marks a handoff that recommends a fresh session; kept out of the 5-line note. */
+export const FRESH_MARK = "<!-- fresh session -->";
+
+function readHandoffFile(ctx: Ctx): string {
   const file = path.join(ctx.root, HANDOFF_FILE);
-  return fs.existsSync(file) ? fs.readFileSync(file, "utf8").trim() : "";
+  return fs.existsSync(file) ? fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n").trim() : "";
+}
+
+export function readHandoff(ctx: Ctx): string {
+  return readHandoffFile(ctx).replace(FRESH_MARK, "").trim();
+}
+
+/** True when the last handoff recommended a fresh session. */
+export function handoffFresh(ctx: Ctx): boolean {
+  return readHandoffFile(ctx).startsWith(FRESH_MARK);
 }
 
 /** "Git: no branches, commit after each task." or a prompt to ask when it isn't chosen. */
@@ -127,7 +139,8 @@ export function brief(ctx: Ctx, store: Store): Result {
   if (git) lines.push(git);
   const age = handoffAge(ctx, store);
   if (handoff) {
-    const note = age.stale ? `${age.written}, older than the latest task change` : age.written;
+    const fresh = handoffFresh(ctx) ? ", fresh session recommended" : "";
+    const note = (age.stale ? `${age.written}, older than the latest task change` : age.written) + fresh;
     lines.push(`Handoff (${note}):`, ...handoff.split("\n").map((l) => `  ${l}`));
   } else lines.push("Handoff: none yet.");
   lines.push(...nextLines(v));

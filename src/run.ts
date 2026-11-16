@@ -144,6 +144,7 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .option("--test <text>", "for a human: how it looks, feels, reads or responds (repeatable)", collect)
     .option("--checked <result>", "an automated check you already ran, e.g. \"75 tests pass\" (repeatable)", collect)
     .option("--handoff <text>", "also save the handoff note (5 lines max)")
+    .option("--fresh", "the handoff recommends a fresh session")
     .action(function (this: Command) {
       const o = this.opts();
       act((ctx, s) => checkpoint(ctx, s, o)).call(this);
@@ -154,6 +155,7 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .description("mark a reviewed task done")
     .option("--force", "skip review for trivial tasks")
     .option("--handoff <text>", "the handoff note; without it, one is written from the next task")
+    .option("--fresh", "the handoff recommends a fresh session (kept from checkpoint otherwise)")
     .action(function (this: Command, id: string) {
       const o = this.opts();
       act((ctx, s) => done(ctx, s, id, o)).call(this);
@@ -221,8 +223,10 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     });
 
   program.command("handoff <text>").description("overwrite the handoff note, 5 lines max; last call of a session")
+    .option("--fresh", "the handoff recommends a fresh session")
     .action(function (this: Command, text: string) {
-      act((ctx, s) => handoff(ctx, s, text)).call(this);
+      const o = this.opts();
+      act((ctx, s) => handoff(ctx, s, text, o)).call(this);
     });
 
   program

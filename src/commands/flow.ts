@@ -8,7 +8,7 @@ import { FRESH_AFTER_TASKS, readSession, writeSession } from "../session.js";
 import { label, str, tags, type Store } from "../store.js";
 import { assertState, commitHint, isBlocked, itemLine, nowTask, status } from "./shared.js";
 import { fixPlan, problems } from "./tidy.js";
-import { HANDOFF_FILE, nextView, principleLines } from "./view.js";
+import { FRESH_MARK, HANDOFF_FILE, handoffFresh, nextView, principleLines } from "./view.js";
 
 export function slugify(title: string, max = 40): string {
   const slug = title
@@ -87,7 +87,7 @@ function splitLines(values: string[] | undefined): string[] {
  * Moves the now task to review. `test` is for a human (how it looks, feels, reads, responds);
  * `checked` records automated results the agent already ran (tests, types, build).
  */
-export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; checked?: string[]; handoff?: string }): Result {
+export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; checked?: string[]; handoff?: string; fresh?: boolean }): Result {
   const task = nowTask(store);
   if (!task) throw new WkError("Nothing is now. Start a task first: wk start <id>");
   const note = opts.handoff !== undefined ? handoffText(opts.handoff) : null;
@@ -130,7 +130,7 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; chec
   // Tidy runs along: only the first problem shows, so the Next line stays in view.
   const left = problems(ctx, store);
   if (left.length) lines.push(`Tidy: ${left[0]}${left.length > 1 ? ` (+${left.length - 1} more, wk tidy)` : ""}`);
-  if (note) writeHandoff(ctx, note);
+  if (note) writeHandoff(ctx, note, opts.fresh);
   const then = `send the check-in (Done/Checked/Try/Next), then wk done ${task.id} once the user confirms.`;
   lines.push(note ? `Handoff saved. Next: ${then}` : `Next: ${HANDOFF_NUDGE}, ${then}`);
   return result(lines, {
@@ -146,7 +146,7 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; chec
   });
 }
 
-export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: boolean; handoff?: string }): Result {
+export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: boolean; handoff?: string; fresh?: boolean }): Result {
   const task = store.get(rawId, "task");
   const given = opts.handoff !== undefined ? handoffText(opts.handoff) : null;
   if (status(task) === "done") return result([`${task.id} is already done.`], { id: task.id, status: "done" });
@@ -164,8 +164,11 @@ export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: bool
   const finished = session.done.includes(task.id) ? session.done : [...session.done, task.id];
   writeSession(ctx, { ...session, done: finished });
   const count = finished.length;
-  const advice =
-    count >= FRESH_AFTER_TASKS
+  // A fresh session recommended at checkpoint carries over to done's own handoff.
+  const fresh = opts.fresh ?? handoffFresh(ctx);
+  const advice = fresh
+    ? "You recommended a fresh session: stop here."
+    : count >= FRESH_AFTER_TASKS
       ? `${count} tasks done this session: suggest a fresh session unless the next task builds on this one.`
       : "Next task unrelated, or context heavy? Suggest a fresh session.";
 
@@ -174,7 +177,7 @@ export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: bool
   const { archived } = fixPlan(ctx, store, false);
   const top = nextView(store, 1).next[0];
   const note = given ?? `Done: ${task.id} ${label(task)}.\nNext: ${top ? itemLine(top) : "nothing queued"}.`;
-  writeHandoff(ctx, note);
+  writeHandoff(ctx, note, fresh);
   const lines = [`done  ${task.id} ${label(task)}`, ...(git ? [git] : [])];
   if (archived.length) lines.push(`Archived ${archived.length} old done item${archived.length === 1 ? "" : "s"}.`);
   lines.push(`Handoff ${given ? "saved" : "written from the next task (pass --handoff for more)"}. ${advice}`);
@@ -215,12 +218,12 @@ function handoffText(raw: string): string {
   return text;
 }
 
-function writeHandoff(ctx: Ctx, text: string): void {
-  fs.writeFileSync(path.join(ctx.root, HANDOFF_FILE), text + "\n");
+function writeHandoff(ctx: Ctx, text: string, fresh = false): void {
+  fs.writeFileSync(path.join(ctx.root, HANDOFF_FILE), (fresh ? `${FRESH_MARK}\n` : "") + text + "\n");
 }
 
-export function handoff(ctx: Ctx, _store: Store, raw: string): Result {
+export function handoff(ctx: Ctx, _store: Store, raw: string, opts: { fresh?: boolean } = {}): Result {
   const text = handoffText(raw);
-  writeHandoff(ctx, text);
+  writeHandoff(ctx, text, opts.fresh);
   return result([`Handoff saved (${text.split("\n").length} line${text.includes("\n") ? "s" : ""}).`], { handoff: text });
 }
