@@ -68,7 +68,14 @@ describe("wk guide", () => {
     const out = p.wk("guide");
     expect(out.startsWith("# wk")).toBe(true);
     expect(out).not.toContain("description:");
-    expect(out).toContain("Start every session with `wk brief`");
+    expect(out).toContain("Start with `wk brief`");
     expect(out.split("\n").length).toBeGreaterThan(10);
+  });
+
+  it("prints a side guide by topic, and names the topics on a typo", () => {
+    const p = project();
+    expect(p.wk("guide", "onboarding")).toContain("# wk onboarding");
+    expect(p.wk("guide", "setup")).toContain("wk config set git.branch");
+    expect(p.raw("guide", "nope").stderr).toContain("Topics: setup, onboarding.");
   });
 });

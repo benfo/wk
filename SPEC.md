@@ -96,7 +96,7 @@ Every command prints plain text, 10 lines or fewer by default. `--json` gives ma
 | Command | Does |
 | --- | --- |
 | `wk init --store <repo\|ignore\|local\|home>` | Creates the plan folder, `config.yml`, empty folders and empty principle files. Copies the skill to `.claude/skills/wk/`. Adds the pointer to `AGENTS.md` (and to `CLAUDE.md` if one exists) unless the store is personal. Safe to rerun: refreshes the skill, keeps the data. A fresh init also lists existing plans worth migrating. |
-| `wk guide` | Prints the agent rules, for agents that don't load the skill |
+| `wk guide [setup\|onboarding]` | Prints the agent rules, for agents that don't load the skill, or a side guide the rules point to when its moment comes |
 | `wk brief` | Prints the project summary's first line, the handoff note, the `now` task and the top of `wk next`. First call of every session. On an empty plan it says so, to prompt onboarding. Shows the handoff's date, and flags it when a task or epic changed after it. Starts the session count. |
 | `wk next` | Prints the `now` task, up to 5 `next` tasks, and anything blocked or needing a decision |
 | `wk add task "<title>" [--epic E-003] [--tags api,ui] [--later]` | Creates a task, prints its ID |
@@ -155,7 +155,7 @@ require_ref_on_start: false   # optional gate, off by default
 
 ## Agent skill rules
 
-The rules ship inside the npm package as a skill. `wk init` copies it to `.claude/skills/wk/` and adds a one-line pointer to `AGENTS.md` that tells any agent to run `wk guide`, then `wk brief`. Updating wk updates the rules too. These are the rules it gives the agent.
+The rules ship inside the npm package as a skill: a short `SKILL.md` loaded every session, plus side guides (`setup.md`, `onboarding.md`) read through `wk guide <topic>` only when their moment comes, so routine sessions don't pay for one-off instructions. `wk init` copies it to `.claude/skills/wk/` and adds a one-line pointer to `AGENTS.md` that tells any agent to run `wk guide`, then `wk brief`. Updating wk updates the rules too. These are the rules it gives the agent.
 
 1. Start every session with `wk brief`. Do not read `.work/` or `~/.wk/` files directly. Use `wk show` for detail.
 2. "What's next" means run `wk next` and summarise it in a few lines.

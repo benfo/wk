@@ -44,5 +44,5 @@ export function sourcesLine(s: Sources): string | null {
   const parts = [...s.files];
   if (s.todos) parts.push(`${s.todos} TODO/FIXME comment${s.todos === 1 ? "" : "s"}`);
   if (s.github) parts.push("GitHub issues (ask first)");
-  return parts.length ? `Existing plans: ${parts.join(", ")}. Offer onboarding.` : null;
+  return parts.length ? `Existing plans: ${parts.join(", ")}. Offer onboarding (wk guide onboarding).` : null;
 }

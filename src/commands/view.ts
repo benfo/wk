@@ -118,7 +118,7 @@ export function brief(ctx: Ctx, store: Store): Result {
   const emptyPlan = (["epic", "task", "idea", "decision", "learning"] as Kind[]).every(
     (k) => store.list(k, { archived: "both" }).length === 0,
   );
-  if (emptyPlan) lines.push("Empty plan. Offer onboarding (see Onboarding in wk guide).");
+  if (emptyPlan) lines.push("Empty plan. Offer onboarding (wk guide onboarding).");
   const about = readProject(ctx);
   lines.push(about ? `Project: ${about.split("\n")[0]}` : "No project summary yet.");
   if (empty) lines.push("No principles yet.");

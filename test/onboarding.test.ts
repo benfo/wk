@@ -53,7 +53,7 @@ describe("wk add task --from", () => {
 describe("onboarding nudges", () => {
   it("brief flags an empty plan until anything is added", () => {
     const p = project();
-    expect(p.wk("brief").split("\n")[0]).toBe("Empty plan. Offer onboarding (see Onboarding in wk guide).");
+    expect(p.wk("brief").split("\n")[0]).toBe("Empty plan. Offer onboarding (wk guide onboarding).");
     p.wk("idea", "Something");
     expect(p.wk("brief")).not.toContain("Empty plan");
   });
@@ -64,7 +64,7 @@ describe("onboarding nudges", () => {
     fs.mkdirSync(path.join(p.dir, "docs", "adr"), { recursive: true });
     fs.writeFileSync(path.join(p.dir, "docs", "todo.txt"), "x\n");
     const out = p.wk("init", "--store", "repo");
-    expect(out).toContain("Existing plans: ROADMAP.md, docs/todo.txt, docs/adr/ (decisions). Offer onboarding.");
+    expect(out).toContain("Existing plans: ROADMAP.md, docs/todo.txt, docs/adr/ (decisions). Offer onboarding (wk guide onboarding).");
     // Only a fresh init reports them.
     expect(p.wk("init")).not.toContain("Existing plans");
   });
@@ -79,6 +79,6 @@ describe("onboarding nudges", () => {
     fs.writeFileSync(path.join(p.dir, "a.ts"), "// TODO: one\n// FIXME two\nconst todo = 1;\n");
     git(p.dir, "add", "a.ts");
     git(p.dir, "remote", "add", "origin", "https://github.com/acme/app.git");
-    expect(p.wk("init", "--store", "local")).toContain("Existing plans: 2 TODO/FIXME comments, GitHub issues (ask first). Offer onboarding.");
+    expect(p.wk("init", "--store", "local")).toContain("Existing plans: 2 TODO/FIXME comments, GitHub issues (ask first). Offer onboarding (wk guide onboarding).");
   });
 });

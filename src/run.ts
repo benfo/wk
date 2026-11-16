@@ -68,10 +68,10 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     });
 
   program
-    .command("guide")
-    .description("print the agent rules; for agents that don't load the wk skill")
-    .action(function (this: Command) {
-      emit(this, guide());
+    .command("guide [topic]")
+    .description("print the agent rules, or a side guide: setup, onboarding")
+    .action(function (this: Command, topic?: string) {
+      emit(this, guide(topic));
     });
 
   program
