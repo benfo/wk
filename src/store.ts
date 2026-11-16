@@ -19,7 +19,7 @@ export const KINDS: Record<Kind, KindInfo> = {
     prefix: "T",
     dir: "tasks",
     order: [
-      "id", "title", "epic", "status", "tags", "ref", "blocked", "blocked_reason", "needs_decision", "checked",
+      "id", "title", "epic", "status", "rank", "tags", "ref", "blocked", "blocked_reason", "needs_decision", "checked",
       "created", "updated", "done_on",
     ],
   },
@@ -64,6 +64,12 @@ export function kindOf(id: string): Kind {
 
 function idNumber(id: string): number {
   return Number(id.split("-")[1]);
+}
+
+/** A task's place in the queue: its `rank` once moved with `wk move`, else its id number. */
+export function queueRank(item: Item): number {
+  const r = item.data.rank;
+  return typeof r === "number" ? r : idNumber(item.id);
 }
 
 export function str(item: Item, key: string): string {
@@ -119,13 +125,13 @@ export class Store {
     return this.cache.get("archive")!;
   }
 
-  /** Active items of a kind, sorted by id. `archived: true` lists archived ones, "both" lists all. */
+  /** Active items of a kind, sorted by id (tasks by queue rank). `archived: true` lists archived ones, "both" lists all. */
   list(kind: Kind, opts: { archived?: boolean | "both" } = {}): Item[] {
     if (!this.cache.has(kind)) this.cache.set(kind, this.readDir(this.dirFor(kind), false));
     const active = this.cache.get(kind)!.filter((i) => i.kind === kind);
     const archived = this.archivedItems().filter((i) => i.kind === kind);
     const picked = opts.archived === true ? archived : opts.archived === "both" ? [...active, ...archived] : active;
-    return [...picked].sort((a, b) => idNumber(a.id) - idNumber(b.id));
+    return [...picked].sort((a, b) => kind === "task" ? queueRank(a) - queueRank(b) : idNumber(a.id) - idNumber(b.id));
   }
 
   find(raw: string): Item | undefined {

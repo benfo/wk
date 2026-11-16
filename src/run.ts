@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { Command, CommanderError } from "commander";
 import { addEpic, addTask, addTasks, decide, idea, learn } from "./commands/capture.js";
-import { block, checkpoint, done, handoff, start, unblock } from "./commands/flow.js";
+import { block, checkpoint, done, handoff, move, start, unblock } from "./commands/flow.js";
 import { configure } from "./commands/configure.js";
 import { guide } from "./commands/guide.js";
 import { init } from "./commands/init.js";
@@ -169,6 +169,18 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
   program.command("unblock <id>").description("clear the blocked flag")
     .action(function (this: Command, id: string) {
       act((ctx, s) => unblock(ctx, s, id)).call(this);
+    });
+
+  program
+    .command("move <id>")
+    .description("reorder the next queue, e.g. when the user wants a task sooner")
+    .option("--before <id>", "just ahead of this next task")
+    .option("--after <id>", "just behind this next task")
+    .option("--top", "first in the queue")
+    .option("--bottom", "last in the queue")
+    .action(function (this: Command, id: string) {
+      const o = this.opts();
+      act((ctx, s) => move(ctx, s, id, o)).call(this);
     });
 
   program

@@ -5,7 +5,7 @@ import { branchExists, checkoutBranch, createBranch, currentBranch, diffSummary 
 import { checkLines, checkTitle, LIMITS } from "../limits.js";
 import { result, unescapeText, WkError, type Result } from "../output.js";
 import { FRESH_AFTER_TASKS, readSession, writeSession } from "../session.js";
-import { label, str, tags, type Store } from "../store.js";
+import { label, queueRank, str, tags, type Store } from "../store.js";
 import { assertState, commitHint, isBlocked, itemLine, nowTask, status } from "./shared.js";
 import { fixPlan, problems } from "./tidy.js";
 import { FRESH_MARK, HANDOFF_FILE, handoffFresh, nextView, principleLines } from "./view.js";
@@ -210,6 +210,40 @@ export function unblock(_ctx: Ctx, store: Store, rawId: string): Result {
   delete task.data.blocked_reason;
   store.save(task);
   return result([`unblocked ${task.id} ${label(task)}`], { id: task.id, blocked: false });
+}
+
+export interface MoveOpts {
+  before?: string;
+  after?: string;
+  top?: boolean;
+  bottom?: boolean;
+}
+
+/** Reorders the next queue: the task takes a rank between its new neighbours, so no other file changes. */
+export function move(_ctx: Ctx, store: Store, rawId: string, opts: MoveOpts): Result {
+  const task = store.get(rawId, "task");
+  assertState(task, ["next"], "move it in the queue");
+  const where = [opts.before, opts.after, opts.top, opts.bottom].filter((o) => o !== undefined && o !== false);
+  if (where.length !== 1) throw new WkError("Say where, once: --before <id>, --after <id>, --top or --bottom.");
+  const queue = store.list("task").filter((t) => status(t) === "next" && t !== task);
+  let rank: number;
+  if (opts.top || opts.bottom) {
+    if (queue.length === 0) return result([`${task.id} is the only next task.`], { id: task.id });
+    rank = opts.top ? queueRank(queue[0]) - 1 : queueRank(queue[queue.length - 1]) + 1;
+  } else {
+    const anchor = store.get((opts.before ?? opts.after)!, "task");
+    if (anchor === task) throw new WkError("Move it relative to another task.");
+    assertState(anchor, ["next"], "move a task next to it");
+    const i = queue.indexOf(anchor);
+    const neighbour = opts.before ? queue[i - 1] : queue[i + 1];
+    const step = opts.before ? -1 : 1;
+    rank = neighbour ? (queueRank(anchor) + queueRank(neighbour)) / 2 : queueRank(anchor) + step;
+  }
+  task.data.rank = rank;
+  store.save(task);
+  const placed = store.list("task").filter((t) => status(t) === "next");
+  const pos = placed.indexOf(task) + 1;
+  return result([`moved ${task.id} ${label(task)} to #${pos} of ${placed.length} next`], { id: task.id, rank, position: pos });
 }
 
 function handoffText(raw: string): string {

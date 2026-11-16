@@ -246,3 +246,44 @@ describe("wk show, ls and status", () => {
     expect(one).toContain("  done  T-004 Remember device");
   });
 });
+
+describe("wk move", () => {
+  const titles = ["Alpha", "Bravo", "Charlie", "Delta"];
+  const queue = (p: Project) => p.wk("next").split("\n").filter((l) => l.startsWith("next ")).map((l) => l.split(" ")[3]);
+
+  it("puts a task before, after, first or last without touching the others", () => {
+    const p = project();
+    for (const t of titles) p.wk("add", "task", `${t} task`, "--force");
+    const before = p.read("tasks", "T-003.md");
+    expect(p.wk("move", "T-004", "--before", "T-003")).toBe("moved T-004 Delta task to #3 of 4 next");
+    expect(queue(p)).toEqual(["Alpha", "Bravo", "Delta", "Charlie"]);
+    expect(p.read("tasks", "T-003.md")).toBe(before);
+    p.wk("move", "T-001", "--after", "T-003");
+    expect(queue(p)).toEqual(["Bravo", "Delta", "Charlie", "Alpha"]);
+    p.wk("move", "T-003", "--top");
+    expect(queue(p)).toEqual(["Charlie", "Bravo", "Delta", "Alpha"]);
+    p.wk("move", "T-003", "--bottom");
+    expect(queue(p)).toEqual(["Bravo", "Delta", "Alpha", "Charlie"]);
+    expect(p.wk("ls").split("\n")[0]).toContain("T-002 Bravo task");
+  });
+
+  it("keeps a moved undecided task in place once it is decided", () => {
+    const p = project();
+    for (const t of titles) p.wk("add", "task", `${t} task`, "--force");
+    p.wk("edit", "T-004", "--needs-decision");
+    p.wk("move", "T-004", "--before", "T-002");
+    p.wk("edit", "T-004", "--no-needs-decision");
+    expect(queue(p)).toEqual(["Alpha", "Delta", "Bravo", "Charlie"]);
+  });
+
+  it("refuses a missing or double place, and tasks outside next", () => {
+    const p = project();
+    for (const t of titles) p.wk("add", "task", `${t} task`, "--force");
+    expect(p.raw("move", "T-002").stderr).toContain("Say where, once");
+    expect(p.raw("move", "T-002", "--top", "--before", "T-001").stderr).toContain("Say where, once");
+    expect(p.raw("move", "T-002", "--before", "T-002").stderr).toContain("another task");
+    p.wk("start", "T-001");
+    expect(p.raw("move", "T-001", "--bottom").code).toBe(1);
+    expect(p.raw("move", "T-002", "--before", "T-001").code).toBe(1);
+  });
+});
