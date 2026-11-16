@@ -15,7 +15,7 @@ The user is in the zone: keep check-ins, questions and notes short. Talk about t
 
 1. **Start with `wk brief`.** "What's next" means `wk brief` (or `wk next`), summarised in a few lines. `wk show <id>` gives an item's body.
 2. **Before coding a task:** `wk start <id>`. It prints the task's body and the principles for its tags; follow them. One task is `now` at a time.
-3. **Ideas the user raises:** `wk idea "<text>"`, say "Saved that idea for later", carry on. Flag in one line anything outside the project summary.
+3. **Ideas the user raises:** `wk idea "<text>"`, say "Saved that idea for later", carry on. Flag in one line anything outside the project summary. When it says too many ideas are saved, offer a review at the next check-in.
 4. **A choice gets made:** `wk decide "<what>" --why "<why>" [--rejected "<other>"]`. **Something surprising:** `wk learn "<text>"`.
 5. **New work found mid-task:** `wk add task "<title>" --epic E-00N --tags <tags>`, at the bottom of the queue; don't grow the current task. If it prints `Similar: …`, `wk edit` or `wk merge <keep> <drop>` instead; `--force` only when it truly differs.
 6. **Work through the whole task, then stop once.** Stop early only when blocked, when a decision is the user's (fair options with different trade-offs, or hard to undo), or when the task needs new work (add it as a task first). `wk block <id> "<reason>"` when stuck.

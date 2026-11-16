@@ -108,7 +108,7 @@ Every command prints plain text, 10 lines or fewer by default. `--json` gives ma
 | `wk checkpoint [--checked "<result>"] [--test "<for me>"] [--handoff "<text>"]` | Moves the `now` task to `review`. `--checked` records automated results the agent already ran (tests, types, build), so I never run them. `--test` is for things only a person can judge: look, feel, keyboard, how output reads. Both repeat. `--handoff` saves the handoff in the same call, and `--fresh` marks it as recommending a fresh session. Prints them with a short git diff summary and the first `wk tidy` problem, and says when there's nothing for a human to test. |
 | `wk done <id> [--handoff "<text>"]` | Sets it to `done`. Expects `review` first; `--force` skips that for trivial tasks. Archives done items older than 7 days (epics stay open for `wk tidy --fix`) and writes the handoff: the given text, or one naming this task and the next. A `--fresh` mark from the checkpoint carries over, and done then says to stop. Says whether a fresh session fits; from the third task finished this session, it recommends one outright. |
 | `wk block <id> "<reason>"` / `wk unblock <id>` | Toggles the blocked flag |
-| `wk idea "<text>" [--epic E-003]` | Captures an idea in one line |
+| `wk idea "<text>" [--epic E-003]` | Captures an idea in one line. Past 25 saved ideas, it suggests a review. |
 | `wk decide "<what>" --why "<why>"` | Records a decision |
 | `wk learn "<text>"` | Records a learning |
 | `wk ls [tasks\|ideas\|decisions] [--epic] [--tag] [--status]` | Filtered one-line-per-item list |

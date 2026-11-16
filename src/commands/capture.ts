@@ -114,13 +114,19 @@ export function addEpic(_ctx: Ctx, store: Store, rawTitle: string, opts: { tags?
   return result([`${item.id} ${title}`], { id: item.id, title });
 }
 
+/** Past this many saved ideas, capturing one suggests a review. */
+export const IDEA_CAP = 25;
+
 export function idea(_ctx: Ctx, store: Store, raw: string, opts: { epic?: string; force?: boolean }): Result {
   const body = checkLines(unescapeText(raw), LIMITS.note, "Idea");
   if (!body) throw new WkError("Idea is empty.");
   const epic = requireEpic(store, opts.epic);
   guardSimilar(body, [...openTasks(store), ...store.list("idea")], opts.force);
   const item = store.create("idea", { epic }, body);
-  return result([`Captured as ${item.id}`], { id: item.id, text: body });
+  const lines = [`Captured as ${item.id}`];
+  const count = store.list("idea").length;
+  if (count > IDEA_CAP) lines.push(`${count} ideas saved: suggest a review to drop or merge some (wk ls ideas).`);
+  return result(lines, { id: item.id, text: body, ideas: count });
 }
 
 export function decide(_ctx: Ctx, store: Store, rawWhat: string, opts: { why?: string; rejected?: string }): Result {

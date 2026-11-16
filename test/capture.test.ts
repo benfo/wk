@@ -13,6 +13,13 @@ describe("ideas, decisions and learnings", () => {
     expect(p.raw("idea", "Passkeys over passwords").stderr).toContain("Similar: I-001");
   });
 
+  it("suggests a review once more than 25 ideas are saved", () => {
+    const p = project();
+    const words = ["amber", "birch", "cobalt", "delta", "ember", "fjord", "garnet", "harbor", "indigo", "juniper", "kelp", "lumen", "marble", "nectar", "onyx", "pepper", "quartz", "raven", "saffron", "tundra", "umber", "velvet", "willow", "xenon", "yarrow", "zephyr"];
+    for (const w of words.slice(0, 25)) expect(p.wk("idea", `${w} ${w}`)).not.toContain("ideas saved");
+    expect(p.wk("idea", "zephyr zephyr")).toContain("26 ideas saved: suggest a review");
+  });
+
   it("records a decision with what, why and rejected", () => {
     const p = project();
     expect(p.wk("decide", "Use JWT for sessions", "--why", "Stateless API.", "--rejected", "Server sessions")).toBe(
