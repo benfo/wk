@@ -33,7 +33,7 @@ describe("wk tidy", () => {
     p.on("2026-11-01", "add", "task", "Old done", "--epic", "E-001");
     p.on("2026-11-01", "done", "T-001", "--force");
     p.on("2026-11-01", "add", "task", "Recent done");
-    p.wk("done", "T-002", "--force");
+    p.on("2026-11-05", "done", "T-002", "--force");
 
     const out = p.wk("tidy", "--fix");
     expect(out).toContain("Closed E-001 Auth rework");

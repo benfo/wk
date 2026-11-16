@@ -6,8 +6,9 @@ import { checkLines, checkTitle, LIMITS } from "../limits.js";
 import { result, unescapeText, WkError, type Result } from "../output.js";
 import { FRESH_AFTER_TASKS, readSession, writeSession } from "../session.js";
 import { label, str, type Store } from "../store.js";
-import { assertState, commitHint, isBlocked, nowTask, status } from "./shared.js";
-import { HANDOFF_FILE } from "./view.js";
+import { assertState, commitHint, isBlocked, itemLine, nowTask, status } from "./shared.js";
+import { fixPlan, problems } from "./tidy.js";
+import { HANDOFF_FILE, nextView } from "./view.js";
 
 export function slugify(title: string, max = 40): string {
   const slug = title
@@ -79,9 +80,10 @@ function splitLines(values: string[] | undefined): string[] {
  * Moves the now task to review. `test` is for a human (how it looks, feels, reads, responds);
  * `checked` records automated results the agent already ran (tests, types, build).
  */
-export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; checked?: string[] }): Result {
+export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; checked?: string[]; handoff?: string }): Result {
   const task = nowTask(store);
   if (!task) throw new WkError("Nothing is now. Start a task first: wk start <id>");
+  const note = opts.handoff !== undefined ? handoffText(opts.handoff) : null;
   const given = splitLines(opts.test);
   const checked = splitLines(opts.checked);
   for (const c of checked) checkTitle(c, "A --checked line");
@@ -118,8 +120,15 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; chec
   }
   const git = commitHint(ctx, "checkpoint");
   if (git) lines.push(git);
-  lines.push(`Next: ${HANDOFF_NUDGE}, send the check-in (Done/Checked/Try/Next), then wk done ${task.id} once the user confirms.`);
+  // Tidy runs along: only the first problem shows, so the Next line stays in view.
+  const left = problems(ctx, store);
+  if (left.length) lines.push(`Tidy: ${left[0]}${left.length > 1 ? ` (+${left.length - 1} more, wk tidy)` : ""}`);
+  if (note) writeHandoff(ctx, note);
+  const then = `send the check-in (Done/Checked/Try/Next), then wk done ${task.id} once the user confirms.`;
+  lines.push(note ? `Handoff saved. Next: ${then}` : `Next: ${HANDOFF_NUDGE}, ${then}`);
   return result(lines, {
+    tidy: left,
+    handoff: note,
     id: task.id,
     status: "review",
     tests,
@@ -130,8 +139,9 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; chec
   });
 }
 
-export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: boolean }): Result {
+export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: boolean; handoff?: string }): Result {
   const task = store.get(rawId, "task");
+  const given = opts.handoff !== undefined ? handoffText(opts.handoff) : null;
   if (status(task) === "done") return result([`${task.id} is already done.`], { id: task.id, status: "done" });
   if (status(task) !== "review" && !opts.force) {
     throw new WkError(`${task.id} is ${status(task)}, not review. Run wk checkpoint first, or --force for trivial tasks.`);
@@ -151,10 +161,24 @@ export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: bool
     count >= FRESH_AFTER_TASKS
       ? `${count} tasks done this session: suggest a fresh session unless the next task builds on this one.`
       : "Next task unrelated, or context heavy? Suggest a fresh session.";
-  return result(
-    [`done  ${task.id} ${label(task)}`, ...(git ? [git] : []), `Next: ${HANDOFF_NUDGE}. ${advice}`],
-    { id: task.id, status: "done", git, session_tasks: count },
-  );
+
+  // Done is a stop: archive old done items and leave a handoff, so a fresh session can start here.
+  // Epics stay open: more tasks may still join them, so closing one is wk tidy --fix's call.
+  const { archived } = fixPlan(ctx, store, false);
+  const top = nextView(store, 1).next[0];
+  const note = given ?? `Done: ${task.id} ${label(task)}.\nNext: ${top ? itemLine(top) : "nothing queued"}.`;
+  writeHandoff(ctx, note);
+  const lines = [`done  ${task.id} ${label(task)}`, ...(git ? [git] : [])];
+  if (archived.length) lines.push(`Archived ${archived.length} old done item${archived.length === 1 ? "" : "s"}.`);
+  lines.push(`Handoff ${given ? "saved" : "written from the next task (pass --handoff for more)"}. ${advice}`);
+  return result(lines, {
+    id: task.id,
+    status: "done",
+    git,
+    session_tasks: count,
+    handoff: note,
+    archived: archived.map((i) => i.id),
+  });
 }
 
 export function block(_ctx: Ctx, store: Store, rawId: string, reason: string): Result {
@@ -178,9 +202,18 @@ export function unblock(_ctx: Ctx, store: Store, rawId: string): Result {
   return result([`unblocked ${task.id} ${label(task)}`], { id: task.id, blocked: false });
 }
 
-export function handoff(ctx: Ctx, _store: Store, raw: string): Result {
+function handoffText(raw: string): string {
   const text = checkLines(unescapeText(raw ?? ""), LIMITS.handoff, "Handoff");
   if (!text) throw new WkError("Handoff is empty.");
+  return text;
+}
+
+function writeHandoff(ctx: Ctx, text: string): void {
   fs.writeFileSync(path.join(ctx.root, HANDOFF_FILE), text + "\n");
+}
+
+export function handoff(ctx: Ctx, _store: Store, raw: string): Result {
+  const text = handoffText(raw);
+  writeHandoff(ctx, text);
   return result([`Handoff saved (${text.split("\n").length} line${text.includes("\n") ? "s" : ""}).`], { handoff: text });
 }

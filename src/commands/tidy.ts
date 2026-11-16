@@ -38,7 +38,7 @@ function archivable(ctx: Ctx, store: Store): Item[] {
   ];
 }
 
-function problems(ctx: Ctx, store: Store): string[] {
+export function problems(ctx: Ctx, store: Store): string[] {
   const out: string[] = [];
   const pool = [...openTasks(store), ...store.list("idea")];
   for (let i = 0; i < pool.length; i++) {
@@ -69,18 +69,25 @@ function problems(ctx: Ctx, store: Store): string[] {
   return out;
 }
 
+/** The safe fixes: archive old done items, and close finished epics unless `epics` is false. */
+export function fixPlan(ctx: Ctx, store: Store, epics = true): { closed: Item[]; archived: Item[] } {
+  const closed = epics ? finishedEpics(store).map(({ epic }) => epic) : [];
+  for (const epic of closed) {
+    epic.data.status = "done";
+    epic.data.done_on = ctx.today;
+    store.save(epic);
+  }
+  const archived = archivable(ctx, store);
+  for (const item of archived) store.archive(item);
+  return { closed, archived };
+}
+
 export function tidy(ctx: Ctx, store: Store, opts: { fix?: boolean }): Result {
   const fixed: string[] = [];
   if (opts.fix) {
-    for (const { epic } of finishedEpics(store)) {
-      epic.data.status = "done";
-      epic.data.done_on = ctx.today;
-      store.save(epic);
-      fixed.push(`Closed ${epic.id} ${label(epic)}`);
-    }
-    const old = archivable(ctx, store);
-    for (const item of old) store.archive(item);
-    if (old.length) fixed.push(`Archived ${old.length}: ${old.map((i) => i.id).join(", ")}`);
+    const { closed, archived } = fixPlan(ctx, store);
+    fixed.push(...closed.map((e) => `Closed ${e.id} ${label(e)}`));
+    if (archived.length) fixed.push(`Archived ${archived.length}: ${archived.map((i) => i.id).join(", ")}`);
   }
   const left = problems(ctx, store);
   const lines = [...fixed, ...left];

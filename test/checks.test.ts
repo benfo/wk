@@ -55,7 +55,41 @@ describe("handoff at every stop", () => {
     const p = started();
     expect(p.wk("checkpoint", "--checked", "ok")).toContain("Next: wk handoff");
     const done = p.wk("done", "T-001").split("\n");
-    expect(done[1]).toBe("Next: wk handoff (keeps a fresh session safe). Next task unrelated, or context heavy? Suggest a fresh session.");
+    expect(done[1]).toBe("Handoff written from the next task (pass --handoff for more). Next task unrelated, or context heavy? Suggest a fresh session.");
+  });
+
+  it("checkpoint --handoff saves the note and shows the first tidy problem", () => {
+    const p = started();
+    p.wk("idea", "Parse config", "--force");
+    const out = p.wk("checkpoint", "--checked", "ok", "--handoff", "Waiting on review.\nThen T-002.");
+    expect(out).toContain("Tidy: Duplicate?");
+    expect(out).toContain("Handoff saved. Next: send the check-in");
+    expect(p.wk("brief")).toContain("Then T-002.");
+  });
+
+  it("done writes a handoff from the next task, or saves the one given", () => {
+    const p = started();
+    p.wk("add", "task", "Second piece of work");
+    p.wk("checkpoint", "--checked", "ok");
+    p.wk("done", "T-001");
+    const brief = p.wk("brief");
+    expect(brief).toMatch(/Done: T-001 .+\./);
+    expect(brief).toContain("Next: T-002 Second piece of work");
+    p.wk("start", "T-002");
+    p.wk("checkpoint", "--checked", "ok");
+    p.wk("done", "T-002", "--handoff", "All done for today.");
+    expect(p.wk("brief")).toContain("All done for today.");
+  });
+
+  it("done archives done items older than a week, but leaves epics open", () => {
+    const p = project();
+    p.wk("add", "epic", "Auth rework");
+    p.wk("add", "task", "Write the login page", "--epic", "E-001");
+    p.wk("add", "task", "Add a logout button", "--epic", "E-001");
+    p.on("2026-11-01", "done", "T-001", "--force");
+    const out = p.wk("done", "T-002", "--force");
+    expect(out).toContain("Archived 1 old done item.");
+    expect(p.wk("tidy")).toContain("Finished: E-001");
   });
 
   it("brief flags a handoff older than the latest task change", () => {

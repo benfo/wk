@@ -55,7 +55,7 @@ export function handoffAge(ctx: Ctx, store: Store): { written: string | null; st
   return { written, stale };
 }
 
-interface NextView {
+export interface NextView {
   now: Item | undefined;
   review: Item[];
   next: Item[];
@@ -63,7 +63,7 @@ interface NextView {
   stuck: Item[];
 }
 
-function nextView(store: Store, limit = 5): NextView {
+export function nextView(store: Store, limit = 5): NextView {
   const tasks = store.list("task");
   const now = nowTask(store);
   const ready = tasks.filter((t) => status(t) === "next" && !isBlocked(t) && !needsDecision(t));

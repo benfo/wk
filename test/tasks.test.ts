@@ -101,7 +101,7 @@ describe("the task flow", () => {
   it("done --force skips review", () => {
     const p = project();
     p.wk("add", "task", "Typo fix");
-    expect(p.wk("done", "T-001", "--force")).toContain("Next: wk handoff");
+    expect(p.wk("done", "T-001", "--force")).toContain("Handoff written");
   });
 
   it("block and unblock toggle the flag, and blocked tasks can't start", () => {
