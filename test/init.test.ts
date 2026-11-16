@@ -51,6 +51,14 @@ describe("wk init --store repo", () => {
     expect(read(dir, "AGENTS.md")).toBe(`# Agents\n\n${AGENT_POINTER}\n`);
   });
 
+  it("leaves a pointer the user wrapped or reworded alone", () => {
+    const dir = tmpDir();
+    const own = "# Agents\n\nTrack work with the `wk` CLI; never edit `.work/` by hand. Each session run\n`wk guide` once, then `wk brief`.\n";
+    fs.writeFileSync(path.join(dir, "AGENTS.md"), own);
+    expect(run(["init", "--store", "repo"], { cwd: dir, home: tmpDir() }).stdout).not.toContain("Added the wk pointer");
+    expect(read(dir, "AGENTS.md")).toBe(own);
+  });
+
   it("ignores a leftover mode key in config.yml", () => {
     const p = project();
     fs.writeFileSync(p.file("config.yml"), "mode: work\n" + p.read("config.yml"));

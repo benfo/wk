@@ -41,6 +41,14 @@ function installSkill(base: string): string {
 }
 
 /**
+ * True when the file already tells agents to run `wk guide` and `wk brief`: the pointer itself,
+ * or the user's own wording of it, wrapped or reworded.
+ */
+function hasPointer(text: string): boolean {
+  return text.includes("`wk guide`") && text.includes("`wk brief`");
+}
+
+/**
  * Adds the pointer to an agent instructions file once, upgrading an old pointer line.
  * Returns true if the file changed. With `onlyIfExists`, a missing file is left alone.
  */
@@ -49,7 +57,7 @@ function addPointer(base: string, name: string, onlyIfExists = false): boolean {
   const exists = fs.existsSync(file);
   if (!exists && onlyIfExists) return false;
   const existing = exists ? fs.readFileSync(file, "utf8") : "";
-  if (existing.includes(AGENT_POINTER)) return false;
+  if (hasPointer(existing)) return false;
   if (OLD_POINTER.test(existing)) {
     fs.writeFileSync(file, existing.replace(OLD_POINTER, AGENT_POINTER));
     return true;
