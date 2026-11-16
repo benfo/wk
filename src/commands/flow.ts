@@ -5,10 +5,10 @@ import { branchExists, checkoutBranch, createBranch, currentBranch, diffSummary 
 import { checkLines, checkTitle, LIMITS } from "../limits.js";
 import { result, unescapeText, WkError, type Result } from "../output.js";
 import { FRESH_AFTER_TASKS, readSession, writeSession } from "../session.js";
-import { label, str, type Store } from "../store.js";
+import { label, str, tags, type Store } from "../store.js";
 import { assertState, commitHint, isBlocked, itemLine, nowTask, status } from "./shared.js";
 import { fixPlan, problems } from "./tidy.js";
-import { HANDOFF_FILE, nextView } from "./view.js";
+import { HANDOFF_FILE, nextView, principleLines } from "./view.js";
 
 export function slugify(title: string, max = 40): string {
   const slug = title
@@ -65,7 +65,14 @@ export function start(ctx: Ctx, store: Store, rawId: string, opts: { branch?: bo
     lines.push(`Different epic from the last task (${session.lastEpic || "no epic"}): suggest a fresh session, after a handoff.`);
   }
   writeSession(ctx, { ...session, lastEpic: epic });
-  return result(lines, { id: task.id, status: "now", branch, epic_switch: switched });
+
+  // Everything needed to begin, so starting a task is one call: its body, then its principles.
+  const body = task.body.split("\n").filter((l) => l.trim());
+  if (body.length) lines.push("", ...body);
+  const rules = principleLines(ctx, tags(task));
+  if (rules.lines.length) lines.push("", "Principles:", ...rules.lines);
+  const data = { id: task.id, status: "now", branch, epic_switch: switched, body: task.body, principles: rules.data };
+  return { ...result(lines, data), full: true };
 }
 
 const TEST_LINE = /^Test:\s*/i;

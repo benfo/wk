@@ -14,7 +14,7 @@ The user is in the zone: keep check-ins, questions and notes short. Talk about t
 ## Session loop
 
 1. **Start with `wk brief`.** "What's next" means `wk brief` (or `wk next`), summarised in a few lines. `wk show <id>` gives an item's body.
-2. **Before coding a task:** `wk start <id>`, then `wk principles --tags <the task's tags>` and follow it. One task is `now` at a time.
+2. **Before coding a task:** `wk start <id>`. It prints the task's body and the principles for its tags; follow them. One task is `now` at a time.
 3. **Ideas the user raises:** `wk idea "<text>"`, say "Saved that idea for later", carry on. Flag in one line anything outside the project summary.
 4. **A choice gets made:** `wk decide "<what>" --why "<why>" [--rejected "<other>"]`. **Something surprising:** `wk learn "<text>"`.
 5. **New work found mid-task:** `wk add task "<title>" --epic E-00N --tags <tags>`, at the bottom of the queue; don't grow the current task. If it prints `Similar: …`, `wk edit` or `wk merge <keep> <drop>` instead; `--force` only when it truly differs.
@@ -61,4 +61,4 @@ Every task ends with something the user can try (a command, a screen, an endpoin
 
 ## Keeping the plan clean
 
-Leave the plan a bit cleaner each time: merge duplicates (an idea into the task it became, too), `wk drop <idea>` an unwanted idea, tighten a wordy task with `wk edit`, `wk done <id> --force` a task the work made pointless, and supersede a changed decision (`wk decide`, then `wk supersede <old> <new>`; never edit one). `wk tidy` lists problems; `wk tidy --fix` also closes finished epics. Say what you deleted or closed; ask in one line about anything bigger. If `wk principles` finds no rules for a tag, ask once per session whether to capture a few (see `wk guide setup`). When the same decision comes up twice, suggest promoting it to a principle.
+Leave the plan a bit cleaner each time: merge duplicates (an idea into the task it became, too), `wk drop <idea>` an unwanted idea, tighten a wordy task with `wk edit`, `wk done <id> --force` a task the work made pointless, and supersede a changed decision (`wk decide`, then `wk supersede <old> <new>`; never edit one). `wk tidy` lists problems; `wk tidy --fix` also closes finished epics. Say what you deleted or closed; ask in one line about anything bigger. If `wk start` finds no principles for a tag, ask once per session whether to capture a few (see `wk guide setup`). When the same decision comes up twice, suggest promoting it to a principle.

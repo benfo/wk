@@ -57,6 +57,18 @@ describe("adding tasks and epics", () => {
 });
 
 describe("the task flow", () => {
+  it("start prints the task body and its principles, beyond the line cap", () => {
+    const p = project();
+    p.wk("add", "task", "Login form", "--tags", "ui,api");
+    p.wk("edit", "T-001", "--body", "Email and password.\\nShow errors inline.");
+    fs.writeFileSync(p.file("principles", "ui.md"), Array.from({ length: 12 }, (_, i) => `${i + 1}. Rule ${i + 1}`).join("\n"));
+    const out = p.wk("start", "T-001").split("\n");
+    expect(out.slice(0, 5)).toEqual(["now   T-001 Login form", "", "Email and password.", "Show errors inline.", ""]);
+    expect(out).toContain("Principles:");
+    expect(out).toContain("  12. Rule 12");
+    expect(out.at(-1)).toMatch(/^No api principles yet/);
+  });
+
   it("next → now → review → done", () => {
     const p = project();
     p.wk("add", "task", "First thing");

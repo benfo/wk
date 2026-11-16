@@ -244,6 +244,22 @@ function readRules(file: string): string[] {
     .map((l) => l.trim());
 }
 
+/** The rules for some tags, one block per tag with rules, then a line per tag without any. */
+export function principleLines(ctx: Ctx, wanted: string[]): { lines: string[]; data: Record<string, string[]>; missing: string[] } {
+  const dir = principlesDir(ctx);
+  const lines: string[] = [];
+  const data: Record<string, string[]> = {};
+  const missing: string[] = [];
+  for (const tag of wanted) {
+    const rules = readRules(path.join(dir, `${tag}.md`));
+    data[tag] = rules;
+    if (rules.length === 0) missing.push(tag);
+    else lines.push(`${tag}:`, ...rules.map((r) => `  ${r}`));
+  }
+  for (const tag of missing) lines.push(`No ${tag} principles yet (${path.join(dir, `${tag}.md`)}).`);
+  return { lines, data, missing };
+}
+
 export function principles(ctx: Ctx, _store: Store, opts: { tags?: string }): Result {
   const dir = principlesDir(ctx);
   const wanted = (opts.tags ?? "").split(",").map((t) => t.trim().toLowerCase()).filter(Boolean);
@@ -254,19 +270,6 @@ export function principles(ctx: Ctx, _store: Store, opts: { tags?: string }): Re
       tags: files.map((f) => path.basename(f, ".md")),
     });
   }
-  const lines: string[] = [];
-  const data: Record<string, string[]> = {};
-  const missing: string[] = [];
-  for (const tag of wanted) {
-    const file = path.join(dir, `${tag}.md`);
-    const rules = readRules(file);
-    data[tag] = rules;
-    if (rules.length === 0) {
-      missing.push(tag);
-      continue;
-    }
-    lines.push(`${tag}:`, ...rules.map((r) => `  ${r}`));
-  }
-  for (const tag of missing) lines.push(`No ${tag} principles yet (${path.join(dir, `${tag}.md`)}).`);
+  const { lines, data, missing } = principleLines(ctx, wanted);
   return result(lines, { rules: data, missing });
 }
