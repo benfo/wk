@@ -8,7 +8,7 @@ import { FRESH_AFTER_TASKS, readSession, writeSession } from "../session.js";
 import { label, queueRank, str, tags, type Store } from "../store.js";
 import { assertState, commitHint, isBlocked, itemLine, nowTask, status } from "./shared.js";
 import { fixPlan, problems } from "./tidy.js";
-import { FRESH_MARK, HANDOFF_FILE, handoffFresh, nextView, principleLines } from "./view.js";
+import { FRESH_MARK, HANDOFF_FILE, nextView, principleLines } from "./view.js";
 
 export function slugify(title: string, max = 40): string {
   const slug = title
@@ -131,6 +131,8 @@ export function checkpoint(ctx: Ctx, store: Store, opts: { test?: string[]; chec
   const left = problems(ctx, store);
   if (left.length) lines.push(`Tidy: ${left[0]}${left.length > 1 ? ` (+${left.length - 1} more, wk tidy)` : ""}`);
   if (note) writeHandoff(ctx, note, opts.fresh);
+  // Remembered per session and task, so a stale marker in handoff.md never reaches a later done.
+  writeSession(ctx, { ...readSession(ctx), freshFor: opts.fresh ? task.id : null });
   const then = `send the check-in (Done/Checked/Try/Next), then wk done ${task.id} once the user confirms.`;
   lines.push(note ? `Handoff saved. Next: ${then}` : `Next: ${HANDOFF_NUDGE}, ${then}`);
   return result(lines, {
@@ -162,10 +164,10 @@ export function done(ctx: Ctx, store: Store, rawId: string, opts: { force?: bool
 
   const session = readSession(ctx);
   const finished = session.done.includes(task.id) ? session.done : [...session.done, task.id];
-  writeSession(ctx, { ...session, done: finished });
+  // A fresh session recommended at this task's checkpoint, this session, carries over to done's handoff.
+  const fresh = opts.fresh ?? session.freshFor === task.id;
+  writeSession(ctx, { ...session, done: finished, freshFor: null });
   const count = finished.length;
-  // A fresh session recommended at checkpoint carries over to done's own handoff.
-  const fresh = opts.fresh ?? handoffFresh(ctx);
   const advice = fresh
     ? "You recommended a fresh session: stop here."
     : count >= FRESH_AFTER_TASKS

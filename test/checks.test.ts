@@ -97,10 +97,28 @@ describe("handoff at every stop", () => {
     p.wk("checkpoint", "--checked", "ok", "--handoff", "Waiting on review.", "--fresh");
     expect(p.wk("brief")).toMatch(/^Handoff \(.+, fresh session recommended\):$/m);
     expect(p.wk("brief")).not.toContain("<!--");
-    expect(p.wk("done", "T-001")).toContain("You recommended a fresh session: stop here.");
-    expect(p.wk("brief")).toContain("fresh session recommended");
     p.wk("handoff", "Plain note.");
     expect(p.wk("brief")).not.toContain("fresh session recommended");
+  });
+
+  it("carries a fresh-session checkpoint to done once, then clears it", () => {
+    const p = started();
+    p.wk("add", "task", "Write docs");
+    p.wk("checkpoint", "--checked", "ok", "--fresh");
+    expect(p.wk("done", "T-001")).toContain("You recommended a fresh session: stop here.");
+    expect(p.wk("brief")).toContain("fresh session recommended");
+    p.wk("start", "T-002");
+    p.wk("checkpoint", "--checked", "ok");
+    expect(p.wk("done", "T-002")).not.toContain("You recommended a fresh session");
+    expect(p.wk("brief")).not.toContain("fresh session recommended");
+  });
+
+  it("ignores a fresh marker left in the handoff by an earlier session", () => {
+    const p = started();
+    p.wk("handoff", "Old stop.", "--fresh");
+    p.wk("brief");
+    p.wk("checkpoint", "--checked", "ok");
+    expect(p.wk("done", "T-001")).not.toContain("You recommended a fresh session");
   });
 
   it("brief flags a handoff older than the latest task change", () => {

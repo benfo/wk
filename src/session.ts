@@ -5,7 +5,8 @@ import type { Ctx } from "./context.js";
 
 /**
  * What wk knows about the current agent session: when `wk brief` last ran, which tasks were
- * finished since, and the epic of the last task started. Kept per machine in ~/.wk/sessions/,
+ * finished since, the epic of the last task started, and a fresh-session recommendation
+ * made at checkpoint. Kept per machine in ~/.wk/sessions/,
  * never in the plan, so a committed `.work/` doesn't churn.
  */
 export interface Session {
@@ -13,6 +14,8 @@ export interface Session {
   done: string[];
   /** The epic of the last task started this session; "" for a task without one. null: none yet. */
   lastEpic: string | null;
+  /** The task whose checkpoint this session recommended a fresh session; `wk done` on it says to stop. */
+  freshFor: string | null;
 }
 
 /** Tasks finished in one session before `wk done` recommends a fresh one. */
@@ -25,7 +28,7 @@ function file(ctx: Ctx): string {
 }
 
 function blank(): Session {
-  return { started: new Date().toISOString(), done: [], lastEpic: null };
+  return { started: new Date().toISOString(), done: [], lastEpic: null, freshFor: null };
 }
 
 export function readSession(ctx: Ctx): Session {
@@ -35,6 +38,7 @@ export function readSession(ctx: Ctx): Session {
       started: typeof raw.started === "string" ? raw.started : blank().started,
       done: Array.isArray(raw.done) ? raw.done.map(String) : [],
       lastEpic: typeof raw.lastEpic === "string" ? raw.lastEpic : null,
+      freshFor: typeof raw.freshFor === "string" ? raw.freshFor : null,
     };
   } catch {
     return blank();
