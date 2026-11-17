@@ -93,13 +93,23 @@ describe("wk merge", () => {
 });
 
 describe("wk drop", () => {
-  it("deletes an idea and refuses other kinds", () => {
+  it("deletes an idea", () => {
     const p = project();
     p.wk("idea", "Passkeys");
-    p.wk("add", "task", "Refresh token flow");
     expect(p.wk("drop", "I-001")).toBe("Dropped I-001 Passkeys");
     expect(fs.existsSync(p.file("ideas", "I-001.md"))).toBe(false);
-    expect(p.raw("drop", "T-001").code).not.toBe(0);
+  });
+
+  it("deletes a task unless it is now or done, and refuses other kinds", () => {
+    const p = project();
+    p.wk("add", "task", "Refresh token flow");
+    p.wk("add", "task", "Logout everywhere");
+    p.wk("decide", "Use JWT", "--why", "Stateless.");
+    expect(p.wk("drop", "T-001")).toBe("Dropped T-001 Refresh token flow");
+    expect(fs.existsSync(p.file("tasks", "T-001.md"))).toBe(false);
+    p.wk("start", "T-002");
+    expect(p.raw("drop", "T-002").stderr).toMatch(/T-002 is now/);
+    expect(p.raw("drop", "D-001").code).not.toBe(0);
   });
 });
 

@@ -133,9 +133,11 @@ export function merge(_ctx: Ctx, store: Store, rawKeep: string, rawDrop: string)
   });
 }
 
-export function dropIdea(_ctx: Ctx, store: Store, rawId: string): Result {
-  const item = store.get(rawId, "idea");
+export function drop(_ctx: Ctx, store: Store, rawId: string): Result {
+  const item = store.get(rawId, ["task", "idea"]);
   if (item.archived) throw new WkError(`${item.id} is archived.`);
+  if (item.kind === "task" && status(item) === "now") throw new WkError(`${item.id} is now. Finish or checkpoint it first.`);
+  if (item.kind === "task" && status(item) === "done") throw new WkError(`${item.id} is already done.`);
   store.remove(item);
   return result([`Dropped ${item.id} ${label(item)}`], { deleted: item.id });
 }

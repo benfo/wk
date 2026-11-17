@@ -6,7 +6,7 @@ import { block, checkpoint, done, handoff, move, start, unblock } from "./comman
 import { configure } from "./commands/configure.js";
 import { guide } from "./commands/guide.js";
 import { init } from "./commands/init.js";
-import { dropIdea, edit, merge, supersede, tidy } from "./commands/tidy.js";
+import { drop, edit, merge, supersede, tidy } from "./commands/tidy.js";
 import { brief, ls, next, principles, project, show, statusView } from "./commands/view.js";
 import { loadContext, todayString, type Ctx } from "./context.js";
 import { render, WkError, type Result } from "./output.js";
@@ -264,9 +264,9 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
       act((ctx, s) => merge(ctx, s, keep, drop)).call(this);
     });
 
-  program.command("drop <idea>").description("delete an idea that is no longer wanted")
+  program.command("drop <id>").description("delete a task or idea that is no longer wanted")
     .action(function (this: Command, id: string) {
-      act((ctx, s) => dropIdea(ctx, s, id)).call(this);
+      act((ctx, s) => drop(ctx, s, id)).call(this);
     });
 
   program.command("supersede <old> <new>").description("mark an old decision as replaced by a new one")
