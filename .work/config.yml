@@ -9,8 +9,8 @@ workflow:
     commit: task
   commit_style: one short line, no body, no attribution
   checks:
-    quick: npm run typecheck && npx vitest run --changed
-    full: npm run typecheck && npm test
+    quick: go vet ./... && go test ./internal/app
+    full: go vet ./... && go test ./...
   tracker:
 tags: [bug, cli, docs, perf, quick, skill, store cli, ui, ux]
 reviewed: '2026-11-19'

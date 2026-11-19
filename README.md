@@ -10,33 +10,35 @@ A small CLI plus agent skills for tracking work in plain text, for working with 
 
 [docs/wk-guide.pdf](docs/wk-guide.pdf) explains the philosophy and usage with worked examples. [SPEC.md](SPEC.md) is the design.
 
-Needs Node.js 20 or later.
+One file, no runtime: wk is a single binary for Windows, macOS and Linux.
 
 ## Install
 
-```bash
-git clone https://github.com/benfo/wk
-cd wk
-npm install
-npm link
+macOS and Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/benfo/wk/main/install.sh | sh
 ```
 
-`npm install` builds the CLI and `npm link` puts it on the PATH as `wk`. Then, in each project:
+Windows (PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/benfo/wk/main/install.ps1 | iex
+```
+
+Or just tell your agent: "install wk from github.com/benfo/wk". The installer puts `wk` in `~/.local/bin` (Windows: `%LOCALAPPDATA%\Programs\wk`, added to your PATH). Then, in each project:
 
 ```bash
 wk init --store repo
 ```
 
-`--store` picks where the plan lives: `repo` (committed), `ignore` (in `.gitignore`), `local` (private, in `.git/info/exclude`) or `home` (`~/.wk/`). Init copies two skills to `.claude/skills/`: `wk` for every session and `wk-setup` for fitting wk to your workflow. Agents without skills follow `wk guide`, which a line in `AGENTS.md` points to.
+`--store` picks where the plan lives: `repo` (committed), `ignore` (in `.gitignore`), `local` (private, in `.git/info/exclude`) or `home` (`~/.wk/`). Outside git, use `repo` or `home`. Init copies two skills to `.claude/skills/`: `wk` for every session and `wk-setup` for fitting wk to your workflow. Agents without skills follow `wk guide`, which a line in `AGENTS.md` points to.
 
 Then ask your agent to set up wk; the `wk-setup` skill takes it from there.
 
 ## Upgrade
 
-```bash
-git pull
-npm install
-```
+Run the install line again.
 
 Then run `wk init` again in each project to refresh its skills. Your plan is kept. A plan from wk v1 converts once with `wk migrate`; old ids like `T-013` keep working.
 
@@ -59,12 +61,11 @@ It serves the board on `http://localhost:4123/` (or the next free port) and refr
 ## Release
 
 ```bash
-npm version patch
-npm run release
+go run ./scripts/release v0.2.0
 ```
 
-`npm version` bumps the version and tags the commit. `npm run release` runs the tests, packs the tarball, pushes the commit and tag, and creates the GitHub release with the tarball attached. Add `-- --dry-run` to check and pack without publishing.
+It runs the checks, builds a binary for each platform, tags and pushes, and creates the GitHub release with the binaries attached; the installers fetch the latest one. Add `--dry-run` to check and build without publishing.
 
 ## Develop
 
-Install as above; the linked `wk` is your working copy. Rebuild with `npm run build` after changes.
+Needs Go 1.26 or later. `go build -o wk.exe ./cmd/wk` (or `-o wk` off Windows) builds a working copy; `go test ./...` runs the checks. `internal/golden/testdata` holds scripted sessions with their expected output and files: a change in behaviour shows up there as a diff, and `go test ./internal/golden -update` rewrites them once it's intended.

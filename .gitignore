@@ -1,4 +1,5 @@
+/wk.exe
+/wk
+# Left over from the TypeScript build
 node_modules/
 dist/
-wk.exe
-/wk
