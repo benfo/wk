@@ -5,55 +5,193 @@ import path from "node:path";
 import { result, type Result } from "../output.js";
 import type { Ctx } from "../context.js";
 import { byQueue, daysBetween, isDue, isQueued, isWaiting, state, when } from "../model.js";
-import { str, tagsOf, touchesOf, type Item, type Store } from "../store.js";
+import { str, tagsOf, touchesOf, type Item, type Project, type Store } from "../store.js";
 import { readSummary, projectTasks } from "./homes.js";
 import { activePrinciples } from "./knowledge.js";
-import { plural } from "./shared.js";
 import { readHandoff, workflowLine } from "./views.js";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 const RECENT_DAYS = 7;
 
-let homeNames: Record<string, string> = {};
-const homeName = (item: Item) => homeNames[item.home.name] ?? item.home.name;
-
-function card(item: Item, extra = ""): string {
-  const tags = tagsOf(item).map((t) => `<span class="tag">#${esc(t)}</span>`).join("");
-  const note = isWaiting(item) ? `<div class="note">waiting on ${esc(str(item, "wait"))}</div>` : "";
-  const trigger = state(item) === "open" && !isQueued(item) && when(item) ? `<span class="when">${esc(when(item))}</span>` : "";
-  return `<li class="card${isDue(item) ? " due" : ""}"><div class="title">${esc(item.title)}</div>
-<div class="meta"><code>${item.id}</code><span class="home">${esc(homeName(item))}</span>${trigger}${tags}${extra}</div>${note}</li>`;
+interface View {
+  homeNames: Record<string, string>;
 }
 
-function column(title: string, items: Item[], hint: string, opts: { limit?: number; cls?: string } = {}): string {
-  if (items.length === 0) return "";
-  const limit = opts.limit ?? 50;
-  const shown = items.slice(0, limit).map((i) => card(i)).join("\n");
-  const more = items.length > limit ? `<li class="more">+${items.length - limit} more</li>` : "";
-  const empty = items.length === 0 ? `<li class="empty">${esc(hint)}</li>` : "";
-  return `<section class="col ${opts.cls ?? ""}"><h3>${esc(title)} <span class="count">${items.length}</span></h3><ul>${shown}${more}${empty}</ul></section>`;
+/** "Name: Daily Dad Joke CLI" reads better as "Daily Dad Joke CLI". */
+function headline(summary: string, fallback: string): string {
+  const first = summary.split("\n")[0]?.trim() ?? "";
+  const text = first.replace(/^[A-Za-z][\w ]{0,20}:\s+/, "") || fallback;
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-function bar(done: number, total: number): string {
+function homeLabel(v: View, item: Item): string {
+  return v.homeNames[item.home.name] ?? item.home.name;
+}
+
+/** One quiet line of facts under a title: where it lives, its timing, its tags. */
+function meta(v: View, item: Item, opts: { home?: boolean; when?: boolean } = {}): string {
+  const parts: string[] = [];
+  parts.push(`<code>${item.id}</code>`);
+  if (opts.home !== false) parts.push(`<span>${esc(homeLabel(v, item))}</span>`);
+  if (opts.when && when(item) && !isQueued(item)) parts.push(`<span class="when">${esc(when(item))}</span>`);
+  for (const t of tagsOf(item)) parts.push(`<span class="tag">#${esc(t)}</span>`);
+  return `<div class="meta">${parts.join("")}</div>`;
+}
+
+function row(v: View, item: Item, opts: { home?: boolean; when?: boolean; note?: string } = {}): string {
+  const note = opts.note ? `<div class="note">${esc(opts.note)}</div>` : "";
+  return `<li class="row" data-id="${item.id}"><div class="title">${esc(item.title)}</div>${meta(v, item, opts)}${note}</li>`;
+}
+
+function bar(done: number, total: number, long = false): string {
   const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-  return `<div class="bar" title="${done}/${total}"><span style="width:${pct}%"></span></div><span class="pct">${done}/${total}</span>`;
+  const label = long ? `${done} of ${total} tasks done` : `${done}/${total}`;
+  return `<div class="progress"><div class="bar" role="img" aria-label="${done} of ${total} done"><span style="width:${pct}%"></span></div><span class="num">${label}</span></div>`;
 }
 
-/** The plan as one self-contained HTML page: no scripts, no network, light and dark. */
-/** Reloads the page when the server says the plan changed; reconnects on its own if the server restarts. */
+function group(title: string, items: string[], opts: { tone?: string; count?: number } = {}): string {
+  if (items.length === 0) return "";
+  const count = opts.count ?? items.length;
+  return `<section class="group${opts.tone ? ` ${opts.tone}` : ""}"><h3>${esc(title)}<span class="num">${count}</span></h3><ul>${items.join("")}</ul></section>`;
+}
+
+function testsOf(item: Item): string[] {
+  return item.body.split("\n").filter((l) => /^Test:\s*/i.test(l)).map((l) => l.replace(/^Test:\s*/i, ""));
+}
+
+/** Keeps the page and the live script in step: the script swaps #app and flashes rows it hasn't seen. */
 const LIVE_SCRIPT = `<script>
 (function () {
   var dot = document.getElementById("live");
-  var es = new EventSource("/events");
-  es.onopen = function () { dot.className = "live on"; dot.title = "live"; };
-  es.onerror = function () { dot.className = "live off"; dot.title = "reconnecting"; };
-  es.onmessage = function () { location.reload(); };
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function ids() { var s = {}; document.querySelectorAll("[data-id]").forEach(function (e) { s[e.getAttribute("data-id") + "|" + e.textContent] = 1; }); return s; }
+  function swap(html) {
+    var before = ids();
+    var scroll = {};
+    document.querySelectorAll("[data-pane]").forEach(function (p) { scroll[p.getAttribute("data-pane")] = p.scrollTop; });
+    var next = new DOMParser().parseFromString(html, "text/html").getElementById("app");
+    if (!next) return;
+    document.getElementById("app").replaceWith(next);
+    document.querySelectorAll("[data-pane]").forEach(function (p) { p.scrollTop = scroll[p.getAttribute("data-pane")] || 0; });
+    if (reduce) return;
+    document.querySelectorAll("[data-id]").forEach(function (e) {
+      if (!before[e.getAttribute("data-id") + "|" + e.textContent]) e.classList.add("fresh");
+    });
+  }
+  function connect() {
+    var es = new EventSource("/events");
+    es.onopen = function () { dot.className = "live on"; dot.title = "Live: updates as the plan changes"; };
+    es.onerror = function () { dot.className = "live off"; dot.title = "Reconnecting"; };
+    es.onmessage = function () { fetch("/", { cache: "no-store" }).then(function (r) { return r.text(); }).then(swap); };
+  }
+  connect();
 })();
 </script>`;
 
+const CSS = `
+:root{color-scheme:light dark;
+--bg:#f6f6f4;--surface:#ffffff;--text:#1b1c1e;--text-2:#5d6066;--text-3:#8a8d93;--line:rgba(20,22,26,.09);
+--accent:#3d5afe;--accent-soft:rgba(61,90,254,.09);--attn:#b45309;--attn-soft:rgba(180,83,9,.09);--ok:#15803d}
+@media (prefers-color-scheme:dark){:root{
+--bg:#111214;--surface:#18191c;--text:#ececed;--text-2:#a3a6ad;--text-3:#73767d;--line:rgba(255,255,255,.08);
+--accent:#8c9eff;--accent-soft:rgba(140,158,255,.12);--attn:#f0a35c;--attn-soft:rgba(240,163,92,.12);--ok:#5bd38a}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+code,.mono{font:12px/1.4 ui-monospace,"Cascadia Mono",Consolas,monospace}
+ul{list-style:none}
+#app{height:100vh;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:16px;padding:16px 24px 24px;max-width:1600px;margin:0 auto}
+
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.top h1{font-size:16px;font-weight:600;letter-spacing:-.005em}
+.top .wf{color:var(--text-3);font-size:12px;margin-left:12px}
+.stats{display:flex;gap:16px;align-items:center;color:var(--text-2);font-size:12px;font-variant-numeric:tabular-nums}
+.stats b{color:var(--text);font-weight:600}
+.stats .hot b{color:var(--attn)}
+.live{display:inline-flex;align-items:center;gap:6px;color:var(--text-3)}
+.live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--text-3)}
+.live.on::before{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 20%,transparent)}
+.live.off::before{background:var(--attn)}
+
+.hero{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--accent)}
+.hero.idle::before{background:var(--line)}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.hero.idle .eyebrow{color:var(--text-3)}
+.hero h2{font-size:28px;line-height:1.2;font-weight:650;letter-spacing:-.02em;text-wrap:balance;max-width:32ch}
+.hero.idle h2{font-weight:600}
+.hero .meta{margin-top:12px}
+.hero .body{margin-top:12px;color:var(--text-2);max-width:68ch}
+.hero .body li{padding:2px 0}
+.hero .progress{margin-top:16px;max-width:360px}
+.handoff{border-left:1px solid var(--line);padding-left:24px;min-width:0}
+.handoff h3{font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:8px}
+.handoff pre{white-space:pre-wrap;color:var(--text-2);font:12.5px/1.55 ui-monospace,"Cascadia Mono",Consolas,monospace}
+
+.panes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;min-height:0}
+.pane{display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.pane>header{display:flex;justify-content:space-between;align-items:baseline;padding:16px 16px 8px}
+.pane>header h2{font-size:13px;font-weight:600}
+.pane>header .num{color:var(--text-3);font-size:12px}
+.scroll{overflow:auto;padding:0 16px 16px;min-height:0;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.group+.group{margin-top:16px}
+.group h3{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--text-2);padding:8px 0 4px}
+.group h3 .num{color:var(--text-3);font-weight:400}
+.group.attn h3{color:var(--attn)}
+.group.attn .row{box-shadow:inset 2px 0 0 var(--attn);padding-left:10px}
+
+.row{padding:8px 0;border-top:1px solid var(--line);transition:background-color 1.2s ease}
+.group h3+ul .row:first-child{border-top:0}
+.row .title{font-weight:500;line-height:1.35}
+.row .note{color:var(--text-2);font-size:12px;margin-top:2px}
+.row.fresh{background:var(--accent-soft);transition:none}
+.meta{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:4px;color:var(--text-3);font-size:12px}
+.meta code{color:var(--text-3)}
+.meta .tag{color:var(--text-2)}
+.meta .when{color:var(--attn)}
+
+.queue{counter-reset:q}
+.queue .row{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:4px}
+.queue .row::before{counter-increment:q;content:counter(q);grid-row:span 2;color:var(--text-3);font:12px/1.6 ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+.progress{display:flex;align-items:center;gap:8px}
+.bar{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent);border-radius:3px}
+.progress .num{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums;min-width:3.5ch;text-align:right}
+.project{padding:8px 0;border-top:1px solid var(--line)}
+.group h3+ul .project:first-child{border-top:0}
+.project .name{display:flex;justify-content:space-between;gap:8px;font-weight:500}
+.project .progress{margin-top:6px}
+.project .meta{margin-top:6px}
+details.area{border-top:1px solid var(--line);padding:8px 0}
+.group h3+ul details.area:first-child{border-top:0}
+details.area summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;list-style:none}
+details.area summary::-webkit-details-marker{display:none}
+details.area summary .n{color:var(--text-3);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+details.area .desc{color:var(--text-3);font-size:12px;margin-top:2px}
+details.area ol{list-style:none;margin-top:8px;display:grid;gap:8px}
+details.area ol li{padding-left:12px;border-left:2px solid var(--line)}
+details.area .why{color:var(--text-2);font-size:12px}
+details.area .why.missing{color:var(--attn)}
+.kind{color:var(--text-3);font-size:12px}
+.know .title{font-weight:400;font-size:13px;color:var(--text-2)}
+.project .name code{color:var(--text-3)}
+.calm{color:var(--text-3);padding:8px 0 16px}
+.empty{color:var(--text-3);padding:24px 0;text-align:center}
+.later{margin-top:16px;color:var(--text-2)}
+.later summary{cursor:pointer;font-size:12px;font-weight:600;padding:8px 0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+@media (max-width:1100px){.panes{grid-template-columns:repeat(2,minmax(0,1fr))}.pane.side{grid-column:span 2}}
+@media (max-width:760px){#app{height:auto;padding:16px}.hero{grid-template-columns:1fr;padding:16px 16px 16px 20px}.handoff{border-left:0;border-top:1px solid var(--line);padding:16px 0 0}.panes{grid-template-columns:1fr}.pane.side{grid-column:auto}.scroll{overflow:visible}.hero h2{font-size:22px}}
+@media (prefers-reduced-motion:reduce){.row{transition:none}}
+`;
+
+/** The plan as one HTML page. Fits one screen on a laptop; each pane scrolls on its own. No network, no scripts unless live. */
 export function boardHtml(ctx: Ctx, store: Store, opts: { live?: boolean } = {}): string {
-  homeNames = Object.fromEntries(store.projects().map((p) => [p.id, p.title.length > 28 ? p.title.slice(0, 27) + "…" : p.title]));
+  const projects = store.projects();
+  const v: View = { homeNames: Object.fromEntries(projects.map((p) => [p.id, p.title])) };
   const all = store.list();
   const tasks = all.filter((i) => i.kind === "task");
   const now = tasks.find((t) => state(t) === "now");
@@ -67,103 +205,90 @@ export function boardHtml(ctx: Ctx, store: Store, opts: { live?: boolean } = {})
   const recent = tasks
     .filter((t) => state(t) === "done" && daysBetween(str(t, "done_on") || str(t, "updated"), ctx.today) <= RECENT_DAYS)
     .sort((a, b) => str(b, "done_on").localeCompare(str(a, "done_on")));
+  const needsYou = review.length + due.length + inbox.length;
 
-  const columns: [string, Item[]][] = [["inbox", inbox], ["queue", queue], ["due", due], ["waiting", waiting], ["later", later], ["someday", someday], ["done this week", recent]];
-  const empties = columns.filter(([, items]) => items.length === 0).map(([name]) => name);
-  const emptyLine = empties.length ? `<p class="sub">Empty: ${esc(empties.join(", "))}.</p>` : "";
-  const summary = readSummary(ctx);
+  // Top line: what this is, and the few counts worth a glance.
+  const live = opts.live ? '<span id="live" class="live" title="Connecting">live</span>' : "";
+  const stat = (n: number, label: string, hot = false) => `<span class="${hot && n ? "hot" : ""}"><b>${n}</b> ${label}</span>`;
+  const top = `<header class="top"><div><h1>${esc(headline(readSummary(ctx), path.basename(ctx.base)))}<span class="wf">${esc(workflowLine(ctx)?.replace(/^Workflow: /, "") ?? "")}</span></h1></div>
+<div class="stats">${stat(needsYou, needsYou === 1 ? "needs you" : "need you", true)}${stat(queue.length, "queued")}${stat(recent.length, "done this week")}<span>${ctx.today}</span>${live}</div></header>`;
+
+  // The hero: the task in progress, or what comes next.
   const handoff = readHandoff(ctx);
-  const wf = workflowLine(ctx);
+  const handoffBlock = handoff ? `<aside class="handoff"><h3>Handoff</h3><pre>${esc(handoff)}</pre></aside>` : `<aside class="handoff"><h3>Handoff</h3><pre>None yet.</pre></aside>`;
+  let hero: string;
+  if (now) {
+    const p = now.home.type === "project" ? projects.find((x) => x.id === now.home.name) : undefined;
+    const prog = p ? projectTasks(store, p) : null;
+    const body = now.body.split("\n").filter((l) => l.trim()).slice(0, 3).map((l) => `<li>${esc(l)}</li>`).join("");
+    hero = `<section class="hero" data-id="${now.id}"><div><div class="eyebrow">In progress</div><h2>${esc(now.title)}</h2>${meta(v, now)}
+${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total, true) : ""}</div>${handoffBlock}</section>`;
+  } else {
+    const first = review[0] ?? queue[0];
+    const label = review[0] ? "Waiting for you to try" : first ? "Nothing in progress. Up next" : "Nothing in progress";
+    hero = `<section class="hero idle"><div><div class="eyebrow">${esc(label)}</div><h2>${first ? esc(first.title) : "Nothing in progress."}</h2>${first ? meta(v, first) : ""}</div>${handoffBlock}</section>`;
+  }
 
-  const focus = [
-    now ? `<div class="now"><span class="label">now</span><ul>${card(now)}</ul></div>` : `<div class="now idle"><span class="label">now</span><p>Nothing in progress.</p></div>`,
-    ...review.map((r) => `<div class="now review"><span class="label">review</span><ul>${card(r)}</ul></div>`),
-    handoff ? `<div class="handoff"><span class="label">handoff</span><pre>${esc(handoff)}</pre></div>` : "",
-  ].join("\n");
+  // Pane 1: the queue, in order, then what sleeps.
+  const queueRows = queue.map((t) => row(v, t));
+  const sleeping = [...later, ...someday];
+  const laterBlock = sleeping.length
+    ? `<details class="later"><summary>Later and someday (${sleeping.length})</summary><ul>${sleeping.map((t) => row(v, t, { when: true })).join("")}</ul></details>`
+    : "";
+  const paneNext = `<section class="pane"><header><h2>Up next</h2><span class="num">${queue.length} queued</span></header>
+<div class="scroll" data-pane="next">${queueRows.length ? `<ul class="queue">${queueRows.join("")}</ul>` : '<p class="empty">Nothing queued.</p>'}${laterBlock}</div></section>`;
 
-  const projects = store
-    .projects()
-    .filter((p) => p.data.state !== "done")
-    .map((p) => {
-      const { tasks: pt, done, total } = projectTasks(store, p);
-      const open = pt.filter((t) => state(t) !== "done").sort(byQueue);
-      const touches = touchesOf(p).map((t) => `<span class="home">${esc(t)}</span>`).join("");
-      const list = open.slice(0, 8).map((t) => `<li><span class="st st-${esc(state(t))}">${esc(state(t) === "open" ? when(t).split(":")[0] : state(t))}</span> ${esc(t.title)}</li>`).join("");
-      return `<article class="project"><header><h3>${esc(p.title)}</h3><code>${p.id}</code></header>
-<div class="progress">${bar(done, total)}</div><div class="meta">${touches}</div><ul class="plain">${list}${open.length > 8 ? `<li class="more">+${open.length - 8} more</li>` : ""}</ul></article>`;
-    })
-    .join("\n");
+  // Pane 2: what needs a person: review, due, inbox, then waits.
+  const needs = [
+    group("Ready for you to try", review.map((t) => row(v, t, { note: testsOf(t)[0] ? `Try: ${testsOf(t)[0]}` : undefined })), { tone: "attn" }),
+    group("Due", due.map((t) => row(v, t, { when: true })), { tone: "attn" }),
+    group("Inbox, to sort", inbox.map((t) => row(v, t, { home: false })), { tone: "attn" }),
+    group("Waiting", waiting.map((t) => row(v, t, { note: `On ${str(t, "wait")}` }))),
+  ].join("");
+  const doneBlock = group("Done this week", recent.map((t) => row(v, t)));
+  const paneNeeds = `<section class="pane"><header><h2>Needs you</h2><span class="num">${needsYou ? needsYou : ""}</span></header>
+<div class="scroll" data-pane="needs">${needsYou || waiting.length ? needs : '<p class="calm">Nothing needs you right now.</p>'}${doneBlock}</div></section>`;
 
-  const areas = store
-    .areas()
-    .map((a) => {
-      const open = tasks.filter((t) => t.home.name === a && state(t) !== "done").length;
-      const rules = activePrinciples(store, a)
-        .map((r) => `<li><strong>${esc(r.title)}</strong><br><span class="why">${str(r, "instead") && str(r, "because") ? `instead of ${esc(str(r, "instead"))}; because ${esc(str(r, "because"))}` : "needs instead and because (wk review)"}</span></li>`)
-        .join("");
-      return `<details class="area"${rules ? " open" : ""}><summary><span class="home">${esc(a)}</span> ${open} open · ${plural(activePrinciples(store, a).length, "principle")} <span class="desc">${esc(store.areaDescription(a).split("\n")[0])}</span></summary>${rules ? `<ul class="rules">${rules}</ul>` : ""}</details>`;
-    })
-    .join("\n");
-
+  // Pane 3: the shape of the plan: projects, areas and their principles, recent knowledge.
+  const openProjects = projects.filter((p: Project) => p.data.state !== "done");
+  const projectRows = openProjects.map((p) => {
+    const { done, total } = projectTasks(store, p);
+    const touches = touchesOf(p).map((t) => `<span class="tag">${esc(t)}</span>`).join("");
+    return `<li class="project" data-id="${p.id}"><div class="name"><span>${esc(p.title)}</span><code>${p.id}</code></div>${bar(done, total)}${touches ? `<div class="meta">${touches}</div>` : ""}</li>`;
+  });
+  const areaRows = store.areas().map((a) => {
+    const rules = activePrinciples(store, a);
+    const open = tasks.filter((t) => t.home.name === a && state(t) !== "done").length;
+    const list = rules
+      .map((r) => {
+        const ok = str(r, "instead") && str(r, "because");
+        const why = ok ? `instead of ${esc(str(r, "instead"))}; because ${esc(str(r, "because"))}` : "Needs instead and because";
+        return `<li><div>${esc(r.title)}</div><div class="why${ok ? "" : " missing"}">${why}</div></li>`;
+      })
+      .join("");
+    return `<li><details class="area"><summary><span>${esc(a)}</span><span class="n">${open} open, ${rules.length} ${rules.length === 1 ? "rule" : "rules"}</span></summary><div class="desc">${esc(store.areaDescription(a).split("\n")[0])}</div>${list ? `<ol>${list}</ol>` : ""}</details></li>`;
+  });
   const knowledge = all
     .filter((i) => (i.kind === "decision" || i.kind === "learning") && !str(i, "superseded_by"))
     .sort((a, b) => str(b, "created").localeCompare(str(a, "created")))
-    .slice(0, 8)
-    .map((i) => `<li><span class="kind kind-${i.kind}">${i.kind}</span> ${esc(i.title)} <span class="home">${esc(homeNames[i.home.name] ?? i.home.name)}</span></li>`)
-    .join("");
+    .slice(0, 6)
+    .map((i) => `<li class="row" data-id="${i.id}"><div class="title">${esc(i.title)}</div><div class="meta"><span class="kind">${i.kind}</span><span>${esc(homeLabel(v, i))}</span></div></li>`);
+  const side = [
+    group("Projects", projectRows, { count: openProjects.length }),
+    group("Areas and principles", areaRows),
+    knowledge.length ? `<section class="group know"><h3>Recent decisions and learnings</h3><ul>${knowledge.join("")}</ul></section>` : "",
+  ].join("");
+  const paneSide = `<section class="pane side"><header><h2>Plan</h2></header>
+<div class="scroll" data-pane="side">${side}</div></section>`;
 
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>wk board</title>
-<style>
-:root{--bg:#f7f7f5;--panel:#fff;--ink:#1d1d1b;--muted:#6b6b66;--line:#e4e3de;--accent:#2f6fde;--due:#c2410c;--ok:#15803d;--chip:#eef0f4}
-@media (prefers-color-scheme:dark){:root{--bg:#141413;--panel:#1e1e1c;--ink:#ecebe6;--muted:#9b9a94;--line:#2e2d2a;--accent:#7aa7ff;--due:#fb923c;--ok:#4ade80;--chip:#2a2b30}}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
-main{max-width:1280px;margin:0 auto;padding:24px 16px 48px}
-h1{font-size:20px;margin:0}h2{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:32px 0 12px}h3{font-size:14px;margin:0 0 8px}
-.top{display:flex;flex-wrap:wrap;gap:8px 24px;align-items:baseline;justify-content:space-between}.sub{color:var(--muted);margin:4px 0 0}
-.focus{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:16px}
-.now,.handoff{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}.now .card{border:0;padding:0;margin:0}.now.idle p{margin:0;color:var(--muted)}
-.label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:6px;font-weight:600}.review .label{color:var(--ok)}
-pre{margin:0;white-space:pre-wrap;font:13px/1.45 ui-monospace,Consolas,monospace}
-.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
-.col{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;min-width:0}
-.col h3{display:flex;justify-content:space-between}.count{color:var(--muted);font-weight:400}
-ul{list-style:none;margin:0;padding:0}.card{border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;background:var(--panel)}
-.card.due{border-color:var(--due)}.title{font-weight:500}.meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;align-items:center}
-code{font:12px ui-monospace,Consolas,monospace;color:var(--muted)}.home,.tag,.when{font-size:11px;padding:1px 6px;border-radius:999px;background:var(--chip);color:var(--muted)}
-.when{color:var(--due)}.note{font-size:12px;color:var(--muted);margin-top:4px}.empty,.more{color:var(--muted);font-size:12px;padding:4px 0}
-.projects{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
-.project{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}.project header{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.progress{display:flex;align-items:center;gap:8px;margin:4px 0 8px}.bar{flex:1;height:8px;border-radius:999px;background:var(--chip);overflow:hidden}.bar span{display:block;height:100%;background:var(--ok)}.pct{font-size:12px;color:var(--muted)}
-.plain li{padding:3px 0;border-top:1px solid var(--line)}.st{display:inline-block;min-width:56px;font-size:11px;color:var(--muted)}.st-now{color:var(--accent);font-weight:600}.st-review{color:var(--ok)}
-.area{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}.area summary{cursor:pointer}.desc{color:var(--muted);margin-left:6px}
-.rules{margin-top:8px}.rules li{padding:6px 0;border-top:1px solid var(--line)}.why{color:var(--muted);font-size:13px}
-.know li{padding:4px 0;border-top:1px solid var(--line)}.kind{display:inline-block;min-width:68px;font-size:11px;color:var(--muted)}
-.counts{display:flex;gap:16px;color:var(--muted);font-size:13px;align-items:center}
-.live{display:inline-flex;align-items:center;gap:6px}.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}.live.on::before{background:var(--ok)}.live.off::before{background:var(--due)}
-</style></head><body><main>
-<div class="top"><div><h1>${esc(summary ? summary.split("\n")[0] : path.basename(ctx.base))}</h1>
-<p class="sub">${esc(wf ?? "Workflow not set.")}</p></div><div class="counts">${opts.live ? '<span id="live" class="live" title="connecting">live</span>' : ""}<span>${ctx.today}</span><span>${queue.length} queued</span><span>${inbox.length} in inbox</span><span>${due.length} due</span></div></div>
-<div class="focus">${focus}</div>
-<h2>Work</h2>
-${emptyLine}
-<div class="board">
-${column("Inbox", inbox, "Nothing to sort.")}
-${column("Queue", queue, "Nothing queued.", { limit: 12 })}
-${column("Due", due, "Nothing due.", { cls: "due" })}
-${column("Waiting", waiting, "Nothing waiting.")}
-${column("Later", later, "Nothing later.", { limit: 8 })}
-${column("Someday", someday, "No someday ideas.", { limit: 8 })}
-${column("Done this week", recent, "Nothing finished this week.", { limit: 8 })}
-</div>
-<h2>Projects</h2>
-${projects ? `<div class="projects">${projects}</div>` : '<p class="sub">No open projects.</p>'}
-<h2>Areas and principles</h2>
-${areas}
-<h2>Recent decisions and learnings</h2>
-${knowledge ? `<ul class="know">${knowledge}</ul>` : '<p class="sub">None yet.</p>'}
-</main>${opts.live ? LIVE_SCRIPT : ""}</body></html>
+<title>wk board</title><style>${CSS}</style></head><body>
+<div id="app">
+${top}
+${hero}
+<div class="panes">${paneNext}${paneNeeds}${paneSide}</div>
+</div>${opts.live ? LIVE_SCRIPT : ""}</body></html>
 `;
 }
 

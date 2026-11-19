@@ -1,2 +1,2 @@
-Done: fv4n Serve a live board that refreshes as the plan changes.
+Done: bcpc Redesign the board to fit one screen around the task in progress.
 Next: nothing queued.
