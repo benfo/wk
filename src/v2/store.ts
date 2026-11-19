@@ -382,6 +382,16 @@ export class Store {
     this.write(item);
   }
 
+  /** Writes an item exactly as it is, keeping its dates; for wk migrate. */
+  persist(item: Item): void {
+    this.write(item);
+  }
+
+  /** Writes a project exactly as it is, keeping its dates; for wk migrate. */
+  persistProject(p: Project): void {
+    this.writeProject(p);
+  }
+
   private write(item: Item): void {
     fs.mkdirSync(path.dirname(item.file), { recursive: true });
     fs.writeFileSync(item.file, stringify(item.data, joinTitle(item.title, item.body), ORDER));

@@ -8,6 +8,7 @@ import { areaList, areaNew, projectClose, projectList, projectNew, projectShow, 
 import { review } from "./commands/review.js";
 import { addMany, addTask, ls, move, show } from "./commands/items.js";
 import { board } from "./commands/board.js";
+import { migrate } from "./commands/migrate.js";
 import { guide, GUIDE_TOPICS, setup } from "./commands/setup.js";
 import { inbox, jot } from "./commands/capture.js";
 import { configure } from "./commands/configure.js";
@@ -78,6 +79,13 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .description(`print the agent rules, or a guide: ${GUIDE_TOPICS.join(", ")}`)
     .action(function (this: Command, topic?: string) {
       emit(this, guide(topic));
+    });
+
+  program
+    .command("migrate")
+    .description("convert a v1 plan in place; old ids stay findable (wk show T-013)")
+    .action(function (this: Command) {
+      emit(this, migrate(cwd, today, { home: options.home, pick: options.pick }));
     });
 
   program

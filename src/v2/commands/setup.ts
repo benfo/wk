@@ -38,6 +38,8 @@ export function guide(topic?: string): Result {
 export function installSkills(base: string): string[] {
   return SKILLS.map((name) => {
     const dest = path.join(base, SKILLS_DIR, name);
+    // wk owns these folders: start clean so files an older version shipped don't linger.
+    fs.rmSync(dest, { recursive: true, force: true });
     fs.mkdirSync(dest, { recursive: true });
     fs.cpSync(path.join(PACKAGE_ROOT, "skills", name), dest, { recursive: true });
     return path.relative(base, dest).split(path.sep).join("/");
