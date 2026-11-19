@@ -1,0 +1,22 @@
+---
+id: "4qxq"
+kind: project
+state: done
+touches: []
+was: E-001
+created: 2026-11-19
+updated: 2026-11-19
+done_on: 2026-11-19
+---
+# v2 item model, homes and storage
+
+## Scope
+One item model (task, decision, learning, principle), random ids, <id>-<slug> files.
+Homes: projects and areas, core area at init, folders by home.
+Lifecycle and views on the new model: add, show, ls, move, start, check, done, wait, brief, next.
+
+## Out of scope
+Inbox, triggers, review, skill rewrite, migration.
+
+## Acceptance
+A fresh plan can be set up and worked through start to done with v2 commands; see docs/v2.md.
