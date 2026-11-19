@@ -1,2 +1,2 @@
-Done: 9vbq Refresh the PDF guide with real output and the live board.
+Done: sutw Fix the doc and CLI mismatches the guide refresh found.
 Next: nothing queued.

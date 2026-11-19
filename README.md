@@ -46,7 +46,7 @@ Then run `wk init` again in each project to refresh its skills. Your plan is kep
 wk board --open
 ```
 
-This writes the plan as one HTML page and opens it: now, the queue, due and waiting items, projects with progress, and areas with their principles.
+This writes the plan as one HTML page and opens it: the task in progress and the handoff, the queue and what wakes up later, what needs you (ready to try, due, the inbox, waits), what just happened, projects with progress, and areas with their principles.
 
 For a live view, keep this running in a spare terminal and leave the tab open beside your agent:
 

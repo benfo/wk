@@ -1,6 +1,6 @@
 # Closing a project
 
-`wk done` says "Nothing left in <project>" after its last task. Offer to close it at the check-in.
+`wk done` says "Nothing left in <project>" once no task in it is open; a parked `later` or `someday` task counts as open. Offer to close it at the check-in.
 
 1. **Full checks.** If the `Workflow:` line names full checks, run them first.
 2. **Leftovers.** `wk project close <id>` refuses while tasks are open and lists them. For each, ask: move it to an area (`wk move <id> --in <area>`), keep it for a follow-up project, or drop it.

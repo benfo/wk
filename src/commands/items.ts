@@ -19,7 +19,34 @@ export function newTagNotes(ctx: Ctx, store: Store, tags: string[], self?: Item)
   const known = new Set([...ctx.config.tags, ...store.list().filter((i) => i !== self).flatMap(tagsOf)]);
   const fresh = tags.filter((t) => !known.has(t));
   if (fresh.length === 0 || known.size === 0) return [];
-  return [`New tag${fresh.length > 1 ? "s" : ""}: ${fresh.join(", ")} (known: ${[...known].sort().join(", ")}).`];
+  return fresh.map((t) => {
+    const near = [...known].filter((k) => editDistance(t, k) <= 2).sort((a, b) => editDistance(t, a) - editDistance(t, b))[0];
+    return near ? `New tag: ${t}. Did you mean ${near}?` : `New tag: ${t} (known: ${[...known].sort().join(", ")}).`;
+  });
+}
+
+/** Levenshtein distance, for "did you mean" on tags. */
+export function editDistance(a: string, b: string): number {
+  const row = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = row[0];
+    row[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cur = row[j];
+      row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = cur;
+    }
+  }
+  return row[b.length];
+}
+
+export function tagsList(ctx: Ctx, store: Store): Result {
+  const counts = new Map<string, number>();
+  for (const t of ctx.config.tags) counts.set(t, 0);
+  for (const i of store.list()) for (const t of tagsOf(i)) counts.set(t, (counts.get(t) ?? 0) + 1);
+  const rows = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const lines = rows.length ? [rows.map(([t, n]) => `${t} ${n}`).join(", ")] : ["No tags yet."];
+  return result(lines, Object.fromEntries(rows));
 }
 
 export function addTask(ctx: Ctx, store: Store, rawTitle: string, opts: AddOpts): Result {

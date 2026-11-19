@@ -120,3 +120,30 @@ describe.skipIf(!hasGit)("personal stores", () => {
     expect(git(p.dir, "status", "--porcelain")).toBe("");
   });
 });
+
+describe("mismatches the guide refresh found", () => {
+  it("rejects a mistyped command instead of briefing", () => {
+    const p = plan();
+    expect(p.raw("tgas").stderr).toBe('Unknown command "tgas". See wk --help.');
+    expect(p.wk()).toMatch(/^Empty plan/);
+  });
+
+  it("does not call a handoff stale because brief itself woke a dated item", () => {
+    const p = plan();
+    p.wk("add", "Renew cert", "--when", "on:2026-11-12");
+    p.wk("handoff", "Stopped after setup.");
+    const out = p.with({ today: "2026-11-12" }, "brief").stdout;
+    expect(out).toContain("Due: ");
+    expect(out).not.toContain("older than the latest task change");
+  });
+
+  it("names the agent instruction files at init, but not a file holding only wk's pointer", () => {
+    const p = plan({ init: false });
+    fs.writeFileSync(path.join(p.dir, "CLAUDE.md"), "Be brief.\n");
+    const out = p.wk("init", "--store", "repo");
+    expect(out).toContain("Added the wk pointer to AGENTS.md and CLAUDE.md");
+    expect(out).toContain("Agent instructions: CLAUDE.md. Fit wk to them with the wk-setup skill");
+    const q = plan({ init: false });
+    expect(q.wk("init", "--store", "repo")).not.toContain("Agent instructions");
+  });
+});

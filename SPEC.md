@@ -101,7 +101,7 @@ A fired trigger makes the item **due**: `wk brief` lists it under `Due:` until i
 
 ### Tags
 
-Thin, cross-cutting labels: `bug`, `quick`, `perf`, `ux`. Areas are homes, not tags. `wk add` warns on a tag never seen before ("did you mean `ux`?"). `wk tags` lists them with counts.
+Thin, cross-cutting labels: `bug`, `quick`, `perf`, `ux`. Areas are homes, not tags. `wk add` notes a tag never seen before, suggesting the nearest known one ("New tag: bugs. Did you mean bug?"). `wk tags` lists them with counts.
 
 ### Fields
 
@@ -272,7 +272,7 @@ On the last `wk done` in a project, or `wk project close`:
 
 ## The skill
 
-wk ships as one npm package: the CLI plus the rules. `wk init` copies two skills to `.claude/skills/` and adds a one-line pointer to `AGENTS.md`, so any agent that can run a shell follows the same rules through `wk guide`.
+wk ships as one npm package: the CLI plus the rules. `wk init` copies two skills to `.claude/skills/` and adds a one-line pointer to `AGENTS.md` (and to `CLAUDE.md` when one exists; the personal stores `local` and `home` change neither), so any agent that can run a shell follows the same rules through `wk guide`.
 
 | Skill | Loads | Holds |
 | --- | --- | --- |

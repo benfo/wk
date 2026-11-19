@@ -122,12 +122,13 @@ export function brief(ctx: Ctx, store: Store): Result {
   if (empty) lines.push("Empty plan. Offer setup (wk guide setup).");
   const about = readSummary(ctx);
   lines.push(about ? `Summary: ${about.split("\n")[0]}` : "No summary yet.");
+  // Judge the handoff before the cues run: firing a dated trigger saves a task, which would make it look stale.
+  const age = handoffAge(ctx, store);
   // Cues go early, so the line cap never hides them.
   for (const hook of briefHooks) lines.push(...hook(ctx, store));
   const wf = workflowLine(ctx);
   if (wf) lines.push(wf);
   const handoff = readHandoff(ctx);
-  const age = handoffAge(ctx, store);
   if (handoff) {
     const fresh = readHandoffFile(ctx).startsWith(FRESH_MARK) ? ", fresh session recommended" : "";
     const when = (age.stale ? `${age.written}, older than the latest task change` : age.written) + fresh;

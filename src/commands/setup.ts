@@ -93,6 +93,11 @@ export function fingerprint(base: string, rel: string): string {
   return createHash("sha1").update(text).digest("hex").slice(0, 12);
 }
 
+/** True when a file says more than wk's own pointer line. */
+export function hasOwnContent(base: string, rel: string): boolean {
+  return fingerprint(base, rel) !== createHash("sha1").update("").digest("hex").slice(0, 12);
+}
+
 /** Files that changed, appeared or disappeared since `wk setup --done`. */
 export function drift(ctx: Ctx): { file: string; how: "changed" | "new" | "removed" }[] {
   const seen = ctx.config.setup ?? {};
@@ -138,7 +143,7 @@ export function setup(ctx: Ctx, _store: Store, opts: { done?: boolean }): Result
 export function briefDrift(ctx: Ctx, store: Store): string[] {
   if (!ctx.config.setup) {
     const work = store.list().length > 0;
-    const own = instructionFiles(ctx.base).some((f) => fingerprint(ctx.base, f) !== createHash("sha1").update("").digest("hex").slice(0, 12));
+    const own = instructionFiles(ctx.base).some((f) => hasOwnContent(ctx.base, f));
     return work && own ? ["Setup not recorded: fit wk to this project's instructions (wk-setup skill, wk guide setup)."] : [];
   }
   const changes = drift(ctx);

@@ -6,7 +6,7 @@ import { findSources, sourcesLine } from "./sources.js";
 import { result, WkError, type Result } from "../output.js";
 import { CONFIG_FILE, configText, defaultConfig, PRESETS, readConfig, V1_PLAN, type Preset } from "../context.js";
 import { ARCHIVE_DIR, AREA_FILE, AREAS_DIR, CORE_AREA, INBOX_DIR, PROJECTS_DIR } from "../store.js";
-import { addPointer, AGENT_POINTER, installSkills, SKILLS, SKILLS_DIR } from "./setup.js";
+import { addPointer, AGENT_POINTER, hasOwnContent, installSkills, instructionFiles, SKILLS, SKILLS_DIR } from "./setup.js";
 
 export const SUMMARY_FILE = "summary.md";
 export const SESSION_FILE = "session.md";
@@ -114,6 +114,8 @@ export function init(cwd: string, opts: { store?: string; preset?: string; home?
   const lines = [`Created ${root} (preset: ${preset})`, ...wireAgent(base, store, git)];
   const found = sourcesLine(findSources(base, git));
   if (found) lines.push(found);
+  const instructions = instructionFiles(base).filter((f) => hasOwnContent(base, f));
+  if (instructions.length) lines.push(`Agent instructions: ${instructions.join(", ")}. Fit wk to them with the wk-setup skill (wk guide setup).`);
   lines.push("Next: wk brief, then the wk-setup skill (wk guide setup).");
   return result(lines, { root, store, preset });
 }

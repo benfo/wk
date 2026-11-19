@@ -6,7 +6,7 @@ import { render, result, WkError, type Result } from "./output.js";
 import { init } from "./commands/init.js";
 import { areaList, areaNew, projectClose, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
 import { review } from "./commands/review.js";
-import { addMany, addTask, ls, move, show } from "./commands/items.js";
+import { addMany, addTask, ls, move, show, tagsList } from "./commands/items.js";
 import { board } from "./commands/board.js";
 import { DEFAULT_PORT, serveCommand } from "./commands/live.js";
 import { migrate } from "./commands/migrate.js";
@@ -215,8 +215,16 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     });
 
   program.command("brief", { isDefault: true }).description("summary, workflow, handoff, now and next; first call of a session")
+    .allowExcessArguments(true)
     .action(function (this: Command) {
+      // brief is the default, so a mistyped command lands here: say so instead of briefing.
+      if (this.args.length) throw new WkError(`Unknown command "${this.args[0]}". See wk --help.`);
       act(this, (ctx, s) => brief(ctx, s));
+    });
+
+  program.command("tags").description("tags in use, with counts, and the ones the plan knows")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => tagsList(ctx, s));
     });
 
   program.command("next").description("now, up to 5 queued, due and waiting tasks")
@@ -278,7 +286,7 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
 
   program
     .command("config [action] [key] [value]")
-    .description("show settings, or: wk config set <key> <value> (git.branch, git.commit, commit_style, checks.quick, checks.full, tracker)")
+    .description("show settings, or: wk config set <key> <value> (git.branch, git.commit, commit_style, checks.quick, checks.full, tracker, preset, tags)")
     .action(function (this: Command, action?: string, key?: string, value?: string) {
       act(this, (ctx) => configure(ctx, action, key, value));
     });

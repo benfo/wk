@@ -105,7 +105,7 @@ describe("review", () => {
     expect(lines).toContain("Area ui has no principles.");
     expect(lines).toContain("Principle rrrr Old rule lacks because: would a model get it wrong without it?");
     expect(lines.some((l) => l.startsWith("Duplicate? "))).toBe(true);
-    expect(p.with({ today: "2026-12-20" }, "brief").stdout).toContain("Review due: none yet");
+    expect(p.with({ today: "2026-12-20" }, "brief").stdout).toContain("Review due: no review recorded yet");
     expect(p.wk("review", "--done")).toBe("Review recorded (2026-11-10).");
     expect(p.with({ today: "2026-11-15" }, "brief").stdout).not.toContain("Review due");
     expect(p.with({ today: "2026-11-20" }, "brief").stdout).toContain("Review due: last one 10 days ago");

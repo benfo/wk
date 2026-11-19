@@ -74,7 +74,7 @@ export function briefReview(ctx: Ctx, store: Store): string[] {
     return days > REVIEW_EVERY_DAYS ? [`Review due: last one ${days} days ago (wk review, wk guide review).`] : [];
   }
   const oldest = store.list().map((i) => str(i, "created")).filter(Boolean).sort()[0];
-  return oldest && daysBetween(oldest, ctx.today) > REVIEW_EVERY_DAYS ? ["Review due: none yet (wk review, wk guide review)."] : [];
+  return oldest && daysBetween(oldest, ctx.today) > REVIEW_EVERY_DAYS ? ["Review due: no review recorded yet (wk review, wk guide review)."] : [];
 }
 
 /** `wk check`: the first problem, so the plan gets a little cleaner each task. */
