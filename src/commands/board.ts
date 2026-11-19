@@ -7,10 +7,10 @@ import type { Ctx } from "../context.js";
 import { byQueue, daysBetween, isDue, isQueued, isWaiting, state, triggerOf, when } from "../model.js";
 import { lastEvent, readEvents } from "../events.js";
 import { currentBranch } from "../git.js";
-import { str, tagsOf, touchesOf, type Item, type Project, type Store } from "../store.js";
+import { str, tagsOf, type Item, type Project, type Store } from "../store.js";
 import { readSummary, projectTasks } from "./homes.js";
 import { activePrinciples } from "./knowledge.js";
-import { readHandoff, workflowLine } from "./views.js";
+import { readHandoff } from "./views.js";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
@@ -31,14 +31,14 @@ function homeLabel(v: View, item: Item): string {
   return v.homeNames[item.home.name] ?? item.home.name;
 }
 
-/** One quiet line of facts under a title: where it lives, its timing, its tags. */
-function meta(v: View, item: Item, opts: { home?: boolean; when?: boolean } = {}): string {
+/** One quiet line under a title: where it lives and its timing. The id and tags only where asked (the hero). */
+function meta(v: View, item: Item, opts: { home?: boolean; when?: boolean; full?: boolean } = {}): string {
   const parts: string[] = [];
-  parts.push(`<code>${item.id}</code>`);
+  if (opts.full) parts.push(`<code>${item.id}</code>`);
   if (opts.home !== false) parts.push(`<span>${esc(homeLabel(v, item))}</span>`);
   if (opts.when && when(item) && !isQueued(item)) parts.push(`<span class="when">${esc(when(item))}</span>`);
-  for (const t of tagsOf(item)) parts.push(`<span class="tag">#${esc(t)}</span>`);
-  return `<div class="meta">${parts.join("")}</div>`;
+  if (opts.full) for (const t of tagsOf(item)) parts.push(`<span class="tag">#${esc(t)}</span>`);
+  return parts.length ? `<div class="meta">${parts.join("")}</div>` : "";
 }
 
 /** A key that changes when the row's meaning changes, so the live page can flash what's new. */
@@ -49,7 +49,12 @@ function key(item: Item): string {
 function row(v: View, item: Item, opts: { home?: boolean; when?: boolean; note?: string; since?: string } = {}): string {
   const note = opts.note ? `<div class="note">${esc(opts.note)}</div>` : "";
   const since = opts.since ? `<div class="note">${opts.since}</div>` : "";
-  return `<li class="row" data-key="${key(item)}"><div class="title">${esc(item.title)}</div>${meta(v, item, opts)}${note}${since}</li>`;
+  return `<li class="row" data-key="${key(item)}" title="${item.id}"><div class="title">${esc(item.title)}</div>${meta(v, item, opts)}${note}${since}</li>`;
+}
+
+/** A one-line row: just the title, for long lists like what got done. */
+function line(item: Item): string {
+  return `<li class="line" data-key="${key(item)}" title="${item.id}">${esc(item.title)}</li>`;
 }
 
 /** "just now", "12 min", "3 h", "2 d": short enough for a glance. */
@@ -183,110 +188,102 @@ const LIVE_SCRIPT = `<script>
 
 const CSS = `
 :root{color-scheme:light dark;
---bg:#f6f6f4;--surface:#ffffff;--text:#1b1c1e;--text-2:#5d6066;--text-3:#8a8d93;--line:rgba(20,22,26,.09);
---accent:#3d5afe;--accent-soft:rgba(61,90,254,.09);--attn:#b45309;--attn-soft:rgba(180,83,9,.09);--ok:#15803d}
+--bg:#f6f6f4;--surface:#ffffff;--text:#1b1c1e;--text-2:#5d6066;--text-3:#7d8087;--line:rgba(20,22,26,.09);
+--accent:#3d5afe;--accent-soft:rgba(61,90,254,.09);--attn:#b45309;--ok:#15803d}
 @media (prefers-color-scheme:dark){:root{
---bg:#111214;--surface:#18191c;--text:#ececed;--text-2:#a3a6ad;--text-3:#73767d;--line:rgba(255,255,255,.08);
---accent:#8c9eff;--accent-soft:rgba(140,158,255,.12);--attn:#f0a35c;--attn-soft:rgba(240,163,92,.12);--ok:#5bd38a}}
+--bg:#111214;--surface:#18191c;--text:#ececed;--text-2:#a3a6ad;--text-3:#7c7f86;--line:rgba(255,255,255,.08);
+--accent:#8c9eff;--accent-soft:rgba(140,158,255,.12);--attn:#f0a35c;--ok:#5bd38a}}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:var(--bg);color:var(--text);font:14px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
-code,.mono{font:12px/1.4 ui-monospace,"Cascadia Mono",Consolas,monospace}
-ul{list-style:none}
-#app{height:100vh;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:16px;padding:16px 24px 24px;max-width:1600px;margin:0 auto}
+body{background:var(--bg);color:var(--text);font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+code{font:12px/1.4 ui-monospace,"Cascadia Mono",Consolas,monospace}
+ul,ol{list-style:none}
+#app{height:100vh;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:24px;padding:24px 32px 0;max-width:1280px;margin:0 auto}
 
 .top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.top h1{font-size:16px;font-weight:600;letter-spacing:-.005em}
-.top .wf{color:var(--text-3);font-size:12px;margin-left:12px}
-.branch{margin-left:12px}.branch code{font-size:12px;color:var(--text-2);background:var(--line);padding:2px 6px;border-radius:4px}
-.stats{display:flex;gap:16px;align-items:center;color:var(--text-2);font-size:12px;font-variant-numeric:tabular-nums}
-.stats b{color:var(--text);font-weight:600}
-.stats .hot b{color:var(--attn)}
+.top h1{font-size:14px;font-weight:600;display:flex;align-items:baseline;gap:12px;min-width:0}
+.top h1 .sub{font-weight:400;color:var(--text-3)}
+.branch code{color:var(--text-3)}
+.stats{display:flex;gap:16px;align-items:center;color:var(--text-3);font-size:12px;font-variant-numeric:tabular-nums}
+.stats b{color:var(--text-2);font-weight:600}
+.stats .hot,.stats .hot b{color:var(--attn)}
 .live{display:inline-flex;align-items:center;gap:6px;color:var(--text-3)}
-.live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--text-3)}
-.live.on::before{background:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 20%,transparent)}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--text-3)}
+.live.on::before{background:var(--ok)}
 .live.off::before{background:var(--attn)}
 
-.hero{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:24px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;position:relative;overflow:hidden}
-.hero::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--accent)}
-.hero.idle::before{background:var(--line)}
-.eyebrow{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:8px;display:flex;gap:8px;align-items:center}
+.hero{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:48px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:32px;position:relative;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent)}
+.hero.idle::before{display:none}
+.eyebrow{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:8px}
 .hero.idle .eyebrow{color:var(--text-3)}
-.hero h2{font-size:28px;line-height:1.2;font-weight:650;letter-spacing:-.02em;text-wrap:balance;max-width:32ch}
-.hero.idle h2{font-weight:600}
+.hero h2{font-size:28px;line-height:1.2;font-weight:600;letter-spacing:-.02em;text-wrap:balance;max-width:30ch}
 .hero .meta{margin-top:12px}
-.hero .body{margin-top:12px;color:var(--text-2);max-width:68ch}
+.hero .body{margin-top:16px;color:var(--text-2);max-width:68ch}
 .hero .body li{padding:2px 0}
 .hero .progress{margin-top:16px;max-width:360px}
-.handoff{border-left:1px solid var(--line);padding-left:24px;min-width:0}
+.handoff{min-width:0;align-self:center}
 .handoff h3{font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:8px}
-.handoff pre{white-space:pre-wrap;color:var(--text-2);font:12.5px/1.55 ui-monospace,"Cascadia Mono",Consolas,monospace}
+.handoff p{color:var(--text-2);white-space:pre-wrap;max-width:60ch;display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}
 
-.panes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;min-height:0}
-.pane{display:flex;flex-direction:column;min-height:0;background:var(--surface);border:1px solid var(--line);border-radius:12px}
-.pane>header{display:flex;justify-content:space-between;align-items:baseline;padding:16px 16px 8px}
-.pane>header h2{font-size:13px;font-weight:600}
-.pane>header .num{color:var(--text-3);font-size:12px}
-.scroll{overflow:auto;padding:0 16px 16px;min-height:0;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
-.group+.group{margin-top:16px}
-.group h3{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--text-2);padding:8px 0 4px}
-.group h3 .num{color:var(--text-3);font-weight:400}
+.panes{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;min-height:0}
+.pane{display:flex;flex-direction:column;min-height:0}
+.scroll{overflow:auto;min-height:0;padding:0 4px 32px 0;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.group+.group,.group+details,details+details{margin-top:32px}
+.group h3,.fold>summary{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;font-weight:600;color:var(--text-3);padding-bottom:8px;border-bottom:1px solid var(--line)}
+.group h3 .num,.fold .num{font-weight:400;font-variant-numeric:tabular-nums}
 .group.attn h3{color:var(--attn)}
-.group.attn .row{box-shadow:inset 2px 0 0 var(--attn);padding-left:10px}
+.group.attn .row{box-shadow:inset 2px 0 0 var(--attn);padding-left:12px}
 
-.row{padding:8px 0;border-top:1px solid var(--line);transition:background-color 1.2s ease}
-.group h3+ul .row:first-child{border-top:0}
-.row .title{font-weight:500;line-height:1.35}
-.row .note{color:var(--text-2);font-size:12px;margin-top:2px}
-.row.fresh{background:var(--accent-soft);transition:none}
-.meta{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:4px;color:var(--text-3);font-size:12px}
+.row{padding:12px 0;border-bottom:1px solid var(--line);transition:background-color 1.2s ease}
+.row .title{line-height:1.4}
+.row .note{color:var(--text-2);font-size:12px;margin-top:4px}
+.fresh{background:var(--accent-soft)!important;transition:none}
+.meta{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-top:4px;color:var(--text-3);font-size:12px}
 .meta code{color:var(--text-3)}
-.meta .tag{color:var(--text-2)}
 .meta .when{color:var(--attn)}
+.line{padding:6px 0;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-.queue{counter-reset:q}
-.queue .row{display:grid;grid-template-columns:24px minmax(0,1fr);column-gap:4px}
-.queue .row::before{counter-increment:q;content:counter(q);grid-row:span 2;color:var(--text-3);font:12px/1.6 ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums}
+.queue{counter-reset:q var(--from,0)}
+.queue .row{display:grid;grid-template-columns:24px minmax(0,1fr)}
+.queue .row::before{counter-increment:q;content:counter(q);grid-row:span 3;color:var(--text-3);font-size:12px;line-height:1.7;font-variant-numeric:tabular-nums}
 
-.progress{display:flex;align-items:center;gap:8px}
-.bar{flex:1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
-.bar span{display:block;height:100%;background:var(--accent);border-radius:3px}
-.progress .num{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums;min-width:3.5ch;text-align:right}
-.project{padding:8px 0;border-top:1px solid var(--line)}
-.group h3+ul .project:first-child{border-top:0}
-.project .name{display:flex;justify-content:space-between;gap:8px;font-weight:500}
-.project .progress{margin-top:6px}
-.project .meta{margin-top:6px}
-details.area{border-top:1px solid var(--line);padding:8px 0}
-.group h3+ul details.area:first-child{border-top:0}
-details.area summary{cursor:pointer;display:flex;justify-content:space-between;gap:8px;list-style:none}
+.progress{display:flex;align-items:center;gap:12px}
+.bar{flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden}
+.bar span{display:block;height:100%;background:var(--accent)}
+.progress .num{font-size:12px;color:var(--text-3);font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
+.project{padding:12px 0;border-bottom:1px solid var(--line)}
+.project .progress{margin-top:8px}
+
+.fold>summary{cursor:pointer;list-style:none}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary::after{content:"Show";font-weight:400;color:var(--text-3);margin-left:auto;padding-left:12px}
+.fold[open]>summary::after{content:"Hide"}
+.fold>summary .num{margin-left:8px}
+.fold>summary:hover{color:var(--text-2)}
+.fold>ul,.fold>ol{margin-top:4px}
+details.area{border-bottom:1px solid var(--line);padding:12px 0}
+details.area summary{cursor:pointer;display:flex;justify-content:space-between;gap:12px;list-style:none}
 details.area summary::-webkit-details-marker{display:none}
 details.area summary .n{color:var(--text-3);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
-details.area .desc{color:var(--text-3);font-size:12px;margin-top:2px}
-details.area ol{list-style:none;margin-top:8px;display:grid;gap:8px}
+details.area .desc{color:var(--text-3);font-size:12px;margin-top:4px}
+details.area ol{margin-top:12px;display:grid;gap:8px}
 details.area ol li{padding-left:12px;border-left:2px solid var(--line)}
 details.area .why{color:var(--text-2);font-size:12px}
 details.area .why.missing{color:var(--attn)}
-.kind{color:var(--text-3);font-size:12px}
-.know .title{font-weight:400;font-size:13px;color:var(--text-2)}
-.project .name code{color:var(--text-3)}
-.calm{color:var(--text-3);padding:8px 0 16px}
+.kind{color:var(--text-3)}
+.calm{color:var(--text-3);padding:12px 0}
 .for{color:var(--text-3);font-weight:400}
-.wake h4{font-size:12px;font-weight:500;color:var(--text-3);padding:8px 0 0}
-.wake h4+ul .row:first-child{border-top:0}
-.activity .act{display:grid;grid-template-columns:6.5em 7.5em minmax(0,1fr);gap:8px;padding:4px 0;font-size:12px;align-items:baseline}
+.wake h4{font-size:12px;font-weight:400;color:var(--text-3);padding:12px 0 0}
+.activity .act{display:grid;grid-template-columns:5em 5.5em minmax(0,1fr);gap:12px;padding:6px 0;font-size:12px;align-items:baseline}
 .activity .act time{color:var(--text-3);font-variant-numeric:tabular-nums}
-.activity .act .verb{color:var(--text-2)}
-.activity .act .what{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.act.fresh{background:var(--accent-soft)}
-.notify{font:inherit;font-size:12px;color:var(--accent);background:none;border:1px solid var(--line);border-radius:6px;padding:2px 8px;cursor:pointer}
-.empty{color:var(--text-3);padding:24px 0;text-align:center}
-.later{margin-top:16px;color:var(--text-2)}
-.later summary{cursor:pointer;font-size:12px;font-weight:600;padding:8px 0}
+.activity .act .verb{color:var(--text-3)}
+.activity .act .what{color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notify{font:inherit;font-size:12px;color:var(--accent);background:none;border:0;cursor:pointer}
+.empty{color:var(--text-3);padding:12px 0}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
-@media (max-width:1100px){.panes{grid-template-columns:repeat(2,minmax(0,1fr))}.pane.side{grid-column:span 2}}
-@media (max-width:760px){#app{height:auto;padding:16px}.hero{grid-template-columns:1fr;padding:16px 16px 16px 20px}.handoff{border-left:0;border-top:1px solid var(--line);padding:16px 0 0}.panes{grid-template-columns:1fr}.pane.side{grid-column:auto}.scroll{overflow:visible}.hero h2{font-size:22px}}
+@media (max-width:900px){#app{height:auto;padding:16px}.hero{grid-template-columns:1fr;gap:24px;padding:24px}.panes{grid-template-columns:1fr;gap:32px}.scroll{overflow:visible}.hero h2{font-size:22px}}
 @media (prefers-reduced-motion:reduce){.row{transition:none}}
 `;
 
@@ -316,46 +313,32 @@ export function boardHtml(ctx: Ctx, store: Store, opts: { live?: boolean } = {})
   const title = headline(readSummary(ctx), path.basename(ctx.base));
   const branch = ctx.git ? currentBranch(ctx.base) : null;
   const firstNeed = review[0] ?? due[0] ?? inbox[0];
-  // Top line: what this is, and the few counts worth a glance.
+  // Top line: what this is, and the few counts worth a glance. The workflow is for agents; `wk brief` has it.
   const live = opts.live ? '<button id="notify" class="notify" hidden>Notify me</button><span id="live" class="live" title="Connecting">live</span>' : "";
-  const stat = (n: number, label: string, hot = false) => `<span class="${hot && n ? "hot" : ""}"><b>${n}</b> ${label}</span>`;
-  const top = `<header class="top"><div><h1>${esc(title)}${branch ? `<span class="branch" title="Current git branch"><code>${esc(branch)}</code></span>` : ""}<span class="wf">${esc(workflowLine(ctx)?.replace(/^Workflow: /, "") ?? "")}</span></h1></div>
-<div class="stats">${stat(needsYou, needsYou === 1 ? "needs you" : "need you", true)}${stat(queue.length, "queued")}${stat(recent.length, "done this week")}<span>${ctx.today}</span>${live}</div></header>`;
+  const stat = (n: number, label: string, cls = "") => `<span class="${cls}"><b>${n}</b> ${label}</span>`;
+  const [name, ...more] = title.split(/(?<=\.)\s+/);
+  const top = `<header class="top"><h1><span>${esc(name)}${more.length ? ` <span class="sub">${esc(more.join(" "))}</span>` : ""}</span>${branch ? `<span class="branch" title="Current git branch"><code>${esc(branch)}</code></span>` : ""}</h1>
+<div class="stats">${needsYou ? stat(needsYou, needsYou === 1 ? "needs you" : "need you", "hot") : ""}${stat(queue.length, "queued")}${stat(recent.length, "done this week")}${live}</div></header>`;
 
-  // The hero: the task in progress, or what comes next.
+  // The hero: the task in progress, or what comes next (which then leaves the queue list).
   const handoff = readHandoff(ctx);
-  const handoffBlock = handoff ? `<aside class="handoff"><h3>Handoff</h3><pre>${esc(handoff)}</pre></aside>` : `<aside class="handoff"><h3>Handoff</h3><pre>None yet.</pre></aside>`;
+  const handoffBlock = `<aside class="handoff"><h3>Handoff</h3><p>${handoff ? esc(handoff) : "None yet."}</p></aside>`;
   let hero: string;
+  let heroItem: Item | undefined;
   if (now) {
     const p = now.home.type === "project" ? projects.find((x) => x.id === now.home.name) : undefined;
     const prog = p ? projectTasks(store, p) : null;
     const body = now.body.split("\n").filter((l) => l.trim()).slice(0, 3).map((l) => `<li>${esc(l)}</li>`).join("");
     const started = lastEvent(events, now.id, "started");
-    hero = `<section class="hero" data-key="${key(now)}"><div><div class="eyebrow">In progress${started ? ` <span class="for">${clock(started.at, nowMs, "started ", " ago")}</span>` : ""}</div><h2>${esc(now.title)}</h2>${meta(v, now)}
+    hero = `<section class="hero" data-key="${key(now)}"><div><div class="eyebrow">In progress${started ? ` <span class="for">${clock(started.at, nowMs, "started ", " ago")}</span>` : ""}</div><h2>${esc(now.title)}</h2>${meta(v, now, { full: true })}
 ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total, true) : ""}</div>${handoffBlock}</section>`;
   } else {
-    const first = review[0] ?? queue[0];
-    const label = review[0] ? "Waiting for you to try" : first ? "Nothing in progress. Up next" : "Nothing in progress";
-    hero = `<section class="hero idle"><div><div class="eyebrow">${esc(label)}</div><h2>${first ? esc(first.title) : "Nothing in progress."}</h2>${first ? meta(v, first) : ""}</div>${handoffBlock}</section>`;
+    heroItem = queue[0];
+    const label = heroItem ? "Nothing in progress. Up next" : "Nothing in progress";
+    hero = `<section class="hero idle"><div><div class="eyebrow">${label}</div><h2>${heroItem ? esc(heroItem.title) : "Nothing in progress."}</h2>${heroItem ? meta(v, heroItem, { full: true }) : ""}</div>${handoffBlock}</section>`;
   }
 
-  // Pane 1: the queue, in order, then what sleeps.
-  const queueRows = queue.map((t) => row(v, t));
-  const wakes = new Map<string, Item[]>();
-  for (const t of sleeping) wakes.set(when(t), [...(wakes.get(when(t)) ?? []), t]);
-  const wakeBlock = wakes.size
-    ? `<section class="group wake"><h3>Wakes up later<span class="num">${sleeping.length}</span></h3>${[...wakes.entries()]
-        .map(([w, items]) => `<h4>${esc(wakeLabel(v, store, w))}</h4><ul>${items.map((t) => row(v, t)).join("")}</ul>`)
-        .join("")}</section>`
-    : "";
-  const parked = [...later, ...someday];
-  const laterBlock = parked.length
-    ? `<details class="later"><summary>Later and someday (${parked.length})</summary><ul>${parked.map((t) => row(v, t, { when: true })).join("")}</ul></details>`
-    : "";
-  const paneNext = `<section class="pane"><header><h2>Up next</h2><span class="num">${queue.length} queued</span></header>
-<div class="scroll" data-pane="next">${queueRows.length ? `<ul class="queue">${queueRows.join("")}</ul>` : '<p class="empty">Nothing queued.</p>'}${wakeBlock}${laterBlock}</div></section>`;
-
-  // Pane 2: what needs a person: review, due, inbox, then waits.
+  // Left: what needs a person, then the queue, waits, and what sleeps.
   const needs = [
     group(
       "Ready for you to try",
@@ -367,18 +350,30 @@ ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total
     ),
     group("Due", due.map((t) => row(v, t, { when: true })), { tone: "attn" }),
     group("Inbox, to sort", inbox.map((t) => row(v, t, { home: false })), { tone: "attn" }),
-    group("Waiting", waiting.map((t) => row(v, t, { note: `On ${str(t, "wait")}` }))),
   ].join("");
-  const doneBlock = group("Done this week", recent.map((t) => row(v, t)));
-  const paneNeeds = `<section class="pane"><header><h2>Needs you</h2><span class="num">${needsYou ? needsYou : ""}</span></header>
-<div class="scroll" data-pane="needs">${needsYou || waiting.length ? needs : '<p class="calm">Nothing needs you right now.</p>'}${doneBlock}</div></section>`;
+  const rest = queue.filter((t) => t !== heroItem);
+  const queueBlock = `<section class="group"><h3>Up next<span class="num">${queue.length} queued</span></h3>${
+    rest.length ? `<ul class="queue"${heroItem ? ' style="--from:1"' : ""}>${rest.map((t) => row(v, t)).join("")}</ul>` : `<p class="empty">${heroItem ? "Nothing else queued." : "Nothing queued."}</p>`
+  }</section>`;
+  const waitBlock = group("Waiting", waiting.map((t) => row(v, t, { note: `On ${str(t, "wait")}` })));
+  const wakes = new Map<string, Item[]>();
+  for (const t of sleeping) wakes.set(when(t), [...(wakes.get(when(t)) ?? []), t]);
+  const wakeBlock = wakes.size
+    ? `<section class="group wake"><h3>Wakes up later<span class="num">${sleeping.length}</span></h3>${[...wakes.entries()]
+        .map(([w, items]) => `<h4>${esc(wakeLabel(v, store, w))}</h4><ul>${items.map((t) => row(v, t)).join("")}</ul>`)
+        .join("")}</section>`
+    : "";
+  const fold = (label: string, n: number, inner: string) =>
+    n ? `<details class="fold"><summary>${esc(label)}<span class="num">${n}</span></summary>${inner}</details>` : "";
+  const parked = [...later, ...someday];
+  const paneNext = `<section class="pane">
+<div class="scroll" data-pane="next">${needs}${queueBlock}${waitBlock}${wakeBlock}${fold("Later and someday", parked.length, `<ul>${parked.map((t) => row(v, t, { when: true })).join("")}</ul>`)}</div></section>`;
 
-  // Pane 3: the shape of the plan: projects, areas and their principles, recent knowledge.
+  // Right: the shape of the plan. Projects open; the rest folded until asked for.
   const openProjects = projects.filter((p: Project) => p.data.state !== "done");
   const projectRows = openProjects.map((p) => {
     const { done, total } = projectTasks(store, p);
-    const touches = touchesOf(p).map((t) => `<span class="tag">${esc(t)}</span>`).join("");
-    return `<li class="project" data-key="${p.id}:${done}/${total}"><div class="name"><span>${esc(p.title)}</span><code>${p.id}</code></div>${bar(done, total)}${touches ? `<div class="meta">${touches}</div>` : ""}</li>`;
+    return `<li class="project" data-key="${p.id}:${done}/${total}" title="${p.id}"><div>${esc(p.title)}</div>${bar(done, total)}</li>`;
   });
   const areaRows = store.areas().map((a) => {
     const rules = activePrinciples(store, a);
@@ -396,17 +391,18 @@ ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total
     .filter((i) => (i.kind === "decision" || i.kind === "learning") && !str(i, "superseded_by"))
     .sort((a, b) => str(b, "created").localeCompare(str(a, "created")))
     .slice(0, 6)
-    .map((i) => `<li class="row" data-key="${i.id}"><div class="title">${esc(i.title)}</div><div class="meta"><span class="kind">${i.kind}</span><span>${esc(homeLabel(v, i))}</span></div></li>`);
-  const activity = events.slice(0, 8).map(
+    .map((i) => `<li class="row" data-key="${i.id}" title="${i.id}"><div class="title">${esc(i.title)}</div><div class="meta"><span class="kind">${i.kind}</span><span>${esc(homeLabel(v, i))}</span></div></li>`);
+  const activity = events.slice(0, 5).map(
     (e) => `<li class="act" data-key="${esc(e.at + e.id + e.verb)}">${clock(e.at, nowMs, "", " ago")}<span class="verb">${esc(e.verb)}</span><span class="what">${esc(e.title)}</span></li>`,
   );
   const side = [
-    activity.length ? `<section class="group activity"><h3>Just happened</h3><ul>${activity.join("")}</ul></section>` : "",
     group("Projects", projectRows, { count: openProjects.length }),
-    group("Areas and principles", areaRows),
-    knowledge.length ? `<section class="group know"><h3>Recent decisions and learnings</h3><ul>${knowledge.join("")}</ul></section>` : "",
+    activity.length ? `<section class="group activity"><h3>Just happened</h3><ul>${activity.join("")}</ul></section>` : "",
+    fold("Done this week", recent.length, `<ul>${recent.map(line).join("")}</ul>`),
+    fold("Areas and principles", areaRows.length, `<ul>${areaRows.join("")}</ul>`),
+    fold("Recent decisions and learnings", knowledge.length, `<ul>${knowledge.join("")}</ul>`),
   ].join("");
-  const paneSide = `<section class="pane side"><header><h2>Plan</h2></header>
+  const paneSide = `<section class="pane side">
 <div class="scroll" data-pane="side">${side}</div></section>`;
 
   return `<!doctype html>
@@ -415,7 +411,7 @@ ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total
 <div id="app" data-needs="${needsYou}" data-first="${esc(firstNeed ? `Ready for you: ${firstNeed.title}` : "")}">
 ${top}
 ${hero}
-<div class="panes">${paneNext}${paneNeeds}${paneSide}</div>
+<div class="panes">${paneNext}${paneSide}</div>
 </div>${opts.live ? LIVE_SCRIPT : ""}</body></html>
 `;
 }

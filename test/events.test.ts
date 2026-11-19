@@ -79,7 +79,7 @@ describe("board: activity, timers, sleeping and alerts", () => {
     for (const w of ["When Usage history ends", "Next time work starts in ui", "On 2026-12-01", "After “Record each run” is done"]) {
       expect(html).toContain(`<h4>${w}</h4>`);
     }
-    expect(html).toContain("Later and someday (1)");
+    expect(html).toContain("Later and someday<span class=\"num\">1</span>");
     expect(html).not.toMatch(/<script|https?:\/\//);
   });
 

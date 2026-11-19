@@ -21,12 +21,12 @@ describe("wk board", () => {
     const file = /^Board: (.+)$/m.exec(out)![1];
     expect(file.startsWith(path.join(p.home, "boards"))).toBe(true);
     const html = fs.readFileSync(file, "utf8");
-    for (const s of ["<h1>A CLI for jokes", "Record each run", "Fix the banner", "Button looks off", "Export CSV", "Usage history", "Store history as JSONL", "Use ASCII badges"]) {
+    for (const s of ["<h1><span>A CLI for jokes", "Record each run", "Fix the banner", "Button looks off", "Export CSV", "Usage history", "Store history as JSONL", "Use ASCII badges"]) {
       expect(html).toContain(s);
     }
     expect(html).toContain("terminals lack &lt;glyphs&gt;");
     expect(html).toContain('<div class="eyebrow">In progress <span class="for">');
-    expect(html).toContain('data-pane="needs"');
+    expect(html).toContain('data-pane="next"');
     expect(html).toContain("prefers-color-scheme:dark");
     expect(html).not.toMatch(/<script|https?:\/\//);
     expect(fs.existsSync(p.file("board.html"))).toBe(false);
