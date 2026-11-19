@@ -5,6 +5,7 @@ import { init } from "./commands/init.js";
 import { areaList, areaNew, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
 import { addTask, ls, move, show } from "./commands/items.js";
 import { board } from "./commands/board.js";
+import { inbox, jot } from "./commands/capture.js";
 import { configure } from "./commands/configure.js";
 import { check, done, handoff, start, wait } from "./commands/flow.js";
 import { brief, next } from "./commands/views.js";
@@ -70,6 +71,7 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .command("add <title>")
     .description("add a sorted task: in core unless --in says otherwise, at the bottom of the queue")
     .option("--in <home>", "an area or a project id")
+    .option("--when <when>", "next, queue (default), later, someday, after:<id>, end:<project>, start:<area>, on:<date>")
     .option("--body <text>", "short notes, 6 lines max")
     .option("--tags <tags>", "comma-separated tags, e.g. bug,quick")
     .option("--force", "add even if a similar task exists")
@@ -274,6 +276,20 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
   program.command("merge <keep> <drop>").description("fold a duplicate into another item of the same kind and delete it")
     .action(function (this: Command, keep: string, gone: string) {
       act(this, (ctx, s) => merge(ctx, s, keep, gone));
+    });
+
+  program
+    .command("jot <text>")
+    .description("capture a thought mid-task, no questions: into the inbox, sorted at the check-in")
+    .option("--file <path>", "attach a file next to it (repeatable); describe screenshots in the text instead when you can", collect)
+    .action(function (this: Command, text: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => jot(ctx, s, text, o));
+    });
+
+  program.command("inbox").description("list jots waiting to be sorted")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => inbox(ctx, s));
     });
 
   program

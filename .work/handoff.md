@@ -1,2 +1,2 @@
-Done: T-020 Show the plan visually: projects, queue, due items and progress.
-Next: T-008 Jot to the inbox and list items captured during a task at check.
+Done: T-009 Set when on tasks: next, queue, later or someday.
+Next: T-011 Show related items on wk start.

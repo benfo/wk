@@ -10,6 +10,16 @@ export interface AddOpts {
   tags?: string;
   force?: boolean;
   in?: string;
+  when?: string;
+}
+
+/** A note for each tag the plan has never seen, so typos and near-duplicates surface early. */
+export function newTagNotes(ctx: Ctx, store: Store, tags: string[], self?: Item): string[] {
+  if (tags.length === 0) return [];
+  const known = new Set([...ctx.config.tags, ...store.list().filter((i) => i !== self).flatMap(tagsOf)]);
+  const fresh = tags.filter((t) => !known.has(t));
+  if (fresh.length === 0 || known.size === 0) return [];
+  return [`New tag${fresh.length > 1 ? "s" : ""}: ${fresh.join(", ")} (known: ${[...known].sort().join(", ")}).`];
 }
 
 export function addTask(ctx: Ctx, store: Store, rawTitle: string, opts: AddOpts): Result {
@@ -21,6 +31,15 @@ export function addTask(ctx: Ctx, store: Store, rawTitle: string, opts: AddOpts)
   const item = store.create("task", home, title, body, {
     state: "open", when: "queue", tags: parseTags(opts.tags), rank: bottomRank(store),
   });
+  if (opts.when && opts.when !== "queue") {
+    applyWhen(store, item, opts.when);
+    store.save(item);
+  }
+  const notes = newTagNotes(ctx, store, parseTags(opts.tags), item);
+  if (notes.length || (opts.when && opts.when !== "queue")) {
+    const timing = isQueued(item) ? "" : `, when ${when(item)}`;
+    return result([`Added ${item.id} ${title} (${home.name}${timing})`, ...notes], { id: item.id, title, home: home.name, file: item.file });
+  }
   return result([`Added ${item.id} ${title} (${home.name})`], { id: item.id, title, home: home.name, file: item.file });
 }
 
