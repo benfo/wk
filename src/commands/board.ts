@@ -41,7 +41,18 @@ function bar(done: number, total: number): string {
 }
 
 /** The plan as one self-contained HTML page: no scripts, no network, light and dark. */
-export function boardHtml(ctx: Ctx, store: Store): string {
+/** Reloads the page when the server says the plan changed; reconnects on its own if the server restarts. */
+const LIVE_SCRIPT = `<script>
+(function () {
+  var dot = document.getElementById("live");
+  var es = new EventSource("/events");
+  es.onopen = function () { dot.className = "live on"; dot.title = "live"; };
+  es.onerror = function () { dot.className = "live off"; dot.title = "reconnecting"; };
+  es.onmessage = function () { location.reload(); };
+})();
+</script>`;
+
+export function boardHtml(ctx: Ctx, store: Store, opts: { live?: boolean } = {}): string {
   homeNames = Object.fromEntries(store.projects().map((p) => [p.id, p.title.length > 28 ? p.title.slice(0, 27) + "…" : p.title]));
   const all = store.list();
   const tasks = all.filter((i) => i.kind === "task");
@@ -129,10 +140,11 @@ code{font:12px ui-monospace,Consolas,monospace;color:var(--muted)}.home,.tag,.wh
 .area{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px}.area summary{cursor:pointer}.desc{color:var(--muted);margin-left:6px}
 .rules{margin-top:8px}.rules li{padding:6px 0;border-top:1px solid var(--line)}.why{color:var(--muted);font-size:13px}
 .know li{padding:4px 0;border-top:1px solid var(--line)}.kind{display:inline-block;min-width:68px;font-size:11px;color:var(--muted)}
-.counts{display:flex;gap:16px;color:var(--muted);font-size:13px}
+.counts{display:flex;gap:16px;color:var(--muted);font-size:13px;align-items:center}
+.live{display:inline-flex;align-items:center;gap:6px}.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--muted)}.live.on::before{background:var(--ok)}.live.off::before{background:var(--due)}
 </style></head><body><main>
 <div class="top"><div><h1>${esc(summary ? summary.split("\n")[0] : path.basename(ctx.base))}</h1>
-<p class="sub">${esc(wf ?? "Workflow not set.")}</p></div><div class="counts"><span>${ctx.today}</span><span>${queue.length} queued</span><span>${inbox.length} in inbox</span><span>${due.length} due</span></div></div>
+<p class="sub">${esc(wf ?? "Workflow not set.")}</p></div><div class="counts">${opts.live ? '<span id="live" class="live" title="connecting">live</span>' : ""}<span>${ctx.today}</span><span>${queue.length} queued</span><span>${inbox.length} in inbox</span><span>${due.length} due</span></div></div>
 <div class="focus">${focus}</div>
 <h2>Work</h2>
 ${emptyLine}
@@ -151,7 +163,7 @@ ${projects ? `<div class="projects">${projects}</div>` : '<p class="sub">No open
 ${areas}
 <h2>Recent decisions and learnings</h2>
 ${knowledge ? `<ul class="know">${knowledge}</ul>` : '<p class="sub">None yet.</p>'}
-</main></body></html>
+</main>${opts.live ? LIVE_SCRIPT : ""}</body></html>
 `;
 }
 
@@ -161,9 +173,10 @@ export function boardPath(ctx: Ctx): string {
   return path.join(ctx.home, "boards", `${path.basename(ctx.base).toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${key}.html`);
 }
 
-function openFile(file: string): void {
+/** Opens a file or URL in the default browser; best effort. */
+export function openUrl(target: string): void {
   const [cmd, args] =
-    process.platform === "win32" ? ["cmd", ["/c", "start", "", file]] : process.platform === "darwin" ? ["open", [file]] : ["xdg-open", [file]];
+    process.platform === "win32" ? ["cmd", ["/c", "start", "", target]] : process.platform === "darwin" ? ["open", [target]] : ["xdg-open", [target]];
   try {
     spawn(cmd, args as string[], { detached: true, stdio: "ignore", windowsHide: true }).unref();
   } catch {
@@ -175,6 +188,6 @@ export function board(ctx: Ctx, store: Store, opts: { out?: string; open?: boole
   const file = opts.out ? path.resolve(ctx.cwd, opts.out) : boardPath(ctx);
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(file, boardHtml(ctx, store));
-  if (opts.open) openFile(file);
+  if (opts.open) openUrl(file);
   return result([`Board: ${file}`, opts.open ? "Opened in your browser." : "Open it in a browser, or rerun with --open."], { file });
 }

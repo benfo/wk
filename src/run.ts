@@ -2,12 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { Command, CommanderError } from "commander";
 import { todayString } from "./context.js";
-import { render, WkError, type Result } from "./output.js";
+import { render, result, WkError, type Result } from "./output.js";
 import { init } from "./commands/init.js";
 import { areaList, areaNew, projectClose, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
 import { review } from "./commands/review.js";
 import { addMany, addTask, ls, move, show } from "./commands/items.js";
 import { board } from "./commands/board.js";
+import { DEFAULT_PORT, serveCommand } from "./commands/live.js";
 import { migrate } from "./commands/migrate.js";
 import { guide, GUIDE_TOPICS, setup } from "./commands/setup.js";
 import { inbox, jot } from "./commands/capture.js";
@@ -350,11 +351,20 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
 
   program
     .command("board")
-    .description("write the plan as an HTML page: now, queue, due, waiting, projects, areas and principles")
+    .description("the plan as an HTML page: now, queue, due, waiting, projects, areas and principles")
     .option("--open", "open it in the browser")
     .option("--out <file>", "where to write it (default: ~/.wk/boards/, outside the plan)")
+    .option("--serve", "serve it live on localhost; it refreshes whenever the plan changes (Ctrl+C to stop)")
+    .option("--port <port>", `port for --serve (default ${DEFAULT_PORT}, or the next free one)`)
     .action(function (this: Command) {
       const o = this.opts();
+      if (o.serve) {
+        act(this, (ctx) => {
+          serveCommand(ctx, o);
+          return result([], {});
+        });
+        return;
+      }
       act(this, (ctx, s) => board(ctx, s, o));
     });
 

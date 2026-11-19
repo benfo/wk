@@ -203,6 +203,7 @@ Every command prints 10 lines or fewer; `--all` lifts the limit, `--json` gives 
 | `wk check [--checked] [--test] [--handoff] [--fresh]` | Moves `now` to `review` (v1's checkpoint). Lists items jotted during this task and the first `Tidy:` problem. |
 | `wk add --from <file|->` | One title per line, all or nothing, as in v1; for onboarding. |
 | `wk board [--open] [--out <file>]` | The plan as one self-contained HTML page (no scripts, light and dark): now and handoff, work columns, projects with progress, areas with principles, recent decisions. Written to `~/.wk/boards/` so a committed plan never churns. |
+| `wk board --serve [--port <n>] [--open]` | The same page, live on localhost (default port 4123, or the next free one). It watches the plan folder and pushes a reload over server-sent events within a second of any change. Node built-ins only; Ctrl+C stops it. |
 | `wk config [set <key> <value>]` | Keys: `git.branch` (`none`, `task`, `project`), `git.commit` (`ask`, `task`, `check`), `commit_style`, `checks.quick`, `checks.full`, `tracker`, `preset`, `tags`. |
 | `wk done <id>` | Finishes, fires `after:` triggers, starts project close when it was the last task |
 | `wk wait <id> "<on what>"` / `wk wait <id> --clear` | Waiting flag |

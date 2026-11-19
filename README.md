@@ -48,6 +48,14 @@ wk board --open
 
 This writes the plan as one HTML page and opens it: now, the queue, due and waiting items, projects with progress, and areas with their principles.
 
+For a live view, keep this running in a spare terminal and leave the tab open beside your agent:
+
+```bash
+wk board --serve --open
+```
+
+It serves the board on `http://localhost:4123/` (or the next free port) and refreshes the page within a second of any change to the plan, whoever made it. A dot in the corner shows whether it's connected. Ctrl+C stops it.
+
 ## Release
 
 ```bash
