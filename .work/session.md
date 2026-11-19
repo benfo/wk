@@ -1,2 +1,2 @@
-Done: u68t Board: activity feed, timers, sleeping items and needs-you alerts.
+Done: 9vbq Refresh the PDF guide with real output and the live board.
 Next: nothing queued.
