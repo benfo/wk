@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadContext } from "../src/context.js";
-import { ago } from "../src/commands/board.js";
+import { ago } from "../src/commands/board/index.js";
 import { readEvents } from "../src/events.js";
 import { plan, TODAY } from "./helpers.js";
 

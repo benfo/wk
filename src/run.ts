@@ -7,7 +7,7 @@ import { init } from "./commands/init.js";
 import { areaList, areaNew, projectClose, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
 import { review } from "./commands/review.js";
 import { addMany, addTask, ls, move, show, tagsList } from "./commands/items.js";
-import { board } from "./commands/board.js";
+import { board } from "./commands/board/index.js";
 import { DEFAULT_PORT, serveCommand } from "./commands/live.js";
 import { migrate } from "./commands/migrate.js";
 import { guide, GUIDE_TOPICS, setup } from "./commands/setup.js";

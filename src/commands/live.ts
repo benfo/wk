@@ -4,7 +4,7 @@ import http from "node:http";
 import path from "node:path";
 import { readConfig, type Ctx } from "../context.js";
 import { Store } from "../store.js";
-import { boardHtml, openUrl } from "./board.js";
+import { boardHtml, openUrl } from "./board/index.js";
 
 export const DEFAULT_PORT = 4123;
 
