@@ -4,7 +4,12 @@ import { render, WkError, type Result } from "../output.js";
 import { init } from "./commands/init.js";
 import { areaList, areaNew, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
 import { addTask, ls, move, show } from "./commands/items.js";
+import { configure } from "./commands/configure.js";
+import { check, done, handoff, start, wait } from "./commands/flow.js";
+import { brief, next } from "./commands/views.js";
 import { loadContext, type Ctx } from "./context.js";
+
+const collect = (value: string, prev: string[] = []) => [...prev, value];
 import { Store } from "./store.js";
 
 export interface RunOptions {
@@ -134,6 +139,75 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .description("create an area, e.g. wk area new ui \"Screens, layout and styling\"")
     .action(function (this: Command, name: string, description?: string) {
       act(this, (ctx, s) => areaNew(ctx, s, name, description));
+    });
+
+  program.command("brief", { isDefault: true }).description("summary, workflow, handoff, now and next; first call of a session")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => brief(ctx, s));
+    });
+
+  program.command("next").description("now, up to 5 queued, due and waiting tasks")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => next(ctx, s));
+    });
+
+  program
+    .command("start <id>")
+    .description("set a task to now (one at a time); prints its body and what applies")
+    .option("--branch", "make a <id>-<slug> branch for it")
+    .option("--no-branch", "stay on the current branch even if config says to branch")
+    .action(function (this: Command, id: string) {
+      const o = this.opts() as { branch?: boolean };
+      const typed = this.getOptionValueSource("branch") === "cli" ? o.branch : undefined;
+      act(this, (ctx, s) => start(ctx, s, id, { branch: typed }));
+    });
+
+  program
+    .command("check")
+    .description("move the now task to review; record automated checks and what a person should try")
+    .option("--test <text>", "for a person: how it looks, feels, reads or responds (repeatable)", collect)
+    .option("--checked <result>", 'an automated check you already ran, e.g. "75 tests pass" (repeatable)', collect)
+    .option("--handoff <text>", "also save the handoff (5 lines max)")
+    .option("--fresh", "the handoff recommends a fresh session")
+    .action(function (this: Command) {
+      const o = this.opts();
+      act(this, (ctx, s) => check(ctx, s, o));
+    });
+
+  program
+    .command("done <id>")
+    .description("finish a reviewed task")
+    .option("--force", "skip review for a trivial task")
+    .option("--handoff <text>", "the handoff; without it, one is written from the next task")
+    .option("--fresh", "the handoff recommends a fresh session")
+    .action(function (this: Command, id: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => done(ctx, s, id, o));
+    });
+
+  program
+    .command("wait <id> [on]")
+    .description("mark a task as waiting on something: a decision, a person, another item")
+    .option("--clear", "it's no longer waiting")
+    .action(function (this: Command, id: string, on?: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => wait(ctx, s, id, on, o));
+    });
+
+  program
+    .command("handoff <text>")
+    .description("overwrite the handoff, 5 lines max; at every stop")
+    .option("--fresh", "the handoff recommends a fresh session")
+    .action(function (this: Command, text: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => handoff(ctx, s, text, o));
+    });
+
+  program
+    .command("config [action] [key] [value]")
+    .description("show settings, or: wk config set <key> <value> (git.branch, git.commit, commit_style, checks.quick, checks.full, tracker)")
+    .action(function (this: Command, action?: string, key?: string, value?: string) {
+      act(this, (ctx) => configure(ctx, action, key, value));
     });
 
   program

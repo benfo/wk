@@ -32,7 +32,7 @@ describe("ids and slugs", () => {
 describe("init", () => {
   it("creates the v2 layout with a core area", () => {
     const p = plan();
-    expect(p.read("config.yml")).toMatch(/^version: 2\nstore: repo/);
+    expect(p.read("config.yml")).toMatch(/\nversion: 2\nstore: repo\n/);
     expect(p.read("areas", "core", "area.md")).toMatch(/^# core\n\nAlways in scope/);
     for (const f of ["summary.md", "session.md", "inbox/.gitkeep", "projects/.gitkeep", "archive/.gitkeep"]) {
       expect(fs.existsSync(p.file(f))).toBe(true);
@@ -82,7 +82,7 @@ describe("add and show", () => {
     expect(p.read("areas", "core", `${id}-banner-border-shifts-right.md`)).toBe(
       [
         "---",
-        `id: ${id}`,
+        `id: ${/^\d/.test(id) ? `"${id}"` : id}`,
         "kind: task",
         "state: open",
         "when: queue",

@@ -5,7 +5,7 @@ import { findRoot, homeRoot, projectBase, WORK_DIR } from "../../context.js";
 import { excludeFile } from "../../git.js";
 import { addIgnores } from "../../commands/init.js";
 import { result, WkError, type Result } from "../../output.js";
-import { CONFIG_FILE, configText, readConfig, V1_PLAN } from "../context.js";
+import { CONFIG_FILE, configText, defaultConfig, readConfig, V1_PLAN } from "../context.js";
 import { ARCHIVE_DIR, AREA_FILE, AREAS_DIR, CORE_AREA, INBOX_DIR, PROJECTS_DIR } from "../store.js";
 
 export const SUMMARY_FILE = "summary.md";
@@ -61,7 +61,7 @@ export function init(cwd: string, opts: { store?: string; home?: string }): Resu
   }
   const root = store === "home" ? homeRoot(base, opts.home) : path.join(base, WORK_DIR);
   fs.mkdirSync(root, { recursive: true });
-  fs.writeFileSync(path.join(root, CONFIG_FILE), configText(store));
+  fs.writeFileSync(path.join(root, CONFIG_FILE), configText(defaultConfig(store)));
   ensureLayout(root, store);
   const lines = [`Created ${root}`];
   if (store === "ignore" || store === "local") {

@@ -3,7 +3,7 @@ import path from "node:path";
 import { progressBar, result, unescapeText, WkError, type Result } from "../../output.js";
 import type { Ctx } from "../context.js";
 import { checkLines, checkTitle, LIMITS } from "../limits.js";
-import { isOpen, isQueued, itemLine, state } from "../model.js";
+import { byQueue, isOpen, isQueued, itemLine, state } from "../model.js";
 import { touchesOf, type Project, type Store } from "../store.js";
 import { SUMMARY_FILE } from "./init.js";
 import { parseTags, plural } from "./shared.js";
@@ -45,7 +45,7 @@ export function projectList(_ctx: Ctx, store: Store): Result {
   for (const p of open) {
     const { tasks, done, total } = projectTasks(store, p);
     lines.push(`${`${p.id} ${p.title}`.padEnd(width)}  ${progressBar(done, total)}  ${done}/${total}`);
-    const active = tasks.filter((t) => ["now", "review"].includes(state(t)) || isQueued(t)).slice(0, 3);
+    const active = tasks.filter((t) => ["now", "review"].includes(state(t)) || isQueued(t)).sort(byQueue).slice(0, 3);
     for (const t of active) lines.push(`  ${(state(t) === "open" ? "next" : state(t)).padEnd(6)} ${itemLine(t)}`);
   }
   const areaCounts = store.areas().map((a) => `${a} ${store.list().filter((i) => isOpen(i) && i.home.name === a).length}`);
