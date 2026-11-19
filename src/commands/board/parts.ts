@@ -37,12 +37,12 @@ export function key(item: Item): string {
 export function row(v: View, item: Item, opts: { home?: boolean; when?: boolean; kind?: string; note?: string; since?: string } = {}): string {
   const note = opts.note ? `<div class="note">${esc(opts.note)}</div>` : "";
   const since = opts.since ? `<div class="note">${opts.since}</div>` : "";
-  return `<li class="row" data-key="${key(item)}" title="${item.id}"><div class="title">${esc(item.title)}</div>${meta(v, item, opts)}${note}${since}</li>`;
+  return `<li class="row" data-key="${key(item)}" title="id ${item.id}"><div class="title">${esc(item.title)}</div>${meta(v, item, opts)}${note}${since}</li>`;
 }
 
 /** A one-line row: just the title, for long lists like what got done. */
 export function line(item: Item): string {
-  return `<li class="line" data-key="${key(item)}" title="${item.id}">${esc(item.title)}</li>`;
+  return `<li class="line" data-key="${key(item)}" title="id ${item.id}">${esc(item.title)}</li>`;
 }
 
 /** "just now", "12 min", "3 h", "2 d": short enough for a glance. */

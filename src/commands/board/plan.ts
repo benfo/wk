@@ -57,5 +57,5 @@ function knowledgeRows(b: Board): string[] {
     .filter((i) => (i.kind === "decision" || i.kind === "learning") && !str(i, "superseded_by"))
     .sort((x, y) => str(y, "created").localeCompare(str(x, "created")))
     .slice(0, 6)
-    .map((i) => `<li class="row" data-key="${i.id}" title="${i.id}"><div class="title">${esc(i.title)}</div><div class="meta"><span class="kind">${i.kind}</span><span>${esc(homeLabel(b.v, i))}</span></div></li>`);
+    .map((i) => `<li class="row" data-key="${i.id}" title="id ${i.id}"><div class="title">${esc(i.title)}</div><div class="meta"><span class="kind">${i.kind}</span><span>${esc(homeLabel(b.v, i))}</span></div></li>`);
 }

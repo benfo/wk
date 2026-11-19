@@ -21,11 +21,11 @@ function hero(b: Board): string {
     const prog = p ? projectTasks(b.store, p) : null;
     const body = now.body.split("\n").filter((l) => l.trim()).slice(0, 3).map((l) => `<li>${esc(l)}</li>`).join("");
     const started = lastEvent(b.events, now.id, "started");
-    return `<section class="hero working" data-key="${key(now)}"><div><div class="eyebrow">In progress${started ? ` <span class="for">${clock(started.at, b.nowMs, "started ", " ago")}</span>` : ""}</div><h2 title="${now.id}">${esc(now.title)}</h2>${meta(v, now)}
+    return `<section class="hero working" data-key="${key(now)}"><div><div class="eyebrow">In progress${started ? ` <span class="for">${clock(started.at, b.nowMs, "started ", " ago")}</span>` : ""}</div><h2 title="id ${now.id}">${esc(now.title)}</h2>${meta(v, now)}
 ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total, true) : ""}</div>${handoffBlock}</section>`;
   }
   const label = heroItem ? "Nothing in progress. Up next" : "Nothing in progress";
-  return `<section class="hero idle"><div><div class="eyebrow">${label}</div><h2${heroItem ? ` title="${heroItem.id}"` : ""}>${heroItem ? esc(heroItem.title) : "Nothing in progress."}</h2>${heroItem ? meta(v, heroItem) : ""}</div>${handoffBlock}</section>`;
+  return `<section class="hero idle"><div><div class="eyebrow">${label}</div><h2${heroItem ? ` title="id ${heroItem.id}"` : ""}>${heroItem ? esc(heroItem.title) : "Nothing in progress."}</h2>${heroItem ? meta(v, heroItem) : ""}</div>${handoffBlock}</section>`;
 }
 
 function inboxLine(b: Board): string {
@@ -74,11 +74,11 @@ function projects(b: Board): string {
     const open = own.filter((t) => state(t) !== "done").map((t) => [status(b, t), t] as const);
     open.sort((x, y) => x[0][0] - y[0][0] || (x[0][0] === 3 ? byQueue(x[1], y[1]) : 0));
     const closed = own.filter((t) => state(t) === "done");
-    const list = open.map(([[, label, cls], t]) => `<li class="ptask" title="${t.id}"><span>${esc(t.title)}</span><span class="st ${cls}">${esc(label)}</span></li>`).join("");
+    const list = open.map(([[, label, cls], t]) => `<li class="ptask" title="id ${t.id}"><span>${esc(t.title)}</span><span class="st ${cls}">${esc(label)}</span></li>`).join("");
     const doneList = closed.length
-      ? `<details class="pdone"><summary>${closed.length} done</summary><ul>${closed.map((t) => `<li class="ptask" title="${t.id}"><span>${esc(t.title)}</span></li>`).join("")}</ul></details>`
+      ? `<details class="pdone"><summary>${closed.length} done</summary><ul>${closed.map((t) => `<li class="ptask" title="id ${t.id}"><span>${esc(t.title)}</span></li>`).join("")}</ul></details>`
       : "";
-    return `<li data-key="${p.id}:${done}/${total}"><details class="project" data-id="${p.id}"><summary title="${p.id}"><div class="pname">${esc(p.title)}</div>${bar(done, total)}</summary><div class="ptasks">${list ? `<ul>${list}</ul>` : '<p class="empty">No open tasks.</p>'}${doneList}</div></details></li>`;
+    return `<li data-key="${p.id}:${done}/${total}"><details class="project" data-id="${p.id}"><summary title="id ${p.id}"><div class="pname">${esc(p.title)}</div>${bar(done, total)}</summary><div class="ptasks">${list ? `<ul>${list}</ul>` : '<p class="empty">No open tasks.</p>'}${doneList}</div></details></li>`;
   });
   return group("Projects", rows, { count: b.openProjects.length });
 }
