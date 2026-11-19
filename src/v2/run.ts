@@ -7,7 +7,9 @@ import { addTask, ls, move, show } from "./commands/items.js";
 import { configure } from "./commands/configure.js";
 import { check, done, handoff, start, wait } from "./commands/flow.js";
 import { brief, next } from "./commands/views.js";
+import { decide, drop, edit, learn, merge, principle, supersede } from "./commands/knowledge.js";
 import { loadContext, type Ctx } from "./context.js";
+import { wireFeatures } from "./features.js";
 
 const collect = (value: string, prev: string[] = []) => [...prev, value];
 import { Store } from "./store.js";
@@ -33,6 +35,7 @@ type Handler = (ctx: Ctx, store: Store) => Result;
 
 /** Runs one v2 wk command in-process. `argv` excludes the node and script paths. */
 export function run(argv: string[], options: RunOptions = {}): RunOutput {
+  wireFeatures();
   const cwd = options.cwd ?? process.cwd();
   const today = options.today ?? process.env.WK_TODAY ?? todayString();
   const out: string[] = [];
@@ -208,6 +211,68 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .description("show settings, or: wk config set <key> <value> (git.branch, git.commit, commit_style, checks.quick, checks.full, tracker)")
     .action(function (this: Command, action?: string, key?: string, value?: string) {
       act(this, (ctx) => configure(ctx, action, key, value));
+    });
+
+  program
+    .command("decide <what>")
+    .description("record a decision in the current home (the now task's, else core)")
+    .option("--why <why>", "the reason, 2 lines max")
+    .option("--rejected <text>", "what was rejected, 1 line")
+    .option("--in <home>", "an area or a project id")
+    .action(function (this: Command, what: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => decide(ctx, s, what, o));
+    });
+
+  program
+    .command("learn <text>")
+    .description("record something surprising, 2 lines max, in the current home")
+    .option("--in <home>", "an area or a project id")
+    .action(function (this: Command, text: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => learn(ctx, s, text, o));
+    });
+
+  program
+    .command("principle <rule>")
+    .description("a rule a capable model would otherwise get wrong: do X, instead of Y, because Z")
+    .option("--instead <default>", "the default it overrides, 1 line")
+    .option("--because <why>", "the reason, 2 lines max")
+    .option("--in <area>", "the area it belongs to (default core: applies everywhere)")
+    .option("--from <id>", "the learning or decision it distills")
+    .option("--test <ref>", "a check that enforces it")
+    .action(function (this: Command, rule: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => principle(ctx, s, rule, o));
+    });
+
+  program.command("supersede <old> <new>").description("mark a decision or principle as replaced")
+    .action(function (this: Command, oldId: string, newId: string) {
+      act(this, (ctx, s) => supersede(ctx, s, oldId, newId));
+    });
+
+  program
+    .command("edit <id>")
+    .description("rewrite an item in place; the same limits apply")
+    .option("--title <title>", "new title (renames the file)")
+    .option("--body <text>", "new body")
+    .option("--tags <tags>", "replace tags")
+    .option("--instead <default>", "principles: the default it overrides")
+    .option("--because <why>", "principles: the reason")
+    .option("--ref <text>", "free-text reference, e.g. a ticket id")
+    .action(function (this: Command, id: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => edit(ctx, s, id, o));
+    });
+
+  program.command("drop <id>").description("delete a task, jot or learning that is no longer wanted")
+    .action(function (this: Command, id: string) {
+      act(this, (ctx, s) => drop(ctx, s, id));
+    });
+
+  program.command("merge <keep> <drop>").description("fold a duplicate into another item of the same kind and delete it")
+    .action(function (this: Command, keep: string, gone: string) {
+      act(this, (ctx, s) => merge(ctx, s, keep, gone));
     });
 
   program

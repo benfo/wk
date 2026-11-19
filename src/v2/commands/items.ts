@@ -43,7 +43,11 @@ export function show(_ctx: Ctx, store: Store, raw: string): Result {
   const lines = [`${item.id}  ${facts.join(" · ")}`, item.title];
   const tags = tagsOf(item);
   if (tags.length) lines.push(`tags: ${tags.join(", ")}`);
-  for (const key of ["due", "wait", "from", "was", "ref"]) if (str(item, key)) lines.push(`${key}: ${str(item, key)}`);
+  const keys = ["instead", "because", "test", "due", "wait", "from", "distilled_into", "supersedes", "superseded_by", "files", "was", "ref"];
+  for (const key of keys) {
+    const v = item.data[key];
+    if (Array.isArray(v) ? v.length : str(item, key)) lines.push(`${key}: ${Array.isArray(v) ? v.join(", ") : str(item, key)}`);
+  }
   lines.push(`created ${str(item, "created")} · updated ${str(item, "updated")}`);
   if (item.body) lines.push("", ...item.body.split("\n"));
   return { lines, data: summary(item), full: true };

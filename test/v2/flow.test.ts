@@ -89,6 +89,8 @@ describe("brief and next", () => {
     p.wk("add", "Write the readme");
     p.wk("start", a);
     p.wk("handoff", "Banner half done.\\nCheck the wide mascot.");
+    expect(p.wk("brief")).toContain("No principles yet. Offer a principles session");
+    p.wk("principle", "Never block shell start", "--instead", "reporting errors", "--because", "it runs in every shell");
     const lines = p.wk("brief").split("\n");
     expect(lines[0]).toBe("Summary: What: a CLI for jokes");
     expect(lines[1]).toBe("Workflow: quick checks: npm test.");

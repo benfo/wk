@@ -1,2 +1,2 @@
-Done: T-005 Show brief and next from the v2 model, with handoff in session.md.
-Next: T-006 Record decisions, learnings and principles with instead and because.
+Done: T-007 Print core, home and touched-area principles on wk start.
+Next: T-020 Show the plan visually: projects, queue, due items and progress.
