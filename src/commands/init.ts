@@ -1,23 +1,22 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { CONFIG_FILE, defaultConfigText, readConfig, STORES, type StoreChoice } from "../config.js";
-import { findRoot, homeRoot, projectBase, WORK_DIR } from "../context.js";
+import { findRoot, homeRoot, projectBase, STORES, WORK_DIR, type StoreChoice } from "../context.js";
 import { excludeFile } from "../git.js";
+import { findSources, sourcesLine } from "./sources.js";
 import { result, WkError, type Result } from "../output.js";
-import { ARCHIVE_DIR, KINDS } from "../store.js";
-import { findSources, sourcesLine, type Sources } from "./sources.js";
-import { HANDOFF_FILE } from "./view.js";
+import { CONFIG_FILE, configText, defaultConfig, PRESETS, readConfig, V1_PLAN, type Preset } from "../context.js";
+import { ARCHIVE_DIR, AREA_FILE, AREAS_DIR, CORE_AREA, INBOX_DIR, PROJECTS_DIR } from "../store.js";
+import { addPointer, AGENT_POINTER, installSkills, SKILLS, SKILLS_DIR } from "./setup.js";
 
-/** Works from both src/commands (tests) and dist/commands (installed package). */
-export const PACKAGE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
-export const SKILL_SOURCE = path.join(PACKAGE_ROOT, "skill");
-export const STARTER_PRINCIPLES = ["arch", "ui"];
-export const SKILL_DIR = path.join(".claude", "skills", "wk");
-export const AGENT_POINTER =
-  "Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.";
-/** The pointer line older versions wrote; the next `wk init` replaces it. */
-const OLD_POINTER = /^Track work with the `wk` CLI: follow \.claude\/skills\/wk\/SKILL\.md.*$/m;
+export const SUMMARY_FILE = "summary.md";
+export const SESSION_FILE = "session.md";
+const CORE_DESCRIPTION = "Always in scope. Its principles load for every task; items with no better home live here.";
+
+/** What a preset seeds. Nothing else differs: the core stays domain-agnostic. */
+export const PRESET_SEEDS: Record<Preset, { tags: string[]; areas: [string, string][] }> = {
+  software: { tags: ["bug", "quick", "perf", "ux"], areas: [["code", "How it's built: structure, conventions and tooling."]] },
+  general: { tags: ["quick"], areas: [] },
+};
 
 const STORE_HELP = [
   "Choose where to keep the plan:",
@@ -26,46 +25,6 @@ const STORE_HELP = [
   "  wk init --store local    .work/ in the repo, listed in .git/info/exclude (only you)",
   "  wk init --store home     outside the repo, in ~/.wk/projects/<slug>/",
 ];
-
-/** Personal stores leave no trace in tracked files: no pointers, and ignores go in .git/info/exclude. */
-function isPersonal(store: StoreChoice): boolean {
-  return store === "local" || store === "home";
-}
-
-function installSkill(base: string): string {
-  const dest = path.join(base, SKILL_DIR);
-  if (!fs.existsSync(path.join(SKILL_SOURCE, "SKILL.md"))) throw new WkError(`Skill missing from package: ${SKILL_SOURCE}`);
-  fs.mkdirSync(dest, { recursive: true });
-  fs.cpSync(SKILL_SOURCE, dest, { recursive: true });
-  return dest;
-}
-
-/**
- * True when the file already tells agents to run `wk guide` and `wk brief`: the pointer itself,
- * or the user's own wording of it, wrapped or reworded.
- */
-function hasPointer(text: string): boolean {
-  return text.includes("`wk guide`") && text.includes("`wk brief`");
-}
-
-/**
- * Adds the pointer to an agent instructions file once, upgrading an old pointer line.
- * Returns true if the file changed. With `onlyIfExists`, a missing file is left alone.
- */
-function addPointer(base: string, name: string, onlyIfExists = false): boolean {
-  const file = path.join(base, name);
-  const exists = fs.existsSync(file);
-  if (!exists && onlyIfExists) return false;
-  const existing = exists ? fs.readFileSync(file, "utf8") : "";
-  if (hasPointer(existing)) return false;
-  if (OLD_POINTER.test(existing)) {
-    fs.writeFileSync(file, existing.replace(OLD_POINTER, AGENT_POINTER));
-    return true;
-  }
-  const sep = existing === "" ? "" : existing.endsWith("\n") ? "\n" : "\n\n";
-  fs.writeFileSync(file, existing + sep + AGENT_POINTER + "\n");
-  return true;
-}
 
 /** Appends ignore patterns that are not there yet. Returns the ones added. */
 export function addIgnores(file: string, patterns: string[]): string[] {
@@ -79,80 +38,82 @@ export function addIgnores(file: string, patterns: string[]): string[] {
   return missing;
 }
 
-function createLayout(root: string, store: StoreChoice): void {
-  for (const { dir } of Object.values(KINDS)) fs.mkdirSync(path.join(root, dir), { recursive: true });
-  fs.mkdirSync(path.join(root, ARCHIVE_DIR), { recursive: true });
-  fs.mkdirSync(path.join(root, "principles"), { recursive: true });
-  for (const tag of STARTER_PRINCIPLES) {
-    const file = path.join(root, "principles", `${tag}.md`);
-    if (!fs.existsSync(file)) fs.writeFileSync(file, `# ${tag}\n\n`);
-  }
-  if (store === "repo") {
-    // Git does not track empty folders; keep the layout in the repo.
-    for (const dir of [...Object.values(KINDS).map((k) => k.dir), ARCHIVE_DIR]) {
-      fs.writeFileSync(path.join(root, dir, ".gitkeep"), "");
-    }
-  }
-  fs.writeFileSync(path.join(root, CONFIG_FILE), defaultConfigText(store));
-  fs.writeFileSync(path.join(root, HANDOFF_FILE), "");
+export function writeIfMissing(file: string, text: string): void {
+  if (!fs.existsSync(file)) fs.writeFileSync(file, text);
 }
 
-export function init(cwd: string, opts: { store?: string; home?: string }): Result {
-  const existing = findRoot(cwd, opts.home);
-  const lines: string[] = [];
-  let base: string;
-  let root: string;
-  let store: StoreChoice;
-  let sources: Sources | null = null;
+export function areaText(name: string, description: string): string {
+  return `# ${name}\n\n${description}\n`;
+}
 
-  if (existing) {
-    ({ base, root } = existing);
-    store = readConfig(root).store;
-    lines.push(`Already set up (store: ${store}): ${root}`);
-    if (opts.store && opts.store !== store) {
-      lines.push(`Not moving it to "${opts.store}". Moving a plan is not supported yet.`);
-    }
-  } else {
-    if (!opts.store) throw new WkError(STORE_HELP.join("\n"));
-    if (!STORES.includes(opts.store as StoreChoice)) {
-      throw new WkError([`Unknown store "${opts.store}".`, ...STORE_HELP].join("\n"));
-    }
-    store = opts.store as StoreChoice;
-    const project = projectBase(cwd);
-    base = project.base;
-    if ((store === "ignore" || store === "local") && !project.git) {
-      throw new WkError(`--store ${store} needs a git repo. Use --store repo or --store home here.`);
-    }
-    root = store === "home" ? homeRoot(base, opts.home) : path.join(base, WORK_DIR);
-    createLayout(root, store);
-    lines.push(`Created ${root}`);
-    sources = findSources(base, project.git);
+/** Creates whatever part of the layout is missing; never overwrites. */
+export function ensureLayout(root: string, store: StoreChoice): void {
+  for (const dir of [INBOX_DIR, PROJECTS_DIR, ARCHIVE_DIR, path.join(AREAS_DIR, CORE_AREA)]) {
+    fs.mkdirSync(path.join(root, dir), { recursive: true });
   }
-
-  const skill = installSkill(base);
-  lines.push(`Skill: ${path.relative(base, skill)}`);
-
-  // Keep wk's files out of git for every store but repo. The skill copy follows the plan.
-  const skillPattern = SKILL_DIR.split(path.sep).join("/") + "/";
-  const patterns = store === "home" ? [skillPattern] : store === "repo" ? [] : [`${WORK_DIR}/`, skillPattern];
-  const ignoreFile = store === "ignore" ? path.join(base, ".gitignore") : patterns.length ? excludeFile(base) : null;
-  if (ignoreFile && patterns.length) {
-    const added = addIgnores(ignoreFile, patterns);
-    if (added.length) lines.push(`Ignored in ${path.relative(base, ignoreFile).split(path.sep).join("/")}: ${added.join(" ")}`);
+  writeIfMissing(path.join(root, AREAS_DIR, CORE_AREA, AREA_FILE), areaText(CORE_AREA, CORE_DESCRIPTION));
+  writeIfMissing(path.join(root, SUMMARY_FILE), "");
+  writeIfMissing(path.join(root, SESSION_FILE), "");
+  if (store === "repo") {
+    for (const dir of [INBOX_DIR, PROJECTS_DIR, ARCHIVE_DIR]) writeIfMissing(path.join(root, dir, ".gitkeep"), "");
   }
+}
 
+function isPersonal(store: StoreChoice): boolean {
+  return store === "local" || store === "home";
+}
+
+/** Skills, ignores and the AGENTS.md pointer: shared by a fresh init and a rerun. */
+function wireAgent(base: string, store: StoreChoice, git: boolean): string[] {
+  const lines = [`Skills: ${installSkills(base).join(", ")}`];
+  const skillPatterns = SKILLS.map((s) => `${SKILLS_DIR.split(path.sep).join("/")}/${s}/`);
+  const patterns = store === "repo" ? [] : store === "home" ? skillPatterns : [`${WORK_DIR}/`, ...skillPatterns];
+  if (patterns.length && git) {
+    const file = store === "ignore" ? path.join(base, ".gitignore") : excludeFile(base);
+    const added = file ? addIgnores(file, patterns) : [];
+    if (file && added.length) lines.push(`Ignored in ${path.relative(base, file).split(path.sep).join("/")}: ${added.join(" ")}`);
+  }
   if (isPersonal(store)) {
-    // Tracked files stay untouched. Claude finds the skill on its own; other agents need telling.
-    lines.push("No AGENTS.md change (personal store). For other agents, add to your own instructions:");
-    lines.push(`  ${AGENT_POINTER}`);
+    lines.push("No AGENTS.md change (personal store). For other agents, add to your own instructions:", `  ${AGENT_POINTER}`);
   } else {
-    // AGENTS.md reaches most agents. Claude Code reads CLAUDE.md, so add the line there too when
-    // the project has one; without one, Claude still finds the skill in .claude/skills/.
     const pointed = ["AGENTS.md", "CLAUDE.md"].filter((name) => addPointer(base, name, name === "CLAUDE.md"));
     if (pointed.length) lines.push(`Added the wk pointer to ${pointed.join(" and ")}`);
   }
-  const found = sources ? sourcesLine(sources) : null;
+  return lines;
+}
+
+export function init(cwd: string, opts: { store?: string; preset?: string; home?: string }): Result {
+  const existing = findRoot(cwd, opts.home);
+  if (existing) {
+    const config = readConfig(existing.root);
+    if (config.version < 2) throw new WkError(V1_PLAN);
+    ensureLayout(existing.root, config.store);
+    const lines = [`Already set up (store: ${config.store}): ${existing.root}`];
+    if (opts.store && opts.store !== config.store) lines.push(`Not moving it to "${opts.store}". Moving a plan is not supported.`);
+    lines.push(...wireAgent(existing.base, config.store, projectBase(existing.base).git));
+    return result(lines, { root: existing.root, store: config.store });
+  }
+  if (!opts.store) throw new WkError(STORE_HELP.join("\n"));
+  if (!STORES.includes(opts.store as StoreChoice)) throw new WkError([`Unknown store "${opts.store}".`, ...STORE_HELP].join("\n"));
+  const store = opts.store as StoreChoice;
+  const { base, git } = projectBase(cwd);
+  if ((store === "ignore" || store === "local") && !git) {
+    throw new WkError(`--store ${store} needs a git repo. Use --store repo or --store home here.`);
+  }
+  if (opts.preset && !PRESETS.includes(opts.preset as Preset)) throw new WkError(`Unknown preset "${opts.preset}". Use: ${PRESETS.join(", ")}`);
+  const preset: Preset = (opts.preset as Preset | undefined) ?? (git ? "software" : "general");
+  const root = store === "home" ? homeRoot(base, opts.home) : path.join(base, WORK_DIR);
+  fs.mkdirSync(root, { recursive: true });
+  const config = { ...defaultConfig(store, preset), tags: PRESET_SEEDS[preset].tags };
+  fs.writeFileSync(path.join(root, CONFIG_FILE), configText(config));
+  ensureLayout(root, store);
+  for (const [name, description] of PRESET_SEEDS[preset].areas) {
+    fs.mkdirSync(path.join(root, AREAS_DIR, name), { recursive: true });
+    writeIfMissing(path.join(root, AREAS_DIR, name, AREA_FILE), areaText(name, description));
+  }
+  const lines = [`Created ${root} (preset: ${preset})`, ...wireAgent(base, store, git)];
+  const found = sourcesLine(findSources(base, git));
   if (found) lines.push(found);
-  lines.push("Next: wk brief");
-  return result(lines, { root, skill, store, sources });
+  lines.push("Next: wk brief, then the wk-setup skill (wk guide setup).");
+  return result(lines, { root, store, preset });
 }

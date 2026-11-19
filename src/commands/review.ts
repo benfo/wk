@@ -1,5 +1,5 @@
-import { result, type Result } from "../../output.js";
-import { isSimilar } from "../../similar.js";
+import { result, type Result } from "../output.js";
+import { isSimilar } from "../similar.js";
 import { writeConfig, type Ctx } from "../context.js";
 import { daysBetween, isDue, isOpen, isQueued, isWaiting, state, when } from "../model.js";
 import { CORE_AREA, str, type Item, type Store } from "../store.js";

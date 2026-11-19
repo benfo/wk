@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { result, type Result } from "../../output.js";
+import { result, type Result } from "../output.js";
 import type { Ctx, Workflow } from "../context.js";
 import { byQueue, isDue, isQueued, isWaiting, itemLine, state } from "../model.js";
 import { startSession } from "../session.js";

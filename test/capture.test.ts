@@ -1,88 +1,79 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { project } from "./helpers.js";
+import { plan } from "./helpers.js";
 
-describe("ideas, decisions and learnings", () => {
-  it("captures an idea in one line and links an epic", () => {
-    const p = project();
-    p.wk("add", "epic", "Auth rework");
-    expect(p.wk("idea", "Passkeys instead of passwords", "--epic", "E-001")).toBe("Captured as I-001");
-    expect(p.read("ideas", "I-001.md")).toContain("epic: E-001");
-    expect(p.raw("idea", "a\\nb\\nc").stderr).toMatch(/Idea is 3 lines, limit is 2/);
-    expect(p.raw("idea", "Passkeys over passwords").stderr).toContain("Similar: I-001");
+const idOf = (out: string) => /^\w+ (\w{4})/.exec(out)![1];
+
+describe("jot and the inbox", () => {
+  it("captures without questions, linked to the now task, and lists it at check", () => {
+    const p = plan();
+    const t = idOf(p.wk("add", "Fix the banner"));
+    p.wk("start", t);
+    const j = idOf(p.wk("jot", "Export history to CSV"));
+    expect(p.files("inbox")).toContain(`${j}-export-history-to-csv.md`);
+    expect(p.wk("show", j)).toContain(`from: ${t}`);
+    const out = p.wk("check", "--checked", "ok").split("\n");
+    expect(out).toContain("Captured: 1 jot to sort at the check-in, with a suggested home and when for each:");
+    expect(out).toContain(`  ${j} Export history to CSV`);
+    expect(p.wk("brief")).toContain("Inbox: 1 to sort (wk inbox).");
   });
 
-  it("suggests a review once more than 25 ideas are saved", () => {
-    const p = project();
-    const words = ["amber", "birch", "cobalt", "delta", "ember", "fjord", "garnet", "harbor", "indigo", "juniper", "kelp", "lumen", "marble", "nectar", "onyx", "pepper", "quartz", "raven", "saffron", "tundra", "umber", "velvet", "willow", "xenon", "yarrow", "zephyr"];
-    for (const w of words.slice(0, 25)) expect(p.wk("idea", `${w} ${w}`)).not.toContain("ideas saved");
-    expect(p.wk("idea", "zephyr zephyr")).toContain("26 ideas saved: suggest a review");
+  it("keeps a long first line whole in the body and refuses more than 2 lines", () => {
+    const p = plan();
+    const long = "The banner border shifts two columns to the right whenever the mascot is wider than thirty characters";
+    const j = idOf(p.wk("jot", long));
+    const show = p.wk("show", j).split("\n");
+    expect(show[1].endsWith("…")).toBe(true);
+    expect(show[1].length).toBeLessThanOrEqual(70);
+    expect(show).toContain(long);
+    expect(p.raw("jot", "a\\nb\\nc").stderr).toMatch(/Jot is 3 lines, limit is 2/);
   });
 
-  it("records a decision with what, why and rejected", () => {
-    const p = project();
-    expect(p.wk("decide", "Use JWT for sessions", "--why", "Stateless API.", "--rejected", "Server sessions")).toBe(
-      "Recorded D-001 Use JWT for sessions",
-    );
-    const file = p.read("decisions", "D-001.md");
-    expect(file).toContain("title: Use JWT for sessions\nstatus: active");
-    expect(file).toContain("## Why\n\nStateless API.\n\n## Rejected\n\nServer sessions");
-    expect(p.raw("decide", "No reason").stderr).toMatch(/needs a reason/);
-    expect(p.raw("decide", "X", "--why", "a\\nb\\nc").stderr).toMatch(/Why is 3 lines, limit is 2/);
-    expect(p.raw("decide", "X", "--why", "a", "--rejected", "a\\nb").stderr).toMatch(/Rejected is 2 lines, limit is 1/);
-  });
-
-  it("records a learning", () => {
-    const p = project();
-    expect(p.wk("learn", "Vitest needs --pool forks on Windows CI")).toBe("Recorded L-001");
-    expect(p.wk("show", "L-001")).toContain("Vitest needs --pool forks on Windows CI");
-  });
-});
-
-describe("wk principles", () => {
-  it("prints rules for the tags asked for and names the gaps", () => {
-    const p = project();
-    fs.writeFileSync(p.file("principles", "ui.md"), "# ui\n\n1. Use design tokens, never raw hex.\n2. Every form has an empty state.\n");
-    const out = p.wk("principles", "--tags", "ui,arch,api");
-    const lines = out.split("\n");
-    expect(lines.slice(0, 3)).toEqual(["ui:", "  1. Use design tokens, never raw hex.", "  2. Every form has an empty state."]);
-    expect(out).toContain("No arch principles yet (");
-    expect(out).toContain(`${path.join("principles", "api.md")})`);
-    expect(JSON.parse(p.wk("principles", "--tags", "ui", "--json")).rules.ui).toHaveLength(2);
-  });
-
-  it("lists tags with rule counts when none are given", () => {
-    const p = project();
-    expect(p.wk("principles").split("\n")[0]).toBe("Tags: arch (0), ui (0)");
-  });
-
-  it("reads principles from an absolute principles_dir", () => {
-    const p = project();
-    const shared = path.join(p.dir, "shared-principles");
-    fs.mkdirSync(shared);
-    fs.writeFileSync(path.join(shared, "arch.md"), "1. One module, one job.\n");
-    const config = p.read("config.yml").replace(/^principles_dir:.*$/m, `principles_dir: ${JSON.stringify(shared)}`);
-    fs.writeFileSync(p.file("config.yml"), config);
-    expect(p.wk("principles", "--tags", "arch")).toBe("arch:\n  1. One module, one job.");
-    expect(p.wk("brief")).not.toContain("No principles yet.");
+  it("is sorted into a home with a when, and attaches files that travel with it", () => {
+    const p = plan();
+    p.wk("area", "new", "ui", "Screens");
+    fs.writeFileSync(path.join(p.dir, "shot.png"), "png");
+    const j = idOf(p.wk("jot", "Banner looks off", "--file", "shot.png"));
+    expect(p.files("inbox")).toContain(`${j}-banner-looks-off.md`);
+    expect(fs.existsSync(p.file("inbox", `${j}-1.png`))).toBe(true);
+    expect(p.raw("start", j).stderr).toMatch(/Sort it first/);
+    expect(p.raw("move", j, "--when", "next").stderr).toMatch(/Sort it into a home first/);
+    expect(p.wk("move", j, "--in", "ui", "--when", "next")).toBe(`Moved ${j} Banner looks off: in ui, #1 of 1 in the queue`);
+    expect(fs.existsSync(p.file("areas", "ui", `${j}-1.png`))).toBe(true);
+    expect(p.wk("show", j)).toContain(`files: ${j}-1.png`);
+    expect(p.wk("inbox")).toBe("Inbox is empty.");
   });
 });
 
-describe("wk guide", () => {
-  it("prints the agent rules in full, without the skill frontmatter", () => {
-    const p = project();
-    const out = p.wk("guide");
-    expect(out.startsWith("# wk")).toBe(true);
-    expect(out).not.toContain("description:");
-    expect(out).toContain("Start with `wk brief`");
-    expect(out.split("\n").length).toBeGreaterThan(10);
+describe("when", () => {
+  it("adds straight to a horizon or trigger, and only queued tasks are next", () => {
+    const p = plan();
+    p.wk("area", "new", "ui", "Screens");
+    const a = idOf(p.wk("add", "Fix the banner"));
+    const b = idOf(p.wk("add", "Dark mode", "--when", "someday"));
+    expect(p.wk("add", "Export CSV", "--when", `after:${a.slice(0, 3)}`)).toMatch(new RegExp(`\\(core, when after:${a}\\)$`));
+    p.wk("add", "Theme picker", "--when", "start:ui");
+    p.wk("add", "Renew cert", "--when", "on:2026-12-01");
+    expect(p.wk("next")).toBe(`now    (nothing in progress)\nnext   ${a} Fix the banner (core)`);
+    expect(p.wk("ls", "someday").split(/\s+/)[1]).toBe(b);
+    expect(p.raw("add", "X", "--when", "tomorrow").stderr).toMatch(/Unknown when "tomorrow"/);
+    expect(p.raw("add", "Y", "--when", "on:soon").stderr).toMatch(/on: needs a date/);
+    expect(p.raw("add", "Z", "--when", "start:garden").stderr).toMatch(/No area "garden"/);
   });
 
-  it("prints a side guide by topic, and names the topics on a typo", () => {
-    const p = project();
-    expect(p.wk("guide", "onboarding")).toContain("# wk onboarding");
-    expect(p.wk("guide", "setup")).toContain("wk config set git.branch");
-    expect(p.raw("guide", "nope").stderr).toContain("Topics: setup, onboarding.");
+  it("promotes a someday idea to next, keeping its id", () => {
+    const p = plan();
+    const a = idOf(p.wk("add", "Fix the banner"));
+    const b = idOf(p.wk("add", "Dark mode", "--when", "someday"));
+    expect(p.wk("move", b, "--when", "next")).toBe(`Moved ${b} Dark mode: #1 of 2 in the queue`);
+    expect(p.wk("move", b, "--when", "later")).toBe(`Moved ${b} Dark mode: when later`);
+    expect(p.wk("next").split("\n")[1]).toBe(`next   ${a} Fix the banner (core)`);
+  });
+
+  it("notes a tag the plan has never seen", () => {
+    const p = plan();
+    p.wk("add", "Fix the banner", "--tags", "bug");
+    expect(p.wk("add", "Fix the footer", "--tags", "bgu")).toContain("New tag: bgu (known: bug, quick).");
   });
 });

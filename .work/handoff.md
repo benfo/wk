@@ -1,2 +1,2 @@
-Done: T-016 Convert a v1 plan with wk migrate, keeping old ids as was.
-Next: T-017 Migrate this repo and dadjokes, then replace SPEC.md with docs/v2.md.
+v2 swapped in on branch v2: src is v2, v1 code, tests and skill removed; SPEC.md is the v2 design.
+Next: rebuild, wk migrate this plan, wk init; then migrate dadjokes (left uncommitted for the user).

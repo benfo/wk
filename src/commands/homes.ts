@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { progressBar, result, unescapeText, WkError, type Result } from "../../output.js";
+import { progressBar, result, unescapeText, WkError, type Result } from "../output.js";
 import type { Ctx } from "../context.js";
 import { checkLines, checkTitle, LIMITS } from "../limits.js";
 import { byQueue, isOpen, isQueued, itemLine, state } from "../model.js";

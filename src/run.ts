@@ -1,25 +1,35 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Command, CommanderError } from "commander";
-import { addEpic, addTask, addTasks, decide, idea, learn } from "./commands/capture.js";
-import { block, checkpoint, done, handoff, move, start, unblock } from "./commands/flow.js";
-import { configure } from "./commands/configure.js";
-import { guide } from "./commands/guide.js";
-import { init } from "./commands/init.js";
-import { drop, edit, merge, supersede, tidy } from "./commands/tidy.js";
-import { brief, ls, next, principles, project, show, statusView } from "./commands/view.js";
-import { loadContext, todayString, type Ctx } from "./context.js";
+import { todayString } from "./context.js";
 import { render, WkError, type Result } from "./output.js";
+import { init } from "./commands/init.js";
+import { areaList, areaNew, projectClose, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
+import { review } from "./commands/review.js";
+import { addMany, addTask, ls, move, show } from "./commands/items.js";
+import { board } from "./commands/board.js";
+import { migrate } from "./commands/migrate.js";
+import { guide, GUIDE_TOPICS, setup } from "./commands/setup.js";
+import { inbox, jot } from "./commands/capture.js";
+import { configure } from "./commands/configure.js";
+import { check, done, handoff, start, wait } from "./commands/flow.js";
+import { brief, next } from "./commands/views.js";
+import { decide, drop, edit, learn, merge, principle, supersede } from "./commands/knowledge.js";
+import { loadContext, type Ctx } from "./context.js";
+import { wireFeatures } from "./features.js";
+
+const collect = (value: string, prev: string[] = []) => [...prev, value];
 import { Store } from "./store.js";
 
 export interface RunOptions {
   cwd?: string;
-  /** Overrides today's date (YYYY-MM-DD). Tests use it; so does the WK_TODAY env var. */
+  /** Overrides today's date (YYYY-MM-DD). Tests use it; so does WK_TODAY. */
   today?: string;
   /** Overrides where home-stored plans live (default ~/.wk, or WK_HOME). */
   home?: string;
-  /** Text read by `--from -` (default: the process's stdin). */
   stdin?: string;
+  /** Random source for ids; tests swap it to force collisions. */
+  pick?: (n: number) => number;
 }
 
 export interface RunOutput {
@@ -30,18 +40,16 @@ export interface RunOutput {
 
 type Handler = (ctx: Ctx, store: Store) => Result;
 
-const collect = (value: string, prev: string[] = []) => [...prev, value];
-
-/** Runs one wk command in-process. `argv` excludes the node and script paths. */
+/** Runs one v2 wk command in-process. `argv` excludes the node and script paths. */
 export function run(argv: string[], options: RunOptions = {}): RunOutput {
+  wireFeatures();
   const cwd = options.cwd ?? process.cwd();
   const today = options.today ?? process.env.WK_TODAY ?? todayString();
   const out: string[] = [];
   const err: string[] = [];
-  let json = false;
 
   const program = new Command("wk")
-    .description("Track epics, tasks, ideas, decisions and learnings in plain text.")
+    .description("Track work in plain text: tasks, decisions, learnings and principles, in projects and areas.")
     .option("--json", "machine-readable output")
     .option("--all", "lift the 10-line output limit")
     .exitOverride()
@@ -49,54 +57,54 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .showSuggestionAfterError();
 
   const emit = (cmd: Command, res: Result) => {
-    const g = cmd.optsWithGlobals() as { json?: boolean; all?: boolean };
-    out.push(render(res, g));
+    out.push(render(res, cmd.optsWithGlobals() as { json?: boolean; all?: boolean }));
   };
-  // Build one context per command, shared by the store and the handler.
-  const act = (fn: Handler) =>
-    function (this: Command) {
-      const ctx = loadContext(cwd, today, options.home);
-      emit(this, fn(ctx, new Store(ctx)));
-    };
+  const act = (cmd: Command, fn: Handler) => {
+    const ctx = loadContext(cwd, today, options.home, options.pick);
+    emit(cmd, fn(ctx, new Store(ctx)));
+  };
 
   program
     .command("init")
-    .description("set up the plan and install the agent skill")
+    .description("set up the plan")
     .option("--store <where>", "repo, ignore (.gitignore), local (.git/info/exclude) or home (~/.wk)")
+    .option("--preset <preset>", "software (default in a git repo) or general: seeds tags and a starting area")
     .action(function (this: Command) {
-      emit(this, init(cwd, { store: this.opts().store, home: options.home }));
+      const o = this.opts();
+      emit(this, init(cwd, { store: o.store, preset: o.preset, home: options.home }));
     });
 
   program
     .command("guide [topic]")
-    .description("print the agent rules, or a side guide: setup, onboarding")
+    .description(`print the agent rules, or a guide: ${GUIDE_TOPICS.join(", ")}`)
     .action(function (this: Command, topic?: string) {
       emit(this, guide(topic));
     });
 
   program
-    .command("config [action] [key] [value]")
-    .description("show settings, or: wk config set git.branch none|task|epic, git.commit ask|task|checkpoint")
-    .action(function (this: Command, action?: string, key?: string, value?: string) {
-      act((ctx) => configure(ctx, action, key, value)).call(this);
+    .command("migrate")
+    .description("convert a v1 plan in place; old ids stay findable (wk show T-013)")
+    .action(function (this: Command) {
+      emit(this, migrate(cwd, today, { home: options.home, pick: options.pick }));
     });
 
-  program.command("brief").description("handoff, now task and what's next; first call of a session")
-    .action(act((ctx, s) => brief(ctx, s)));
+  program
+    .command("setup")
+    .description("list agent instruction files and the stored workflow; --done records their fingerprints")
+    .option("--done", "record the instruction files as checked")
+    .action(function (this: Command) {
+      const o = this.opts();
+      act(this, (ctx, s) => setup(ctx, s, o));
+    });
 
-  program.command("next").description("now task, up to 5 next tasks, blocked and undecided ones")
-    .action(act((ctx, s) => next(ctx, s)));
-
-  const add = program.command("add").description("add a task or an epic");
-  add
-    .command("task [title]")
-    .description("create a task and print its id, or many with --from")
-    .option("--epic <id>", "epic it belongs to")
-    .option("--tags <tags>", "comma-separated tags, e.g. api,ui")
-    .option("--later", "put it on the roadmap instead of next")
+  program
+    .command("add [title]")
+    .description("add a sorted task: in core unless --in says otherwise, at the bottom of the queue")
+    .option("--in <home>", "an area or a project id")
+    .option("--when <when>", "next, queue (default), later, someday, after:<id>, end:<project>, start:<area>, on:<date>")
     .option("--body <text>", "short notes, 6 lines max")
-    .option("--needs-decision", "flag that a decision is needed before work")
-    .option("--force", "add even if a similar item exists")
+    .option("--tags <tags>", "comma-separated tags, e.g. bug,quick")
+    .option("--force", "add even if a similar task exists")
     .option("--from <file>", "one title per line from a file, or - for stdin; all or nothing")
     .action(function (this: Command, title: string | undefined) {
       const o = this.opts();
@@ -104,200 +112,265 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
         if (title) throw new WkError("Give a title or --from, not both.");
         const file = path.resolve(cwd, o.from);
         if (o.from !== "-" && !fs.existsSync(file)) throw new WkError(`File not found: ${file}`);
-        const input = o.from === "-" ? options.stdin ?? fs.readFileSync(0, "utf8") : fs.readFileSync(file, "utf8");
-        act((ctx, s) => addTasks(ctx, s, input, o)).call(this);
+        const input = o.from === "-" ? (options.stdin ?? fs.readFileSync(0, "utf8")) : fs.readFileSync(file, "utf8");
+        act(this, (ctx, s) => addMany(ctx, s, input, o));
         return;
       }
-      if (!title) throw new WkError('Give a title: wk add task "<title>" (or --from <file>)');
-      act((ctx, s) => addTask(ctx, s, title, o)).call(this);
-    });
-  add
-    .command("epic <title>")
-    .description("create an epic with scope, out of scope and acceptance sections")
-    .option("--tags <tags>", "comma-separated tags")
-    .option("--force", "add even if a similar epic exists")
-    .action(function (this: Command, title: string) {
-      const o = this.opts();
-      act((ctx, s) => addEpic(ctx, s, title, o)).call(this);
-    });
-
-  program.command("show <id>").description("print one item in full")
-    .action(function (this: Command, id: string) {
-      act((ctx, s) => show(ctx, s, id)).call(this);
+      if (!title) throw new WkError('Give a title: wk add "<title>" (or --from <file>)');
+      act(this, (ctx, s) => addTask(ctx, s, title, o));
     });
 
   program
-    .command("start <id>")
-    .description("set a task to now (only one at a time)")
-    .option("--branch", "create a <id>-<slug> branch from the current branch")
-    .option("--no-branch", "stay on the current branch even if config says to branch")
+    .command("show <id>")
+    .description("print one item in full; any unique start of the id works")
     .action(function (this: Command, id: string) {
-      const o = this.opts() as { branch?: boolean };
-      // Commander defaults a --no-* pair to true; only pass a value the user typed.
-      const typed = this.getOptionValueSource("branch") === "cli" ? o.branch : undefined;
-      act((ctx, s) => start(ctx, s, id, { branch: typed })).call(this);
+      act(this, (ctx, s) => show(ctx, s, id));
     });
 
   program
-    .command("checkpoint")
-    .description("move the now task to review; record automated checks and what a human should test")
-    .option("--test <text>", "for a human: how it looks, feels, reads or responds (repeatable)", collect)
-    .option("--checked <result>", "an automated check you already ran, e.g. \"75 tests pass\" (repeatable)", collect)
-    .option("--handoff <text>", "also save the handoff note (5 lines max)")
-    .option("--fresh", "the handoff recommends a fresh session")
-    .action(function (this: Command) {
+    .command("ls [words...]")
+    .description("list items; each word filters by kind, state, when, home, tag or id (e.g. wk ls bug ui someday)")
+    .option("--archived", "list archived items instead")
+    .action(function (this: Command, words: string[]) {
       const o = this.opts();
-      act((ctx, s) => checkpoint(ctx, s, o)).call(this);
-    });
-
-  program
-    .command("done <id>")
-    .description("mark a reviewed task done")
-    .option("--force", "skip review for trivial tasks")
-    .option("--handoff <text>", "the handoff note; without it, one is written from the next task")
-    .option("--fresh", "the handoff recommends a fresh session (kept from checkpoint otherwise)")
-    .action(function (this: Command, id: string) {
-      const o = this.opts();
-      act((ctx, s) => done(ctx, s, id, o)).call(this);
-    });
-
-  program.command("block <id> <reason>").description("flag a task as blocked")
-    .action(function (this: Command, id: string, reason: string) {
-      act((ctx, s) => block(ctx, s, id, reason)).call(this);
-    });
-
-  program.command("unblock <id>").description("clear the blocked flag")
-    .action(function (this: Command, id: string) {
-      act((ctx, s) => unblock(ctx, s, id)).call(this);
+      act(this, (ctx, s) => ls(ctx, s, words ?? [], o));
     });
 
   program
     .command("move <id>")
-    .description("reorder the next queue, e.g. when the user wants a task sooner")
-    .option("--before <id>", "just ahead of this next task")
-    .option("--after <id>", "just behind this next task")
+    .description("sort an inbox item, change a home or when, or reorder the queue")
+    .option("--in <home>", "an area or a project id")
+    .option("--when <when>", "next, queue, later, someday, after:<id>, end:<project>, start:<area>, on:<date>")
+    .option("--before <id>", "just ahead of this queued task")
+    .option("--after <id>", "just behind this queued task")
     .option("--top", "first in the queue")
     .option("--bottom", "last in the queue")
     .action(function (this: Command, id: string) {
       const o = this.opts();
-      act((ctx, s) => move(ctx, s, id, o)).call(this);
+      act(this, (ctx, s) => move(ctx, s, id, o));
+    });
+
+  const project = program.command("project").description("projects: work with an end");
+  project
+    .command("list", { isDefault: true })
+    .description("open projects with progress, then open counts per area")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => projectList(ctx, s));
+    });
+  project
+    .command("new <title>")
+    .description("start a project")
+    .option("--touches <areas>", "comma-separated areas it touches; their principles load for its tasks")
+    .option("--body <text>", "goal and acceptance")
+    .action(function (this: Command, title: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => projectNew(ctx, s, title, o));
+    });
+  project
+    .command("show <id>")
+    .description("one project with its tasks, decisions and learnings")
+    .action(function (this: Command, id: string) {
+      act(this, (ctx, s) => projectShow(ctx, s, id));
+    });
+
+  project
+    .command("close <id>")
+    .description("close a finished project: offers learnings to distill, fires end: triggers, archives it")
+    .action(function (this: Command, id: string) {
+      act(this, (ctx, s) => projectClose(ctx, s, id));
     });
 
   program
-    .command("idea <text>")
-    .description("capture an idea, 2 lines max")
-    .option("--epic <id>", "epic it relates to")
-    .option("--force", "add even if a similar item exists")
+    .command("review")
+    .description("the weekly review: inbox, due, stale, waiting, empty projects, principles, duplicates")
+    .option("--done", "record that the review happened")
+    .action(function (this: Command) {
+      const o = this.opts();
+      act(this, (ctx, s) => review(ctx, s, o));
+    });
+
+  const area = program.command("area").description("areas: ongoing responsibilities that never end");
+  area
+    .command("list", { isDefault: true })
+    .description("areas with open tasks and principle counts")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => areaList(ctx, s));
+    });
+  area
+    .command("new <name> [description]")
+    .description("create an area, e.g. wk area new ui \"Screens, layout and styling\"")
+    .action(function (this: Command, name: string, description?: string) {
+      act(this, (ctx, s) => areaNew(ctx, s, name, description));
+    });
+
+  program.command("brief", { isDefault: true }).description("summary, workflow, handoff, now and next; first call of a session")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => brief(ctx, s));
+    });
+
+  program.command("next").description("now, up to 5 queued, due and waiting tasks")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => next(ctx, s));
+    });
+
+  program
+    .command("start <id>")
+    .description("set a task to now (one at a time); prints its body and what applies")
+    .option("--branch", "make a <id>-<slug> branch for it")
+    .option("--no-branch", "stay on the current branch even if config says to branch")
+    .action(function (this: Command, id: string) {
+      const o = this.opts() as { branch?: boolean };
+      const typed = this.getOptionValueSource("branch") === "cli" ? o.branch : undefined;
+      act(this, (ctx, s) => start(ctx, s, id, { branch: typed }));
+    });
+
+  program
+    .command("check")
+    .description("move the now task to review; record automated checks and what a person should try")
+    .option("--test <text>", "for a person: how it looks, feels, reads or responds (repeatable)", collect)
+    .option("--checked <result>", 'an automated check you already ran, e.g. "75 tests pass" (repeatable)', collect)
+    .option("--handoff <text>", "also save the handoff (5 lines max)")
+    .option("--fresh", "the handoff recommends a fresh session")
+    .action(function (this: Command) {
+      const o = this.opts();
+      act(this, (ctx, s) => check(ctx, s, o));
+    });
+
+  program
+    .command("done <id>")
+    .description("finish a reviewed task")
+    .option("--force", "skip review for a trivial task")
+    .option("--handoff <text>", "the handoff; without it, one is written from the next task")
+    .option("--fresh", "the handoff recommends a fresh session")
+    .action(function (this: Command, id: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => done(ctx, s, id, o));
+    });
+
+  program
+    .command("wait <id> [on]")
+    .description("mark a task as waiting on something: a decision, a person, another item")
+    .option("--clear", "it's no longer waiting")
+    .action(function (this: Command, id: string, on?: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => wait(ctx, s, id, on, o));
+    });
+
+  program
+    .command("handoff <text>")
+    .description("overwrite the handoff, 5 lines max; at every stop")
+    .option("--fresh", "the handoff recommends a fresh session")
     .action(function (this: Command, text: string) {
       const o = this.opts();
-      act((ctx, s) => idea(ctx, s, text, o)).call(this);
+      act(this, (ctx, s) => handoff(ctx, s, text, o));
+    });
+
+  program
+    .command("config [action] [key] [value]")
+    .description("show settings, or: wk config set <key> <value> (git.branch, git.commit, commit_style, checks.quick, checks.full, tracker)")
+    .action(function (this: Command, action?: string, key?: string, value?: string) {
+      act(this, (ctx) => configure(ctx, action, key, value));
     });
 
   program
     .command("decide <what>")
-    .description("record a decision")
+    .description("record a decision in the current home (the now task's, else core)")
     .option("--why <why>", "the reason, 2 lines max")
     .option("--rejected <text>", "what was rejected, 1 line")
+    .option("--in <home>", "an area or a project id")
     .action(function (this: Command, what: string) {
       const o = this.opts();
-      act((ctx, s) => decide(ctx, s, what, o)).call(this);
-    });
-
-  program.command("learn <text>").description("record a learning, 2 lines max")
-    .action(function (this: Command, text: string) {
-      act((ctx, s) => learn(ctx, s, text)).call(this);
+      act(this, (ctx, s) => decide(ctx, s, what, o));
     });
 
   program
-    .command("ls [kind]")
-    .description("list tasks (default), epics, ideas, decisions or learnings")
-    .option("--epic <id>", "only this epic")
-    .option("--tag <tag>", "only this tag")
-    .option("--status <status>", "only this status")
-    .option("--archived", "list archived items instead")
-    .action(function (this: Command, kind: string | undefined) {
-      const o = this.opts();
-      act((ctx, s) => ls(ctx, s, kind, o)).call(this);
-    });
-
-  program
-    .command("status")
-    .description("each epic with progress, its now and next tasks, then later counts")
-    .option("--epic <id>", "one epic with all its tasks")
-    .action(function (this: Command) {
-      const o = this.opts();
-      act((ctx, s) => statusView(ctx, s, o)).call(this);
-    });
-
-  program.command("project [text]").description("show the project summary, or overwrite it (8 lines max)")
-    .action(function (this: Command, text?: string) {
-      act((ctx, s) => project(ctx, s, text)).call(this);
-    });
-
-  program.command("handoff <text>").description("overwrite the handoff note, 5 lines max; last call of a session")
-    .option("--fresh", "the handoff recommends a fresh session")
+    .command("learn <text>")
+    .description("record something surprising, 2 lines max, in the current home")
+    .option("--in <home>", "an area or a project id")
     .action(function (this: Command, text: string) {
       const o = this.opts();
-      act((ctx, s) => handoff(ctx, s, text, o)).call(this);
+      act(this, (ctx, s) => learn(ctx, s, text, o));
     });
 
   program
-    .command("principles")
-    .description("print the rules for some tags")
-    .option("--tags <tags>", "comma-separated tags, e.g. ui,api")
-    .action(function (this: Command) {
+    .command("principle <rule>")
+    .description("a rule a capable model would otherwise get wrong: do X, instead of Y, because Z")
+    .option("--instead <default>", "the default it overrides, 1 line")
+    .option("--because <why>", "the reason, 2 lines max")
+    .option("--in <area>", "the area it belongs to (default core: applies everywhere)")
+    .option("--from <id>", "the learning or decision it distills")
+    .option("--test <ref>", "a check that enforces it")
+    .action(function (this: Command, rule: string) {
       const o = this.opts();
-      act((ctx, s) => principles(ctx, s, o)).call(this);
+      act(this, (ctx, s) => principle(ctx, s, rule, o));
     });
 
-  program
-    .command("tidy")
-    .description("list plan problems; --fix archives old done items and closes finished epics")
-    .option("--fix", "apply the safe fixes")
-    .action(function (this: Command) {
-      const o = this.opts();
-      act((ctx, s) => tidy(ctx, s, o)).call(this);
-    });
-
-  program.command("merge <keep> <drop>").description("fold a task or idea into another (or an idea into a task) and delete the duplicate")
-    .action(function (this: Command, keep: string, drop: string) {
-      act((ctx, s) => merge(ctx, s, keep, drop)).call(this);
-    });
-
-  program.command("drop <id>").description("delete a task or idea that is no longer wanted")
-    .action(function (this: Command, id: string) {
-      act((ctx, s) => drop(ctx, s, id)).call(this);
-    });
-
-  program.command("supersede <old> <new>").description("mark an old decision as replaced by a new one")
+  program.command("supersede <old> <new>").description("mark a decision or principle as replaced")
     .action(function (this: Command, oldId: string, newId: string) {
-      act((ctx, s) => supersede(ctx, s, oldId, newId)).call(this);
+      act(this, (ctx, s) => supersede(ctx, s, oldId, newId));
     });
 
   program
     .command("edit <id>")
     .description("rewrite an item in place; the same limits apply")
-    .option("--title <title>", "new title")
+    .option("--title <title>", "new title (renames the file)")
     .option("--body <text>", "new body")
     .option("--tags <tags>", "replace tags")
-    .option("--epic <id>", "move to an epic (none to clear)")
-    .option("--needs-decision", "flag that a decision is needed")
-    .option("--no-needs-decision", "clear the decision flag")
+    .option("--instead <default>", "principles: the default it overrides")
+    .option("--because <why>", "principles: the reason")
+    .option("--ref <text>", "free-text reference, e.g. a ticket id")
     .action(function (this: Command, id: string) {
-      const o = this.opts() as Record<string, unknown>;
-      const typed = this.getOptionValueSource("needsDecision") === "cli" ? (o.needsDecision as boolean) : undefined;
-      act((ctx, s) => edit(ctx, s, id, { ...o, needsDecision: typed })).call(this);
+      const o = this.opts();
+      act(this, (ctx, s) => edit(ctx, s, id, o));
     });
 
+  program.command("drop <id>").description("delete a task, jot or learning that is no longer wanted")
+    .action(function (this: Command, id: string) {
+      act(this, (ctx, s) => drop(ctx, s, id));
+    });
+
+  program.command("merge <keep> <drop>").description("fold a duplicate into another item of the same kind and delete it")
+    .action(function (this: Command, keep: string, gone: string) {
+      act(this, (ctx, s) => merge(ctx, s, keep, gone));
+    });
+
+  program
+    .command("jot <text>")
+    .description("capture a thought mid-task, no questions: into the inbox, sorted at the check-in")
+    .option("--file <path>", "attach a file next to it (repeatable); describe screenshots in the text instead when you can", collect)
+    .action(function (this: Command, text: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => jot(ctx, s, text, o));
+    });
+
+  program.command("inbox").description("list jots waiting to be sorted")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => inbox(ctx, s));
+    });
+
+  program
+    .command("board")
+    .description("write the plan as an HTML page: now, queue, due, waiting, projects, areas and principles")
+    .option("--open", "open it in the browser")
+    .option("--out <file>", "where to write it (default: ~/.wk/boards/, outside the plan)")
+    .action(function (this: Command) {
+      const o = this.opts();
+      act(this, (ctx, s) => board(ctx, s, o));
+    });
+
+  program
+    .command("summary [text]")
+    .description("show the plan summary, or overwrite it (8 lines max)")
+    .action(function (this: Command, text?: string) {
+      act(this, (ctx, s) => summaryCmd(ctx, s, text));
+    });
+
+  const json = argv.includes("--json");
   try {
-    json = argv.includes("--json");
     program.parse(argv, { from: "user" });
     return { code: 0, stdout: out.filter(Boolean).join("\n"), stderr: err.join("\n") };
   } catch (e) {
-    if (e instanceof CommanderError) {
-      // --help and --version exit through here with code 0.
-      return { code: e.exitCode, stdout: out.join("\n"), stderr: err.join("\n") };
-    }
+    if (e instanceof CommanderError) return { code: e.exitCode, stdout: out.join("\n"), stderr: err.join("\n") };
     const message = e instanceof WkError ? e.message : `Unexpected error: ${(e as Error).stack ?? e}`;
     if (json) return { code: 1, stdout: JSON.stringify({ error: message }, null, 2), stderr: "" };
     return { code: 1, stdout: out.join("\n"), stderr: message };

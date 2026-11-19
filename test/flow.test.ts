@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import { describe, expect, it } from "vitest";
-import { git, hasGit } from "../helpers.js";
+import { git, hasGit } from "./helpers.js";
 import { plan, put } from "./helpers.js";
 
 const idOf = (out: string) => /(?:Added|Project) (\w{4})/.exec(out)![1];

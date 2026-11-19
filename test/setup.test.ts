@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { git, hasGit } from "../helpers.js";
+import { git, hasGit } from "./helpers.js";
 import { plan } from "./helpers.js";
 
 describe("skills and guides", () => {
@@ -24,7 +24,7 @@ describe("skills and guides", () => {
   });
 
   it("keeps the shipped skill and guides free of project-specific names", () => {
-    const root = path.resolve(__dirname, "..", "..");
+    const root = path.resolve(__dirname, "..");
     const files = [
       ...["wk", "wk-setup"].map((s) => path.join(root, "skills", s, "SKILL.md")),
       ...fs.readdirSync(path.join(root, "guides")).map((f) => path.join(root, "guides", f)),

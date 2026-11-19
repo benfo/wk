@@ -1,14 +1,15 @@
 {
   "name": "wk",
   "version": "0.1.0",
-  "description": "Text-based project workflow CLI for agent sessions",
+  "description": "Plain-text work tracking for agent sessions: projects, areas, an inbox and principles",
   "type": "module",
   "bin": {
     "wk": "dist/cli.js"
   },
   "files": [
     "dist",
-    "skill"
+    "skills",
+    "guides"
   ],
   "engines": {
     "node": ">=20"

@@ -1,6 +1,14 @@
 # wk
 
-A small CLI plus an agent skill for tracking software work in plain text: epics, tasks, ideas, decisions and learnings. The agent drives it; you see short check-ins. See [SPEC.md](SPEC.md) for the design.
+A small CLI plus agent skills for tracking work in plain text, for working with a coding agent. The agent drives it; you see short check-ins.
+
+- **Capture costs nothing.** Say "idea: …", "bug: …" or "note that …" mid-task. The agent jots it into an inbox and carries on; it's sorted at the next check-in.
+- **Filed work comes back.** Every task has a `when`: `next`, `queue`, `later`, `someday`, or a trigger like `after:<id>`, `end:<project>`, `start:<area>` or `on:<date>`. A fired trigger shows the item as due.
+- **Projects end, areas don't.** Work lives in a project (with an end), an area (an ongoing concern, with its principles), or `core`.
+- **Principles the agent would otherwise get wrong:** "do X, instead of Y, because Z", loaded when a task starts.
+- **Domain-agnostic.** Software is a preset; a kitchen refit works too.
+
+[docs/wk-guide.pdf](docs/wk-guide.pdf) explains the philosophy and usage with worked examples. [SPEC.md](SPEC.md) is the design.
 
 Needs Node.js 20 or later.
 
@@ -16,10 +24,12 @@ npm link
 `npm install` builds the CLI and `npm link` puts it on the PATH as `wk`. Then, in each project:
 
 ```bash
-wk init
+wk init --store repo
 ```
 
-The first run asks where to keep the plan. It also copies the skill to `.claude/skills/wk/`.
+`--store` picks where the plan lives: `repo` (committed), `ignore` (in `.gitignore`), `local` (private, in `.git/info/exclude`) or `home` (`~/.wk/`). Init copies two skills to `.claude/skills/`: `wk` for every session and `wk-setup` for fitting wk to your workflow. Agents without skills follow `wk guide`, which a line in `AGENTS.md` points to.
+
+Then ask your agent to set up wk; the `wk-setup` skill takes it from there.
 
 ## Upgrade
 
@@ -28,15 +38,20 @@ git pull
 npm install
 ```
 
-Then run `wk init` again in each project to refresh its skill. Your plan is kept.
+Then run `wk init` again in each project to refresh its skills. Your plan is kept. A plan from wk v1 converts once with `wk migrate`; old ids like `T-013` keep working.
+
+## See the plan
+
+```bash
+wk board --open
+```
+
+This writes the plan as one HTML page and opens it: now, the queue, due and waiting items, projects with progress, and areas with their principles.
 
 ## Release
 
 ```bash
 npm version patch
-```
-
-```bash
 npm run release
 ```
 

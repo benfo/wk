@@ -1,148 +1,62 @@
-import type { Ctx } from "../context.js";
-import { checkLines, checkTitle, LIMITS } from "../limits.js";
+import path from "node:path";
 import { result, unescapeText, WkError, type Result } from "../output.js";
-import { label, type Store } from "../store.js";
-import { isSimilar } from "../similar.js";
-import { findSimilar, guardSimilar, openTasks, parseTags, requireEpic } from "./shared.js";
+import type { Ctx } from "../context.js";
+import { checkLines, LIMITS } from "../limits.js";
+import { state } from "../model.js";
+import { str, type Item, type Store } from "../store.js";
+import { nowTask } from "./flow.js";
+import { summary } from "./items.js";
+import { plural } from "./shared.js";
 
-export interface AddTaskOpts {
-  epic?: string;
-  tags?: string;
-  later?: boolean;
-  body?: string;
-  needsDecision?: boolean;
-  force?: boolean;
-}
-
-export function addTask(_ctx: Ctx, store: Store, rawTitle: string, opts: AddTaskOpts): Result {
-  const title = checkTitle(rawTitle);
-  const body = checkLines(unescapeText(opts.body ?? ""), LIMITS.taskBody, "Task body");
-  const epic = requireEpic(store, opts.epic);
-  guardSimilar(title, [...openTasks(store), ...store.list("idea")], opts.force);
-  const item = store.create(
-    "task",
-    {
-      title,
-      epic,
-      status: opts.later ? "later" : "next",
-      tags: parseTags(opts.tags),
-      ref: null,
-      blocked: false,
-      needs_decision: opts.needsDecision === true,
-    },
-    body,
-  );
-  return result([`${item.id} ${title}`], { id: item.id, title, status: item.data.status });
-}
-
-/** "- [ ] Title", "* Title", "1. Title" and "Title" all give "Title". Blank and # lines are skipped. */
-export function parseTitleList(input: string): { line: number; title: string }[] {
-  return input
-    .split(/\r?\n/)
-    .map((raw, i) => ({
-      line: i + 1,
-      title: raw
-        .trim()
-        .replace(/^(?:[-*+]\s+)?(?:\[[ xX]\]\s+)?/, "")
-        .replace(/^\d+[.)]\s+/, "")
-        .trim(),
-    }))
-    .filter(({ title }) => title !== "" && !title.startsWith("#"));
+/** A jot's title: its first line, cut at a word boundary to the title limit; the full text stays in the body. */
+function jotParts(text: string): { title: string; body: string } {
+  const [first, ...rest] = text.split("\n");
+  if (first.length <= LIMITS.title) return { title: first, body: rest.join("\n") };
+  const cut = first.slice(0, LIMITS.title - 1).replace(/\s+\S*$/, "");
+  return { title: `${cut || first.slice(0, LIMITS.title - 1)}…`, body: text };
 }
 
 /**
- * Adds one task per line, all or nothing: every title is checked against the limits, open
- * tasks and ideas, and the other lines first. Any problem means nothing is added.
+ * Captures a thought with no questions: into the inbox, linked to the task it came up in.
+ * Sorting happens at the check-in, when the user is out of the zone anyway.
  */
-export function addTasks(_ctx: Ctx, store: Store, input: string, opts: AddTaskOpts): Result {
-  if (opts.body) throw new WkError("--body can't be used with --from. Add notes later with wk edit.");
-  const entries = parseTitleList(input);
-  if (entries.length === 0) throw new WkError("No titles found. Give one title per line.");
-  const epic = requireEpic(store, opts.epic);
-  const pool = [...openTasks(store), ...store.list("idea")];
-  const problems: string[] = [];
-  const accepted: { line: number; title: string }[] = [];
-  for (const { line, title } of entries) {
-    try {
-      checkTitle(title);
-    } catch (e) {
-      problems.push(`line ${line}: ${(e as Error).message}`);
-      continue;
-    }
-    if (!opts.force) {
-      const hit = findSimilar(title, pool)[0];
-      if (hit) {
-        problems.push(`line ${line}: "${title}" is similar to ${hit.id} ${label(hit)}`);
-        continue;
-      }
-      const twin = accepted.find((a) => isSimilar(a.title, title));
-      if (twin) {
-        problems.push(`line ${line}: "${title}" is similar to line ${twin.line}`);
-        continue;
-      }
-    }
-    accepted.push({ line, title });
-  }
-  if (problems.length) {
-    throw new WkError([`Nothing added. Fix these and rerun (or --force for duplicates):`, ...problems].join("\n"));
-  }
-  const created = accepted.map(({ title }) =>
-    store.create(
-      "task",
-      {
-        title,
-        epic,
-        status: opts.later ? "later" : "next",
-        tags: parseTags(opts.tags),
-        ref: null,
-        blocked: false,
-        needs_decision: opts.needsDecision === true,
-      },
-      "",
-    ),
-  );
-  const lines = [`Added ${created.length} task${created.length === 1 ? "" : "s"}:`, ...created.map((t) => `${t.id} ${label(t)}`)];
-  return result(lines, { added: created.map((t) => ({ id: t.id, title: label(t) })) });
+export function jot(ctx: Ctx, store: Store, raw: string, opts: { file?: string[] }): Result {
+  const text = checkLines(unescapeText(raw ?? ""), LIMITS.note, "Jot");
+  if (!text) throw new WkError("Jot is empty.");
+  const { title, body } = jotParts(text);
+  const now = nowTask(store);
+  const inbox = store.resolveHome("inbox");
+  const item = store.create("task", inbox, title, body, { state: "inbox", ...(now ? { from: now.id } : {}) });
+  const files = (opts.file ?? []).map((f) => store.attach(item, path.resolve(ctx.cwd, f)));
+  const lines = [`Jotted ${item.id} ${title}`];
+  if (files.length) lines.push(`Attached: ${files.join(", ")}`);
+  return result(lines, { ...summary(item), attached: files });
 }
 
-export const EPIC_TEMPLATE = "## Scope\n\n## Out of scope\n\n## Acceptance\n";
-
-export function addEpic(_ctx: Ctx, store: Store, rawTitle: string, opts: { tags?: string; force?: boolean }): Result {
-  const title = checkTitle(rawTitle);
-  guardSimilar(title, store.list("epic").filter((e) => e.data.status !== "done"), opts.force);
-  const item = store.create("epic", { title, status: "open", tags: parseTags(opts.tags), ref: null }, EPIC_TEMPLATE);
-  return result([`${item.id} ${title}`], { id: item.id, title });
+export function inboxItems(store: Store): Item[] {
+  return store.list().filter((i) => state(i) === "inbox").sort((a, b) => str(a, "created").localeCompare(str(b, "created")));
 }
 
-/** Past this many saved ideas, capturing one suggests a review. */
-export const IDEA_CAP = 25;
-
-export function idea(_ctx: Ctx, store: Store, raw: string, opts: { epic?: string; force?: boolean }): Result {
-  const body = checkLines(unescapeText(raw), LIMITS.note, "Idea");
-  if (!body) throw new WkError("Idea is empty.");
-  const epic = requireEpic(store, opts.epic);
-  guardSimilar(body, [...openTasks(store), ...store.list("idea")], opts.force);
-  const item = store.create("idea", { epic }, body);
-  const lines = [`Captured as ${item.id}`];
-  const count = store.list("idea").length;
-  if (count > IDEA_CAP) lines.push(`${count} ideas saved: suggest a review to drop or merge some (wk ls ideas).`);
-  return result(lines, { id: item.id, text: body, ideas: count });
+export function inbox(_ctx: Ctx, store: Store): Result {
+  const items = inboxItems(store);
+  const lines = items.map((i) => `${i.id} ${i.title}${str(i, "from") ? ` (from ${str(i, "from")})` : ""}`);
+  if (lines.length === 0) lines.push("Inbox is empty.");
+  else lines.push(`Sort each: wk move <id> --in <home> [--when <when>], or wk drop <id>. Knowledge: wk decide / wk learn, then drop the jot.`);
+  return result(lines, items.map(summary));
 }
 
-export function decide(_ctx: Ctx, store: Store, rawWhat: string, opts: { why?: string; rejected?: string }): Result {
-  const what = checkTitle(rawWhat, "What");
-  if (!opts.why?.trim()) throw new WkError('A decision needs a reason: --why "<why>"');
-  const why = checkLines(unescapeText(opts.why), LIMITS.decisionWhy, "Why");
-  const rejected = checkLines(unescapeText(opts.rejected ?? ""), LIMITS.decisionRejected, "Rejected");
-  let body = `## Why\n\n${why}\n`;
-  if (rejected) body += `\n## Rejected\n\n${rejected}\n`;
-  const item = store.create("decision", { title: what, status: "active", supersedes: null, superseded_by: null }, body);
-  return result([`Recorded ${item.id} ${label(item)}`], { id: item.id, what, why, rejected: rejected || null });
+/** `wk check`: what was jotted during this task, for sorting at the check-in. */
+export function checkCaptured(_ctx: Ctx, store: Store, item: Item): string[] {
+  const captured = inboxItems(store).filter((i) => str(i, "from") === item.id);
+  if (captured.length === 0) return [];
+  return [
+    `Captured: ${plural(captured.length, "jot")} to sort at the check-in, with a suggested home and when for each:`,
+    ...captured.slice(0, 5).map((i) => `  ${i.id} ${i.title}`),
+  ];
 }
 
-export function learn(_ctx: Ctx, store: Store, raw: string): Result {
-  const body = checkLines(unescapeText(raw), LIMITS.note, "Learning");
-  if (!body) throw new WkError("Learning is empty.");
-  const item = store.create("learning", {}, body);
-  return result([`Recorded ${item.id}`], { id: item.id, text: body });
+/** `wk brief`: how many jots wait for sorting. */
+export function briefInbox(_ctx: Ctx, store: Store): string[] {
+  const n = inboxItems(store).length;
+  return n ? [`Inbox: ${n} to sort (wk inbox).`] : [];
 }

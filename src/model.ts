@@ -1,4 +1,4 @@
-import { WkError } from "../output.js";
+import { WkError } from "./output.js";
 import { str, tagsOf, type Item } from "./store.js";
 
 export const STATES = ["inbox", "open", "now", "review", "done"] as const;

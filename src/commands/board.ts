@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { result, type Result } from "../../output.js";
+import { result, type Result } from "../output.js";
 import type { Ctx } from "../context.js";
 import { byQueue, daysBetween, isDue, isQueued, isWaiting, state, when } from "../model.js";
 import { str, tagsOf, touchesOf, type Item, type Store } from "../store.js";

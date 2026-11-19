@@ -1,4 +1,4 @@
-import { result, unescapeText, WkError, type Result } from "../../output.js";
+import { result, unescapeText, WkError, type Result } from "../output.js";
 import type { Ctx } from "../context.js";
 import { checkLines, checkTitle, LIMITS } from "../limits.js";
 import { byQueue, isDue, isOpen, isQueued, isWaiting, itemLine, parseWhen, state, tagLine, when } from "../model.js";
