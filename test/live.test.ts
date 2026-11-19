@@ -66,13 +66,13 @@ describe("wk board --serve", () => {
     const p = plan({ git: true });
     const live = await serveBoard(loadContext(p.dir, TODAY, p.home), { port: 0 });
     try {
-      expect(await (await fetch(live.url)).text()).toContain('<span class="branch" title="Current git branch"><code>main</code></span>');
+      expect(await (await fetch(live.url)).text()).toContain('<span class="branch" title="Current git branch">main</span>');
       const sse = nextEvent(live.url);
       await sse.connected;
       git(p.dir, "switch", "-q", "-c", "feature-x");
       await expect(sse.event).resolves.toBe("reload");
       sse.stop();
-      expect(await (await fetch(live.url)).text()).toContain("<code>feature-x</code>");
+      expect(await (await fetch(live.url)).text()).toContain(">feature-x</span>");
     } finally {
       await live.close();
     }

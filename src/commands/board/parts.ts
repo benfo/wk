@@ -1,4 +1,4 @@
-import { isQueued, when } from "../../model.js";
+import { isDue, isQueued, isWaiting, state, triggerOf, when } from "../../model.js";
 import { str, type Item, type Store } from "../../store.js";
 
 /** Small HTML pieces every part of the board shares. */
@@ -20,29 +20,14 @@ export function homeLabel(v: View, item: Item): string {
   return v.homeNames[item.home.name] ?? item.home.name;
 }
 
-/** One quiet line under a title: why it's listed, where it lives and its timing. Ids stay in hover titles. */
-export function meta(v: View, item: Item, opts: { home?: boolean; when?: boolean; kind?: string } = {}): string {
-  const parts: string[] = [];
-  if (opts.kind) parts.push(`<span class="kind">${esc(opts.kind)}</span>`);
-  if (opts.home !== false) parts.push(`<span>${esc(homeLabel(v, item))}</span>`);
-  if (opts.when && when(item) && !isQueued(item)) parts.push(`<span class="when">${esc(when(item))}</span>`);
-  return parts.length ? `<div class="meta">${parts.join("")}</div>` : "";
+/** "Story across the eras: the Kestrel thread" fits a chip as "Story across the eras". */
+export function shortName(name: string): string {
+  return name.replace(/:.*$/, "");
 }
 
 /** A key that changes when the row's meaning changes, so the live page can flash what's new. */
 export function key(item: Item): string {
   return esc(`${item.id}:${str(item, "state")}:${str(item, "when")}:${str(item, "due")}:${str(item, "wait")}:${item.title}`);
-}
-
-export function row(v: View, item: Item, opts: { home?: boolean; when?: boolean; kind?: string; note?: string; since?: string } = {}): string {
-  const note = opts.note ? `<div class="note">${esc(opts.note)}</div>` : "";
-  const since = opts.since ? `<div class="note">${opts.since}</div>` : "";
-  return `<li class="row" data-key="${key(item)}" title="id ${item.id}"><div class="title">${esc(item.title)}</div>${meta(v, item, opts)}${note}${since}</li>`;
-}
-
-/** A one-line row: just the title, for long lists like what got done. */
-export function line(item: Item): string {
-  return `<li class="line" data-key="${key(item)}" title="id ${item.id}">${esc(item.title)}</li>`;
 }
 
 /** "just now", "12 min", "3 h", "2 d": short enough for a glance. */
@@ -74,18 +59,80 @@ export function wakeLabel(v: View, store: Store, w: string): string {
   return w;
 }
 
-export function bar(done: number, total: number, long = false): string {
-  const pct = total === 0 ? 0 : Math.round((done / total) * 100);
-  const label = long ? `${done} of ${total} tasks done` : `${done}/${total}`;
-  return `<div class="progress"><div class="bar" role="img" aria-label="${done} of ${total} done"><span style="width:${pct}%"></span></div><span class="num">${label}</span></div>`;
-}
-
-export function group(title: string, items: string[], opts: { tone?: string; count?: number } = {}): string {
-  if (items.length === 0) return "";
-  const count = opts.count ?? items.length;
-  return `<section class="group${opts.tone ? ` ${opts.tone}` : ""}"><h3>${esc(title)}<span class="pill">${count}</span></h3><ul>${items.join("")}</ul></section>`;
-}
-
 export function testsOf(item: Item): string[] {
   return item.body.split("\n").filter((l) => /^Test:\s*/i.test(l)).map((l) => l.replace(/^Test:\s*/i, ""));
+}
+
+/** Where a task stands. Each has its own icon shape, so colour is never the only signal. */
+export type Kind = "now" | "review" | "due" | "todo" | "waiting" | "sleeping" | "later" | "inbox" | "done";
+
+export const KIND_LABEL: Record<Kind, string> = {
+  now: "In progress",
+  review: "Ready to try",
+  due: "Due",
+  todo: "Up next",
+  waiting: "Waiting",
+  sleeping: "Sleeping",
+  later: "Later",
+  inbox: "Inbox",
+  done: "Done",
+};
+
+export function kindOf(t: Item): Kind {
+  const s = state(t);
+  if (s === "now") return "now";
+  if (s === "review") return "review";
+  if (s === "done") return "done";
+  if (s === "inbox") return "inbox";
+  if (isDue(t)) return "due";
+  if (isWaiting(t)) return "waiting";
+  if (isQueued(t)) return "todo";
+  if (triggerOf(when(t))) return "sleeping";
+  return "later";
+}
+
+/** Status icons in the manner of an issue tracker: an empty ring to do, half full in progress, a tick when done. */
+export function icon(kind: Kind): string {
+  const ring = (cls: string, dash = "") => `<circle class="${cls}" cx="7" cy="7" r="5.5" fill="none" stroke-width="1.5"${dash}/>`;
+  const body: Record<Kind, string> = {
+    later: ring("k-t3", ' stroke-dasharray="2.2 2.2"'),
+    inbox: ring("k-t2", ' stroke-dasharray="2.2 2.2"') + '<circle class="k-t2f" cx="7" cy="7" r="1.6"/>',
+    sleeping: ring("k-t3", ' stroke-dasharray="0.6 2.6" stroke-linecap="round"'),
+    todo: ring("k-t2"),
+    waiting: ring("k-t3") + '<path class="k-t3" d="M5.6 5v4M8.4 5v4" stroke-width="1.4" stroke-linecap="round"/>',
+    due: ring("k-attn") + '<path class="k-attn" d="M7 4.2V7.4l2 1.2" fill="none" stroke-width="1.4" stroke-linecap="round"/>',
+    now: ring("k-acc") + '<path class="k-accf" d="M7 3.5A3.5 3.5 0 0 1 7 10.5Z"/>',
+    review: ring("k-attn") + '<path class="k-attnf" d="M7 3.5A3.5 3.5 0 1 1 3.5 7H7Z"/>',
+    done: '<circle class="k-accf" cx="7" cy="7" r="6.25"/><path class="k-bg" d="M4.4 7.2 6.2 9l3.5-3.7" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+  };
+  return `<svg class="ic" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="${KIND_LABEL[kind]}">${body[kind]}</svg>`;
+}
+
+/** Project progress as a small ring that fills clockwise. */
+export function ring(done: number, total: number, size = 16): string {
+  const r = size / 2 - 2;
+  const c = 2 * Math.PI * r;
+  const f = total ? done / total : 0;
+  const mid = size / 2;
+  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${done} of ${total} done"><circle cx="${mid}" cy="${mid}" r="${r}" fill="none" class="ring-track" stroke-width="2"/><circle cx="${mid}" cy="${mid}" r="${r}" fill="none" class="ring-fill" stroke-width="2" stroke-dasharray="${(c * f).toFixed(2)} ${c.toFixed(2)}" stroke-linecap="round" transform="rotate(-90 ${mid} ${mid})"/></svg>`;
+}
+
+/** One task: status icon, title (with an optional note under it), then quiet facts and its project on the right. */
+export function row(v: View, t: Item, opts: { project?: boolean; right?: string; note?: string; kind?: Kind } = {}): string {
+  const note = opts.note ? `<div class="note">${opts.note}</div>` : "";
+  const right = opts.right ? `<span class="m">${opts.right}</span>` : "";
+  const chip = opts.project === false ? "" : `<span class="chip">${esc(shortName(homeLabel(v, t)))}</span>`;
+  return `<li class="r" data-key="${key(t)}" title="id ${t.id}">${icon(opts.kind ?? kindOf(t))}<div class="body"><div class="tt">${esc(t.title)}</div>${note}</div>${right}${chip}</li>`;
+}
+
+/** A status group: a header bar with the icon, name and count, then its rows. Folds like a tracker's groups. */
+export function group(kind: Kind | null, name: string, count: number, rows: string, opts: { tone?: string; open?: boolean } = {}): string {
+  if (!count) return "";
+  return `<details class="g${opts.tone ? ` ${opts.tone}` : ""}"${opts.open === false ? "" : " open"}><summary>${kind ? icon(kind) : ""}<b>${esc(name)}</b><span class="c">${count}</span></summary><ul>${rows}</ul></details>`;
+}
+
+/** The first few rows, then the rest behind "N more". */
+export function capped(rows: string[], show: number): string {
+  if (rows.length <= show + 1) return rows.join("");
+  return `${rows.slice(0, show).join("")}<li><details class="more"><summary>${rows.length - show} more</summary><ul>${rows.slice(show).join("")}</ul></details></li>`;
 }

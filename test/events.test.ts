@@ -72,16 +72,17 @@ describe("board: activity, timers, sleeping and alerts", () => {
     // The jotted note waits in the inbox; only the task ready to try asks you to act.
     expect(html).toContain("<title>(1) Joke CLI | wk</title>");
     expect(html).toContain('data-needs="1"');
-    expect(html).toContain("1 in the inbox to sort");
+    expect(html).toContain('<b>Inbox, to sort</b><span class="c">1</span>');
     expect(html).toContain('data-first="Ready for you: Record each run"');
     expect(html).toContain("Just happened");
     expect(html).toMatch(/<span class="verb">jotted<\/span><span class="what">Button looks off<\/span>/);
-    expect(html).toMatch(/Waiting <time class="ago"[^>]*>for (a moment|\d+ min)<\/time>/);
-    expect(html).toContain("Wakes up later");
+    expect(html).toMatch(/<span class="m"><time class="ago"[^>]*>(a moment|\d+ min)<\/time><\/span>/);
+    expect(html).toContain('<b>Sleeping</b><span class="c">4</span>');
     for (const w of ["When Usage history ends", "Next time work starts in ui", "On 2026-12-01", "After “Record each run” is done"]) {
-      expect(html).toContain(`<h4>${w}</h4>`);
+      expect(html).toContain(`<div class="note">${w}</div>`);
     }
-    expect(html).toContain('Later and someday<span class="pill">1</span></h3><h4>core</h4>');
+    expect(html).toContain('<b>Later</b><span class="c">1</span>');
+    expect(html).toMatch(/<div class="tt">Dark mode<\/div><\/div><span class="m">someday<\/span>/);
     expect(html).not.toMatch(/<script|https?:\/\//);
   });
 

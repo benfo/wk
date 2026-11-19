@@ -25,12 +25,13 @@ describe("wk board", () => {
       expect(html).toContain(s);
     }
     expect(html).toContain("terminals lack &lt;glyphs&gt;");
-    expect(html).toContain('<div class="eyebrow">In progress <span class="for">');
-    expect(html).toContain('<label for="tab-now" title="Press 1">Now</label><label for="tab-plan" title="Press 2">Plan</label>');
-    expect(html).toContain('<main class="view plan">');
+    expect(html).toContain('<span class="lbl">In progress</span><span class="t3"><time class="ago"');
+    expect(html).toContain('<label for="tab-board" title="Press 1">Board</label><label for="tab-history" title="Press 2">History</label>');
+    expect(html).toContain('<main class="tab tab-history">');
     // A project opens to its tasks and where each stands.
     expect(html).toContain(`<details class="project" data-id="${pid}">`);
-    expect(html).toContain('<span>Record each run</span><span class="st st-now">In progress</span>');
+    const project = html.slice(html.indexOf(`data-id="${pid}"`));
+    expect(project.slice(0, project.indexOf("</details>"))).toMatch(/aria-label="In progress">.*?<div class="tt">Record each run<\/div>/);
     expect(html).toContain("prefers-color-scheme:dark");
     expect(html).not.toMatch(/<script|https?:\/\//);
     expect(fs.existsSync(p.file("board.html"))).toBe(false);
@@ -41,14 +42,14 @@ describe("wk board", () => {
     p.wk("add", "Fix the banner");
     p.wk("board", "--out", "one.html");
     const one = fs.readFileSync(path.join(p.dir, "one.html"), "utf8");
-    expect(one).toContain("Nothing in progress. Up next");
-    expect(one).not.toMatch(/Up next<span|After that|Nothing else queued/);
+    expect(one).toContain("Nothing in progress. Next up");
+    expect(one).not.toMatch(/<b>(Up next|After that)<\/b>/);
 
     p.wk("add", "Add a dark theme");
     p.wk("board", "--out", "two.html");
     const two = fs.readFileSync(path.join(p.dir, "two.html"), "utf8");
-    expect(two).toContain('After that<span class="pill">1</span>');
-    expect(two).not.toMatch(/<div class="title">Fix the banner</);
+    expect(two).toContain('<b>After that</b><span class="c">1</span>');
+    expect(two).not.toContain('<div class="tt">Fix the banner</div>');
   });
 
   it("writes where --out says", () => {

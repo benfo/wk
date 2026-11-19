@@ -74,19 +74,19 @@ export const LIVE_SCRIPT = `<script>
     setTimeout(function () { fresh.forEach(function (e) { e.classList.remove("fresh"); }); }, 800);
   }
   // The tab you are on survives refreshes and visits; 1 and 2 switch tabs.
-  function savedTab() { try { return localStorage.getItem("wk-board-tab") || "now"; } catch (e) { return "now"; } }
+  function savedTab() { try { return localStorage.getItem("wk-board-view") || "board"; } catch (e) { return "board"; } }
   function pick(tab) {
     var r = document.getElementById("tab-" + tab);
     if (!r) return;
     r.checked = true;
-    try { localStorage.setItem("wk-board-tab", tab); } catch (e) { /* storage blocked: the tab just isn't remembered */ }
+    try { localStorage.setItem("wk-board-view", tab); } catch (e) { /* storage blocked: the tab just isn't remembered */ }
   }
   function showTab() { var r = document.getElementById("tab-" + savedTab()); if (r) r.checked = true; }
   document.addEventListener("change", function (e) { if (e.target.name === "tab") pick(e.target.value); });
   document.addEventListener("keydown", function (e) {
     if (e.ctrlKey || e.metaKey || e.altKey || /^(TEXTAREA|SELECT)$/.test(e.target.tagName) || (e.target.tagName === "INPUT" && e.target.type !== "radio")) return;
-    if (e.key === "1") pick("now");
-    if (e.key === "2") pick("plan");
+    if (e.key === "1") pick("board");
+    if (e.key === "2") pick("history");
   });
   function connect() {
     var es = new EventSource("/events");

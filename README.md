@@ -46,7 +46,7 @@ Then run `wk init` again in each project to refresh its skills. Your plan is kep
 wk board --open
 ```
 
-This writes the plan as one HTML page and opens it. The **Now** tab is for a glance: the task in progress and the handoff, an amber strip when something is ready to try or due, the queue, projects with progress, and what just happened. The **Plan** tab holds the rest: the inbox, waits, what wakes up later, later and someday by project, what got done this week, areas with their principles, and recent decisions.
+This writes the plan as one HTML page and opens it. The **Board** tab reads top to bottom like an issue tracker: a card for the task in progress (or what's next) with the handoff, then every task grouped by status (ready to try, due, up next, waiting, inbox, sleeping, later), each marked with a status icon, then projects with progress rings that open to their tasks. The **History** tab holds what got done this week, recent changes, areas with their principles, and decisions.
 
 For a live view, keep this running in a spare terminal and leave the tab open beside your agent:
 
