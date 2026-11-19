@@ -2,7 +2,8 @@ import { Command, CommanderError } from "commander";
 import { todayString } from "../context.js";
 import { render, WkError, type Result } from "../output.js";
 import { init } from "./commands/init.js";
-import { addTask, ls, show } from "./commands/items.js";
+import { areaList, areaNew, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
+import { addTask, ls, move, show } from "./commands/items.js";
 import { loadContext, type Ctx } from "./context.js";
 import { Store } from "./store.js";
 
@@ -58,7 +59,8 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
 
   program
     .command("add <title>")
-    .description("add a task; it goes in the core area for now")
+    .description("add a sorted task: in core unless --in says otherwise, at the bottom of the queue")
+    .option("--in <home>", "an area or a project id")
     .option("--body <text>", "short notes, 6 lines max")
     .option("--tags <tags>", "comma-separated tags, e.g. bug,quick")
     .option("--force", "add even if a similar task exists")
@@ -81,6 +83,64 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .action(function (this: Command, words: string[]) {
       const o = this.opts();
       act(this, (ctx, s) => ls(ctx, s, words ?? [], o));
+    });
+
+  program
+    .command("move <id>")
+    .description("sort an inbox item, change a home or when, or reorder the queue")
+    .option("--in <home>", "an area or a project id")
+    .option("--when <when>", "next, queue, later, someday, after:<id>, end:<project>, start:<area>, on:<date>")
+    .option("--before <id>", "just ahead of this queued task")
+    .option("--after <id>", "just behind this queued task")
+    .option("--top", "first in the queue")
+    .option("--bottom", "last in the queue")
+    .action(function (this: Command, id: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => move(ctx, s, id, o));
+    });
+
+  const project = program.command("project").description("projects: work with an end");
+  project
+    .command("list", { isDefault: true })
+    .description("open projects with progress, then open counts per area")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => projectList(ctx, s));
+    });
+  project
+    .command("new <title>")
+    .description("start a project")
+    .option("--touches <areas>", "comma-separated areas it touches; their principles load for its tasks")
+    .option("--body <text>", "goal and acceptance")
+    .action(function (this: Command, title: string) {
+      const o = this.opts();
+      act(this, (ctx, s) => projectNew(ctx, s, title, o));
+    });
+  project
+    .command("show <id>")
+    .description("one project with its tasks, decisions and learnings")
+    .action(function (this: Command, id: string) {
+      act(this, (ctx, s) => projectShow(ctx, s, id));
+    });
+
+  const area = program.command("area").description("areas: ongoing responsibilities that never end");
+  area
+    .command("list", { isDefault: true })
+    .description("areas with open tasks and principle counts")
+    .action(function (this: Command) {
+      act(this, (ctx, s) => areaList(ctx, s));
+    });
+  area
+    .command("new <name> [description]")
+    .description("create an area, e.g. wk area new ui \"Screens, layout and styling\"")
+    .action(function (this: Command, name: string, description?: string) {
+      act(this, (ctx, s) => areaNew(ctx, s, name, description));
+    });
+
+  program
+    .command("summary [text]")
+    .description("show the plan summary, or overwrite it (8 lines max)")
+    .action(function (this: Command, text?: string) {
+      act(this, (ctx, s) => summaryCmd(ctx, s, text));
     });
 
   const json = argv.includes("--json");

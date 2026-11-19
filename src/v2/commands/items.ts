@@ -1,15 +1,23 @@
 import { result, unescapeText, WkError, type Result } from "../../output.js";
 import type { Ctx } from "../context.js";
 import { checkLines, checkTitle, LIMITS } from "../limits.js";
-import { byQueue, isDue, isOpen, isQueued, isWaiting, itemLine, state, tagLine, when } from "../model.js";
+import { byQueue, isDue, isOpen, isQueued, isWaiting, itemLine, parseWhen, state, tagLine, when } from "../model.js";
 import { CORE_AREA, KINDS, str, tagsOf, type Item, type Kind, type Store } from "../store.js";
 import { guardSimilar, openTasks, parseTags } from "./shared.js";
 
-export function addTask(ctx: Ctx, store: Store, rawTitle: string, opts: { body?: string; tags?: string; force?: boolean }): Result {
+export interface AddOpts {
+  body?: string;
+  tags?: string;
+  force?: boolean;
+  in?: string;
+}
+
+export function addTask(ctx: Ctx, store: Store, rawTitle: string, opts: AddOpts): Result {
   const title = checkTitle(rawTitle, "Task title");
   const body = checkLines(unescapeText(opts.body ?? ""), LIMITS.taskBody, "Task body");
   guardSimilar(title, openTasks(store), opts.force);
-  const home = store.area(CORE_AREA);
+  const home = opts.in ? store.resolveHome(opts.in) : store.area(CORE_AREA);
+  if (home.type === "inbox") throw new WkError('The inbox is for unsorted jots: wk jot "<text>".');
   const item = store.create("task", home, title, body, {
     state: "open", when: "queue", tags: parseTags(opts.tags), rank: bottomRank(store),
   });
@@ -96,6 +104,82 @@ export function ls(_ctx: Ctx, store: Store, rawWords: string[], opts: { archived
   const lines = picked.map((i) => `${column(i).padEnd(7)} ${itemLine(i)} (${i.home.name})${tagLine(i)}`);
   if (lines.length === 0) lines.push(words.length ? `Nothing matches: ${words.join(" ")}` : "No open tasks.");
   return result(lines, picked.map(summary));
+}
+
+export interface MoveOpts {
+  in?: string;
+  when?: string;
+  before?: string;
+  after?: string;
+  top?: boolean;
+  bottom?: boolean;
+}
+
+/** A queue rank for a place: top, bottom, or between an anchor and its neighbour. */
+function placeRank(store: Store, item: Item, opts: MoveOpts): number {
+  const queue = store.list().filter((t) => isQueued(t) && t !== item).sort(byQueue);
+  const r = (i: Item) => (typeof i.data.rank === "number" ? i.data.rank : 0);
+  if (opts.top) return queue.length ? r(queue[0]) - 1 : 1;
+  if (opts.bottom) return queue.length ? r(queue[queue.length - 1]) + 1 : 1;
+  const anchor = store.get((opts.before ?? opts.after)!);
+  if (anchor === item) throw new WkError("Move it relative to another task.");
+  if (!isQueued(anchor)) throw new WkError(`${anchor.id} isn't in the queue, so nothing can go next to it.`);
+  const i = queue.indexOf(anchor);
+  const neighbour = opts.before ? queue[i - 1] : queue[i + 1];
+  if (neighbour) return (r(anchor) + r(neighbour)) / 2;
+  return r(anchor) + (opts.before ? -1 : 1);
+}
+
+/** Sorts an inbox item, changes an item's home or timing, or reorders the queue. */
+export function move(ctx: Ctx, store: Store, raw: string, opts: MoveOpts): Result {
+  const item = store.get(raw);
+  if (item.archived) throw new WkError(`${item.id} is archived.`);
+  const places = [opts.before, opts.after, opts.top, opts.bottom].filter((o) => o !== undefined && o !== false);
+  if (places.length > 1) throw new WkError("Give one place: --before <id>, --after <id>, --top or --bottom.");
+  if (!opts.in && !opts.when && places.length === 0) {
+    throw new WkError("Say what changes: --in <home>, --when <when>, or a place (--before, --after, --top, --bottom).");
+  }
+  const facts: string[] = [];
+  if (opts.in) {
+    const home = store.resolveHome(opts.in);
+    if (home.type === "inbox") throw new WkError("Items leave the inbox; they don't go back.");
+    store.moveTo(item, home);
+    facts.push(`in ${home.name}`);
+  }
+  if (item.kind === "task" && state(item) === "inbox") {
+    if (!opts.in) throw new WkError(`Sort it into a home first: wk move ${item.id} --in <area or project>`);
+    item.data.state = "open";
+    if (!when(item)) item.data.when = "queue";
+  }
+  if (opts.when) applyWhen(store, item, opts.when);
+  if (places.length) {
+    if (!isQueued(item)) throw new WkError(`${item.id} isn't in the queue. Queue it with --when queue or --when next.`);
+    item.data.rank = placeRank(store, item, opts);
+  } else if (isQueued(item) && typeof item.data.rank !== "number") {
+    item.data.rank = when(item) === "next" ? topRank(store) : bottomRank(store);
+  }
+  store.save(item);
+  if (isQueued(item)) {
+    const queue = store.list().filter(isQueued).sort(byQueue);
+    facts.push(`#${queue.indexOf(item) + 1} of ${queue.length} in the queue`);
+  } else if (when(item)) facts.push(`when ${when(item)}`);
+  return result([`Moved ${item.id} ${item.title}: ${facts.join(", ")}`], summary(item));
+}
+
+/** Sets when; implemented in full with triggers. */
+export function applyWhen(store: Store, item: Item, raw: string): void {
+  if (item.kind !== "task") throw new WkError("Only tasks have a when.");
+  const w = parseWhen(raw, {
+    item: (id) => store.get(id).id,
+    project: (id) => store.project(id).id,
+    area: (name) => store.area(name).name,
+  });
+  const wasQueued = isQueued(item);
+  item.data.when = w;
+  delete item.data.due;
+  if (w === "next") item.data.rank = topRank(store);
+  else if (w === "queue" && !wasQueued) item.data.rank = bottomRank(store);
+  else if (!isQueued(item)) delete item.data.rank;
 }
 
 export function requireText(raw: string | undefined, what: string): string {

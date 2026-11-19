@@ -116,7 +116,11 @@ describe("add and show", () => {
     expect(p.raw("show", "222").stderr).toBe("222 matches 2 items: 2223, 2224. Type more of the id.");
     expect(p.wk("show", "2224")).toMatch(/Book the dentist/);
     expect(p.raw("show", "zzzz").stderr).toBe("No item zzzz.");
-    expect(p.raw("show", "T-001").stderr).toMatch(/not an id\. Ids look like r8vn/);
+    expect(p.raw("show", "T-1").stderr).toBe("No item T-001.");
+    // An id that looks like an old one still resolves as itself.
+    p.with({ pick: fixedPick(11, 6, 4, 7) }, "add", "Looks like D-869");
+    expect(p.wk("show", "d869")).toMatch(/^d869 /);
+    expect(p.raw("show", "r8v!").stderr).toMatch(/not an id\. Ids look like r8vn/);
   });
 
   it("never reuses an id, even one only the archive holds", () => {
