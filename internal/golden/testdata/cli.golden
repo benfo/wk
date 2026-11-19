@@ -1,0 +1,260 @@
+$ wk init --store repo --preset general
+Created <DIR>/.work (preset: general)
+Skills: .claude/skills/wk, .claude/skills/wk-setup
+Added the wk pointer to AGENTS.md
+Next: wk brief, then the wk-setup skill (wk guide setup).
+$ wk add
+! Give a title: wk add "<title>" (or --from <file>)
+[exit 1]
+$ wk show
+! error: missing required argument 'id'
+[exit 1]
+$ wk add "x" --frce
+! error: unknown option '--frce'
+! (Did you mean --force?)
+[exit 1]
+$ wk add "x" --in
+! error: option '--in <home>' argument missing
+[exit 1]
+$ wk add "x" --tag bug
+! error: unknown option '--tag'
+! (Did you mean --tags?)
+[exit 1]
+$ wk ls --json --bogus
+! error: unknown option '--bogus'
+[exit 1]
+$ wk show nope --json
+{
+  "error": "\"nope\" is not an id. Ids look like r8vn."
+}
+[exit 1]
+$ wk --json show nope
+{
+  "error": "\"nope\" is not an id. Ids look like r8vn."
+}
+[exit 1]
+$ wk add "Spaced -- out" --tags=a,b
+Added 4yrm Spaced -- out (core)
+New tag: a (known: quick).
+New tag: b (known: quick).
+$ wk add -- "--weird title"
+Added aes8 --weird title (core)
+$ wk ls --all
+queue   4yrm Spaced -- out (core) #a #b
+queue   aes8 --weird title (core)
+$ wk config set
+! Use: wk config, or wk config set <key> <value>. Keys: git.branch, git.commit, commit_style, checks.quick, checks.full, tracker, preset, tags
+[exit 1]
+$ wk config set nope 1
+! Unknown setting "nope". Settable: git.branch, git.commit, commit_style, checks.quick, checks.full, tracker, preset, tags
+[exit 1]
+$ wk config set git.branch sideways
+! git.branch must be one of: none, task, project
+[exit 1]
+$ wk config set checks.quick "npm test"
+checks.quick: npm test
+Workflow: quick checks: npm test.
+$ wk config set commit_style "one line: no body # ok"
+commit_style: one line: no body # ok
+Workflow: quick checks: npm test.
+$ wk config set tracker none
+tracker: (cleared)
+Workflow: quick checks: npm test.
+$ wk config set tags "Bug, ux,"
+tags: Bug, ux,
+Workflow: quick checks: npm test.
+$ wk config set workflow.checks.full "make check"
+checks.full: make check
+Workflow: quick checks: npm test; full checks: make check.
+$ wk config set preset software
+preset: software
+Workflow: quick checks: npm test; full checks: make check.
+$ wk config
+store: repo · preset: software
+git.branch: (not chosen) · git.commit: (not chosen)
+commit_style: one line: no body # ok
+checks.quick: npm test · checks.full: make check
+tracker: - · tags: bug, ux
+reviewed: never
+$ wk config --json
+{
+  "version": 2,
+  "store": "repo",
+  "preset": "software",
+  "workflow": {
+    "git": {
+      "branch": null,
+      "commit": null
+    },
+    "commit_style": "one line: no body # ok",
+    "checks": {
+      "quick": "npm test",
+      "full": "make check"
+    },
+    "tracker": null
+  },
+  "tags": [
+    "bug",
+    "ux"
+  ],
+  "reviewed": null,
+  "setup": null
+}
+$ wk handoff "Done for today"
+Handoff saved (1 line).
+Ending the session? Run the full checks first if they have not run: make check
+$ wk guide nope
+! No guide "nope". Topics: setup, onboarding, migrate, triage, review, close, principles.
+[exit 1]
+$ wk setup
+Instructions: AGENTS.md
+Workflow: quick checks: npm test; full checks: make check.
+Setup not recorded yet.
+Next: read them, list the overlaps with wk (wk guide setup, step 3), store the workflow, then wk setup --done.
+$ wk setup --done
+Recorded 1 instruction file. wk brief will say when one changes.
+$ wk setup --json
+{
+  "files": [
+    "AGENTS.md"
+  ],
+  "changes": [],
+  "workflow": {
+    "git": {
+      "branch": null,
+      "commit": null
+    },
+    "commit_style": "one line: no body # ok",
+    "checks": {
+      "quick": "npm test",
+      "full": "make check"
+    },
+    "tracker": null
+  },
+  "recorded": {
+    "AGENTS.md": "da39a3ee5e6b"
+  }
+}
+== tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-spaced-out.md
+---
+id: "4yrm"
+kind: task
+state: open
+when: queue
+tags: [a, b]
+rank: 1
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Spaced -- out
+--- project/.work/areas/core/aes8-weird-title.md
+---
+id: aes8
+kind: task
+state: open
+when: queue
+tags: []
+rank: 2
+created: 2026-11-10
+updated: 2026-11-10
+---
+# --weird title
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: software
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style: 'one line: no body # ok'
+  checks:
+    quick: npm test
+    full: make check
+  tracker:
+tags: [bug, ux]
+reviewed:
+setup:
+  AGENTS.md: da39a3ee5e6b
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/session.md
+Done for today
+--- project/.work/summary.md
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Spaced -- out","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"aes8","title":"--weird title","home":"core"}
+
+== final tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-spaced-out.md
+---
+id: "4yrm"
+kind: task
+state: open
+when: queue
+tags: [a, b]
+rank: 1
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Spaced -- out
+--- project/.work/areas/core/aes8-weird-title.md
+---
+id: aes8
+kind: task
+state: open
+when: queue
+tags: []
+rank: 2
+created: 2026-11-10
+updated: 2026-11-10
+---
+# --weird title
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: software
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style: 'one line: no body # ok'
+  checks:
+    quick: npm test
+    full: make check
+  tracker:
+tags: [bug, ux]
+reviewed:
+setup:
+  AGENTS.md: da39a3ee5e6b
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/session.md
+Done for today
+--- project/.work/summary.md
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Spaced -- out","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"aes8","title":"--weird title","home":"core"}

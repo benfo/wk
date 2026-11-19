@@ -1,0 +1,32 @@
+# Decisions, learnings, principles, supersede, edit, drop, merge.
+$ wk init --store repo --preset general
+$ wk area new ui "Screens, layout\nand styling"
+$ wk area new ui "again"
+$ wk area new "Bad Name" "x"
+$ wk area new docs
+$ wk area
+$ wk decide "Use plain files"
+$ wk decide "Use plain files" --why "Diffs stay readable\nNo server" --rejected "A database"
+$ wk learn "Git stores CRLF on Windows\nset autocrlf"
+$ wk learn "1\n2\n3"
+$ wk principle "Keep commands short"
+$ wk principle "Keep commands short" --instead "long flags"
+$ wk principle "Keep commands short" --instead "long flags" --because "agents type them\nmany times" --in ui --test "lint:flags"
+$ wk principle "Keep all commands short" --instead "x" --because "y" --in ui
+$ wk principle "Prefer files" --instead "databases" --because "diffs" --from 4yrm
+$ wk principle "Prefer text" --instead "binary" --because "diffs" --from aes8
+$ wk principle "Old rule" --instead "a" --because "b" --in ui
+$ wk supersede 4yrm aes8
+$ wk area list
+$ wk show aes8
+$ wk add "Polish the header"
+$ wk add "Header polish pass" --force --tags ux
+$ wk add "Fix the footer"
+$ wk edit 4yrm --title "Nope"
+$ wk edit xcma
+$ wk edit xcma --title "Fix the sticky footer" --tags bug,ux --ref T-12 --body "Seen on mobile"
+$ wk edit xcma --instead "nothing"
+$ wk merge 4yrm 4yrm
+$ wk ls
+$ wk drop 4yrm
+tree

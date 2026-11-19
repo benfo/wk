@@ -1,0 +1,962 @@
+$ wk init --store repo --preset general
+Created <DIR>/.work (preset: general)
+Skills: .claude/skills/wk, .claude/skills/wk-setup
+Added the wk pointer to AGENTS.md
+Next: wk brief, then the wk-setup skill (wk guide setup).
+$ wk jot "Idea: a dark mode"
+Jotted 4yrm Idea: a dark mode
+$ wk jot ""
+! Jot is empty.
+[exit 1]
+$ wk jot "A very long first line that keeps going and going well past the seventy character title limit for sure"
+Jotted aes8 A very long first line that keeps going and going well past the…
+$ wk jot "Bug: header overlaps" --file shot.png --file shot.png
+Jotted yebg Bug: header overlaps
+Attached: yebg-1.png, yebg-2.png
+$ wk jot "x" --file missing.png
+! File not found: <DIR>/missing.png
+[exit 1]
+$ wk inbox
+4yrm Idea: a dark mode
+aes8 A very long first line that keeps going and going well past the…
+xcma x
+yebg Bug: header overlaps
+Sort each: wk move <id> --in <home> [--when <when>], or wk drop <id>. Knowledge: wk decide / wk learn, then drop the jot.
+$ wk inbox --json
+[
+  {
+    "id": "4yrm",
+    "kind": "task",
+    "state": "inbox",
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "title": "Idea: a dark mode",
+    "body": "",
+    "home": "inbox",
+    "archived": false
+  },
+  {
+    "id": "aes8",
+    "kind": "task",
+    "state": "inbox",
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "title": "A very long first line that keeps going and going well past the…",
+    "body": "A very long first line that keeps going and going well past the seventy character title limit for sure",
+    "home": "inbox",
+    "archived": false
+  },
+  {
+    "id": "xcma",
+    "kind": "task",
+    "state": "inbox",
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "title": "x",
+    "body": "",
+    "home": "inbox",
+    "archived": false
+  },
+  {
+    "id": "yebg",
+    "kind": "task",
+    "state": "inbox",
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "files": [
+      "yebg-1.png",
+      "yebg-2.png"
+    ],
+    "title": "Bug: header overlaps",
+    "body": "",
+    "home": "inbox",
+    "archived": false
+  }
+]
+$ wk move 4yrm --when later
+! Sort it into a home first: wk move 4yrm --in <area or project>
+[exit 1]
+$ wk move 4yrm --in inbox
+! Items leave the inbox; they don't go back.
+[exit 1]
+$ wk move 4yrm --in core --when someday
+Moved 4yrm Idea: a dark mode: in core, when someday
+$ wk move yebg --in core
+Moved yebg Bug: header overlaps: in core, #1 of 1 in the queue
+$ wk show yebg
+yebg  task · open · queue · core
+Bug: header overlaps
+files: yebg-1.png, yebg-2.png
+created 2026-11-10 · updated 2026-11-10
+$ wk add --from list.md
+! Line 4 repeats line 1.
+! Nothing added. Fix those lines and rerun.
+[exit 1]
+$ wk add --from list.md --json
+[
+  {
+    "id": "m7sw",
+    "title": "Buy seeds",
+    "home": "core",
+    "file": "<DIR>/.work/areas/core/m7sw-buy-seeds.md"
+  },
+  {
+    "id": "xr8y",
+    "title": "Rake leaves",
+    "home": "core",
+    "file": "<DIR>/.work/areas/core/xr8y-rake-leaves.md"
+  },
+  {
+    "id": "xewh",
+    "title": "Fix hose",
+    "home": "core",
+    "file": "<DIR>/.work/areas/core/xewh-fix-hose.md"
+  }
+]
+$ wk add --from -
+Added 2 tasks:
+vn5c Sweep the path
+rrfd Oil the hinges
+$ wk add "x" --from list.md
+! Give a title or --from, not both.
+[exit 1]
+$ wk add --from nothing.md
+! File not found: <DIR>/nothing.md
+[exit 1]
+$ wk brief
+No summary yet.
+Inbox: 2 to sort (wk inbox).
+No principles yet. Offer a principles session (wk guide principles).
+Handoff: none yet.
+now    (nothing in progress)
+next   yebg Bug: header overlaps (core)
+next   m7sw Buy seeds (core)
+next   xr8y Rake leaves (core)
+       +3 more queued (wk ls queued)
+$ wk board --out out/board.html
+Board: <DIR>/out/board.html
+Open it in a browser, or rerun with --open.
+$ wk board
+Board: <HOME>/boards/project-<hash>.html
+Open it in a browser, or rerun with --open.
+== tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-idea-a-dark-mode.md
+---
+id: "4yrm"
+kind: task
+state: open
+when: someday
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Idea: a dark mode
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/m7sw-buy-seeds.md
+---
+id: m7sw
+kind: task
+state: open
+when: queue
+tags: []
+rank: 2
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Buy seeds
+--- project/.work/areas/core/rrfd-oil-the-hinges.md
+---
+id: rrfd
+kind: task
+state: open
+when: queue
+tags: []
+rank: 6
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Oil the hinges
+--- project/.work/areas/core/vn5c-sweep-the-path.md
+---
+id: vn5c
+kind: task
+state: open
+when: queue
+tags: []
+rank: 5
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Sweep the path
+--- project/.work/areas/core/xewh-fix-hose.md
+---
+id: xewh
+kind: task
+state: open
+when: queue
+tags: []
+rank: 4
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Fix hose
+--- project/.work/areas/core/xr8y-rake-leaves.md
+---
+id: xr8y
+kind: task
+state: open
+when: queue
+tags: []
+rank: 3
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Rake leaves
+--- project/.work/areas/core/yebg-1.png
+PNGDATA
+[no newline]
+--- project/.work/areas/core/yebg-2.png
+PNGDATA
+[no newline]
+--- project/.work/areas/core/yebg-bug-header-overlaps.md
+---
+id: yebg
+kind: task
+state: open
+when: queue
+rank: 1
+created: 2026-11-10
+updated: 2026-11-10
+files: [yebg-1.png, yebg-2.png]
+---
+# Bug: header overlaps
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick]
+reviewed:
+--- project/.work/inbox/.gitkeep
+--- project/.work/inbox/aes8-a-very-long-first-line-that-keeps-going.md
+---
+id: aes8
+kind: task
+state: inbox
+created: 2026-11-10
+updated: 2026-11-10
+---
+# A very long first line that keeps going and going well past the…
+
+A very long first line that keeps going and going well past the seventy character title limit for sure
+--- project/.work/inbox/xcma-x.md
+---
+id: xcma
+kind: task
+state: inbox
+created: 2026-11-10
+updated: 2026-11-10
+---
+# x
+--- project/.work/projects/.gitkeep
+--- project/.work/session.md
+--- project/.work/summary.md
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- project/list.md
+- [ ] Buy seeds
+* Rake leaves
+1. Fix hose
+[no newline]
+--- project/out/board.html
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project | wk</title><style>
+:root{color-scheme:light dark;
+--bg:#fbfbfa;--s1:#f3f3f1;--s2:#ebebe8;--line:rgba(20,22,26,.07);--line2:rgba(20,22,26,.12);
+--t1:#1a1b1e;--t2:#5a5d64;--t3:#868991;--accent:#4353e0;--attn:#b05a0c;--ok:#15803d;
+--st-now:#3e5ee6;--st-review:#c26a06;--st-due:#d92d2d;--st-done:#16a34a;--st-sleeping:#7c3aed;--st-waiting:#0d9488;
+--p1:#db2777;--p2:#0284c7;--p3:#65a30d;--p4:#ea580c;--p5:#9333ea;--p6:#ca8a04}
+@media (prefers-color-scheme:dark){:root{
+--bg:#0f1012;--s1:#17181b;--s2:#1e1f23;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.11);
+--t1:#ececee;--t2:#a3a6ad;--t3:#73767e;--accent:#8492ff;--attn:#f0a35c;--ok:#5bd38a;
+--st-now:#7b93ff;--st-review:#f5a524;--st-due:#f87171;--st-done:#4ade80;--st-sleeping:#a78bfa;--st-waiting:#2dd4bf;
+--p1:#f472b6;--p2:#38bdf8;--p3:#a3e635;--p4:#fb923c;--p5:#c084fc;--p6:#facc15}}
+*{box-sizing:border-box;margin:0;padding:0}
+ul,ol{list-style:none}
+body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI Variable Text","Segoe UI",Roboto,sans-serif;letter-spacing:-.006em;-webkit-font-smoothing:antialiased}
+#app{max-width:880px;margin:0 auto;padding:24px 24px 80px}
+.t2{color:var(--t2)}.t3{color:var(--t3)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* Icons: shapes carry the state; colour repeats it. */
+.ic{flex:none;display:block;color:var(--c)}
+.s-later,.s-sleeping{--c:var(--t3)}.s-todo,.s-inbox{--c:var(--t2)}
+.s-now{--c:var(--st-now)}.s-review{--c:var(--st-review)}.s-due{--c:var(--st-due)}.s-done{--c:var(--st-done)}
+.s-sleeping{--c:var(--st-sleeping)}.s-waiting{--c:var(--st-waiting)}
+.ring{flex:none;display:block}.ring-track{stroke:var(--line2)}.ring-fill{stroke:var(--pc,var(--accent))}
+
+/* Top line and tabs */
+.tab-radio{position:absolute;opacity:0;pointer-events:none}
+.top{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;margin-bottom:24px}
+.top h1{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:600;min-width:0;flex:1}
+.branch{font-size:12px;font-weight:400;color:var(--t3)}
+.right{display:flex;align-items:center;gap:16px;font-size:13px}
+.hot{color:var(--st-review)}.hot b{font-weight:600}
+.tabs{display:flex;gap:2px}
+.tabs label{font-size:13px;color:var(--t2);padding:4px 10px;border-radius:6px;cursor:pointer}
+.tabs label:hover{color:var(--t1)}
+#tab-board:checked~.top label[for=tab-board],#tab-history:checked~.top label[for=tab-history]{background:var(--s2);color:var(--t1)}
+#tab-board:focus-visible~.top label[for=tab-board],#tab-history:focus-visible~.top label[for=tab-history]{outline:2px solid var(--accent);outline-offset:2px}
+#tab-board:checked~.tab-history,#tab-history:checked~.tab-board{display:none}
+.live{display:inline-flex;align-items:center;gap:6px;color:var(--t3)}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--t3)}
+.live.on::before{background:var(--ok)}.live.off::before{background:var(--attn)}
+.notify{font:inherit;color:var(--accent);background:none;border:0;cursor:pointer}
+
+/* The focus card */
+.focus{padding:16px 20px;border:1px solid var(--line2);border-radius:10px;background:var(--s1);margin-bottom:24px}
+.focus.working{border-color:color-mix(in srgb,var(--st-now) 55%,transparent);background:color-mix(in srgb,var(--st-now) 10%,var(--s1))}
+.fl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.fl .lbl{font-weight:600;color:var(--t2);margin-right:4px}
+.working .fl .lbl{color:var(--st-now)}
+.focus.idle[style]{border-color:color-mix(in srgb,var(--pc) 35%,transparent);background:color-mix(in srgb,var(--pc) 8%,var(--s1))}
+.fl .prog{display:inline-flex;align-items:center;gap:6px}
+.ft{font-size:16px;font-weight:600;line-height:1.4;margin:8px 0 0 22px;text-wrap:pretty}
+.handoff{font-size:13px;color:var(--t2);margin:8px 0 0 22px;max-width:72ch;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pulse{font-size:12px;color:var(--t3);margin:12px 0 0 22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Status groups */
+.g{margin-top:8px}
+.g>summary,.projects h3{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--s1);border-radius:6px;font-size:13px;list-style:none}
+.g>summary{cursor:pointer}
+.g>summary::-webkit-details-marker{display:none}
+.g>summary b{font-weight:600}
+.g.s-now>summary,.g.s-review>summary,.g.s-due>summary,.g.s-done>summary,.g.s-sleeping>summary,.g.s-waiting>summary{background:color-mix(in srgb,var(--c) 12%,var(--s1))}
+.g.s-now>summary b,.g.s-review>summary b,.g.s-due>summary b,.g.s-done>summary b,.g.s-sleeping>summary b,.g.s-waiting>summary b{color:var(--c)}
+.c{color:var(--t3);font-weight:400;font-size:12px;font-variant-numeric:tabular-nums}
+.g>summary::after,.project>summary::after{content:"";width:5px;height:5px;margin:0 2px 2px auto;border-right:1.5px solid var(--t3);border-bottom:1.5px solid var(--t3);transform:rotate(45deg)}
+.g:not([open])>summary::after,.project:not([open])>summary::after{transform:rotate(-45deg);margin-bottom:0}
+
+/* Rows: one size for every task */
+.r{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);transition:background-color 1.2s ease}
+.r .ic{margin-top:3px}
+.r .body{flex:1;min-width:0}
+.r .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.r .note{font-size:12px;color:var(--t2);margin-top:2px}
+.r .m{flex:none;font-size:12px;color:var(--t3);margin-top:2px;font-variant-numeric:tabular-nums}
+.r .kind{flex:none;font-size:12px;color:var(--t3);width:56px;margin-top:1px}
+.chip{flex:none;font-size:12px;color:var(--t2);background:var(--s2);padding:0 8px;border-radius:999px;line-height:20px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip[style]{color:color-mix(in srgb,var(--pc) 80%,var(--t1));background:color-mix(in srgb,var(--pc) 15%,transparent)}
+.chip[style]::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pc);margin-right:6px;vertical-align:1px}
+.fresh{background:color-mix(in srgb,var(--accent) 12%,transparent)!important;transition:none}
+.more>summary{cursor:pointer;list-style:none;font-size:13px;color:var(--t3);padding:10px 12px 10px 38px}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary:hover{color:var(--t2)}
+.empty{color:var(--t3);font-size:13px;padding:10px 12px 10px 38px}
+
+/* Projects */
+.projects{margin-top:32px}
+.projects h3{font-weight:600}
+.project>summary{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;list-style:none}
+.project>summary::-webkit-details-marker{display:none}
+.project>summary:hover .pn{color:var(--t1)}
+.project[open]>summary .pn{font-weight:600}
+.pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project>ul{margin-left:19px;border-left:2px solid color-mix(in srgb,var(--pc,var(--line2)) 45%,transparent)}
+
+/* History */
+.act{display:grid;grid-template-columns:5em 6.5em minmax(0,1fr);gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.act time,.act .verb{color:var(--t3);font-variant-numeric:tabular-nums}
+.act .what{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.area{padding:10px 12px;border-bottom:1px solid var(--line)}
+details.area summary{display:flex;justify-content:space-between;gap:12px;cursor:pointer;list-style:none}
+details.area summary::-webkit-details-marker{display:none}
+details.area .desc{font-size:12px;color:var(--t3);margin-top:4px}
+details.area ol{margin-top:8px;display:grid;gap:8px}
+details.area ol li{padding-left:12px;border-left:2px solid var(--line2);font-size:13px}
+details.area .why{font-size:12px;color:var(--t2)}
+details.area .why.missing{color:var(--attn)}
+
+@media (max-width:640px){#app{padding:16px 12px 64px}.chip{display:none}.ft,.handoff,.pulse{margin-left:0}}
+@media (prefers-reduced-motion:reduce){.r{transition:none}}
+</style></head><body>
+<div id="app" data-needs="0" data-first="">
+<input type="radio" name="tab" value="board" id="tab-board" class="tab-radio" checked><input type="radio" name="tab" value="history" id="tab-history" class="tab-radio">
+<header class="top"><h1><span>Project</span></h1>
+<div class="right"><nav class="tabs" aria-label="Views"><label for="tab-board" title="Press 1">Board</label><label for="tab-history" title="Press 2">History</label></nav></div></header>
+<main class="tab tab-board"><section class="focus idle" data-key="yebg:open:queue:::Bug: header overlaps">
+<div class="fl"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="lbl">Nothing in progress. Next up</span><span class="chip">core</span></div>
+<h2 class="ft" title="id yebg">Bug: header overlaps</h2><div class="pulse">Last change <time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time>: added <span class="t2">Sweep the path</span></div></section><details class="g s-todo" open><summary><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><b>After that</b><span class="c">5</span></summary><ul><li class="r" data-key="m7sw:open:queue:::Buy seeds" title="id m7sw"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Buy seeds</div></div><span class="chip">core</span></li><li class="r" data-key="xr8y:open:queue:::Rake leaves" title="id xr8y"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Rake leaves</div></div><span class="chip">core</span></li><li class="r" data-key="xewh:open:queue:::Fix hose" title="id xewh"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Fix hose</div></div><span class="chip">core</span></li><li class="r" data-key="vn5c:open:queue:::Sweep the path" title="id vn5c"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Sweep the path</div></div><span class="chip">core</span></li><li class="r" data-key="rrfd:open:queue:::Oil the hinges" title="id rrfd"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Oil the hinges</div></div><span class="chip">core</span></li></ul></details><details class="g s-inbox" open><summary><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><b>Inbox, to sort</b><span class="c">2</span></summary><ul><li class="r" data-key="aes8:inbox::::A very long first line that keeps going and going well past the…" title="id aes8"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">A very long first line that keeps going and going well past the…</div></div></li><li class="r" data-key="xcma:inbox::::x" title="id xcma"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">x</div></div></li></ul></details><details class="g s-later" open><summary><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><b>Later</b><span class="c">1</span></summary><ul><li class="r" data-key="4yrm:open:someday:::Idea: a dark mode" title="id 4yrm"><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><div class="body"><div class="tt">Idea: a dark mode</div></div><span class="m">someday</span><span class="chip">core</span></li></ul></details></main>
+<main class="tab tab-history"><details class="g" open><summary><b>Just happened</b><span class="c">10</span></summary><ul><li class="act" data-key="2026-11-10T09:00:00.000Zvn5cadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Sweep the path</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zrrfdadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Oil the hinges</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxr8yadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Rake leaves</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxewhadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Fix hose</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zm7swadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Buy seeds</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Idea: a dark mode</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zaes8jotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">A very long first line that keeps going and going well past the…</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Idea: a dark mode</span></li></ul></details><details class="g" open><summary><b>Areas and principles</b><span class="c">1</span></summary><ul><li><details class="area"><summary><span>core</span><span class="c">7 open, 0 rules</span></summary><div class="desc">Always in scope. Its principles load for every task; items with no better home live here.</div></details></li></ul></details></main>
+</div></body></html>
+--- project/shot.png
+PNGDATA
+[no newline]
+--- home/boards/project-<hash>.html
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project | wk</title><style>
+:root{color-scheme:light dark;
+--bg:#fbfbfa;--s1:#f3f3f1;--s2:#ebebe8;--line:rgba(20,22,26,.07);--line2:rgba(20,22,26,.12);
+--t1:#1a1b1e;--t2:#5a5d64;--t3:#868991;--accent:#4353e0;--attn:#b05a0c;--ok:#15803d;
+--st-now:#3e5ee6;--st-review:#c26a06;--st-due:#d92d2d;--st-done:#16a34a;--st-sleeping:#7c3aed;--st-waiting:#0d9488;
+--p1:#db2777;--p2:#0284c7;--p3:#65a30d;--p4:#ea580c;--p5:#9333ea;--p6:#ca8a04}
+@media (prefers-color-scheme:dark){:root{
+--bg:#0f1012;--s1:#17181b;--s2:#1e1f23;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.11);
+--t1:#ececee;--t2:#a3a6ad;--t3:#73767e;--accent:#8492ff;--attn:#f0a35c;--ok:#5bd38a;
+--st-now:#7b93ff;--st-review:#f5a524;--st-due:#f87171;--st-done:#4ade80;--st-sleeping:#a78bfa;--st-waiting:#2dd4bf;
+--p1:#f472b6;--p2:#38bdf8;--p3:#a3e635;--p4:#fb923c;--p5:#c084fc;--p6:#facc15}}
+*{box-sizing:border-box;margin:0;padding:0}
+ul,ol{list-style:none}
+body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI Variable Text","Segoe UI",Roboto,sans-serif;letter-spacing:-.006em;-webkit-font-smoothing:antialiased}
+#app{max-width:880px;margin:0 auto;padding:24px 24px 80px}
+.t2{color:var(--t2)}.t3{color:var(--t3)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* Icons: shapes carry the state; colour repeats it. */
+.ic{flex:none;display:block;color:var(--c)}
+.s-later,.s-sleeping{--c:var(--t3)}.s-todo,.s-inbox{--c:var(--t2)}
+.s-now{--c:var(--st-now)}.s-review{--c:var(--st-review)}.s-due{--c:var(--st-due)}.s-done{--c:var(--st-done)}
+.s-sleeping{--c:var(--st-sleeping)}.s-waiting{--c:var(--st-waiting)}
+.ring{flex:none;display:block}.ring-track{stroke:var(--line2)}.ring-fill{stroke:var(--pc,var(--accent))}
+
+/* Top line and tabs */
+.tab-radio{position:absolute;opacity:0;pointer-events:none}
+.top{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;margin-bottom:24px}
+.top h1{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:600;min-width:0;flex:1}
+.branch{font-size:12px;font-weight:400;color:var(--t3)}
+.right{display:flex;align-items:center;gap:16px;font-size:13px}
+.hot{color:var(--st-review)}.hot b{font-weight:600}
+.tabs{display:flex;gap:2px}
+.tabs label{font-size:13px;color:var(--t2);padding:4px 10px;border-radius:6px;cursor:pointer}
+.tabs label:hover{color:var(--t1)}
+#tab-board:checked~.top label[for=tab-board],#tab-history:checked~.top label[for=tab-history]{background:var(--s2);color:var(--t1)}
+#tab-board:focus-visible~.top label[for=tab-board],#tab-history:focus-visible~.top label[for=tab-history]{outline:2px solid var(--accent);outline-offset:2px}
+#tab-board:checked~.tab-history,#tab-history:checked~.tab-board{display:none}
+.live{display:inline-flex;align-items:center;gap:6px;color:var(--t3)}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--t3)}
+.live.on::before{background:var(--ok)}.live.off::before{background:var(--attn)}
+.notify{font:inherit;color:var(--accent);background:none;border:0;cursor:pointer}
+
+/* The focus card */
+.focus{padding:16px 20px;border:1px solid var(--line2);border-radius:10px;background:var(--s1);margin-bottom:24px}
+.focus.working{border-color:color-mix(in srgb,var(--st-now) 55%,transparent);background:color-mix(in srgb,var(--st-now) 10%,var(--s1))}
+.fl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.fl .lbl{font-weight:600;color:var(--t2);margin-right:4px}
+.working .fl .lbl{color:var(--st-now)}
+.focus.idle[style]{border-color:color-mix(in srgb,var(--pc) 35%,transparent);background:color-mix(in srgb,var(--pc) 8%,var(--s1))}
+.fl .prog{display:inline-flex;align-items:center;gap:6px}
+.ft{font-size:16px;font-weight:600;line-height:1.4;margin:8px 0 0 22px;text-wrap:pretty}
+.handoff{font-size:13px;color:var(--t2);margin:8px 0 0 22px;max-width:72ch;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pulse{font-size:12px;color:var(--t3);margin:12px 0 0 22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Status groups */
+.g{margin-top:8px}
+.g>summary,.projects h3{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--s1);border-radius:6px;font-size:13px;list-style:none}
+.g>summary{cursor:pointer}
+.g>summary::-webkit-details-marker{display:none}
+.g>summary b{font-weight:600}
+.g.s-now>summary,.g.s-review>summary,.g.s-due>summary,.g.s-done>summary,.g.s-sleeping>summary,.g.s-waiting>summary{background:color-mix(in srgb,var(--c) 12%,var(--s1))}
+.g.s-now>summary b,.g.s-review>summary b,.g.s-due>summary b,.g.s-done>summary b,.g.s-sleeping>summary b,.g.s-waiting>summary b{color:var(--c)}
+.c{color:var(--t3);font-weight:400;font-size:12px;font-variant-numeric:tabular-nums}
+.g>summary::after,.project>summary::after{content:"";width:5px;height:5px;margin:0 2px 2px auto;border-right:1.5px solid var(--t3);border-bottom:1.5px solid var(--t3);transform:rotate(45deg)}
+.g:not([open])>summary::after,.project:not([open])>summary::after{transform:rotate(-45deg);margin-bottom:0}
+
+/* Rows: one size for every task */
+.r{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);transition:background-color 1.2s ease}
+.r .ic{margin-top:3px}
+.r .body{flex:1;min-width:0}
+.r .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.r .note{font-size:12px;color:var(--t2);margin-top:2px}
+.r .m{flex:none;font-size:12px;color:var(--t3);margin-top:2px;font-variant-numeric:tabular-nums}
+.r .kind{flex:none;font-size:12px;color:var(--t3);width:56px;margin-top:1px}
+.chip{flex:none;font-size:12px;color:var(--t2);background:var(--s2);padding:0 8px;border-radius:999px;line-height:20px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip[style]{color:color-mix(in srgb,var(--pc) 80%,var(--t1));background:color-mix(in srgb,var(--pc) 15%,transparent)}
+.chip[style]::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pc);margin-right:6px;vertical-align:1px}
+.fresh{background:color-mix(in srgb,var(--accent) 12%,transparent)!important;transition:none}
+.more>summary{cursor:pointer;list-style:none;font-size:13px;color:var(--t3);padding:10px 12px 10px 38px}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary:hover{color:var(--t2)}
+.empty{color:var(--t3);font-size:13px;padding:10px 12px 10px 38px}
+
+/* Projects */
+.projects{margin-top:32px}
+.projects h3{font-weight:600}
+.project>summary{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;list-style:none}
+.project>summary::-webkit-details-marker{display:none}
+.project>summary:hover .pn{color:var(--t1)}
+.project[open]>summary .pn{font-weight:600}
+.pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project>ul{margin-left:19px;border-left:2px solid color-mix(in srgb,var(--pc,var(--line2)) 45%,transparent)}
+
+/* History */
+.act{display:grid;grid-template-columns:5em 6.5em minmax(0,1fr);gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.act time,.act .verb{color:var(--t3);font-variant-numeric:tabular-nums}
+.act .what{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.area{padding:10px 12px;border-bottom:1px solid var(--line)}
+details.area summary{display:flex;justify-content:space-between;gap:12px;cursor:pointer;list-style:none}
+details.area summary::-webkit-details-marker{display:none}
+details.area .desc{font-size:12px;color:var(--t3);margin-top:4px}
+details.area ol{margin-top:8px;display:grid;gap:8px}
+details.area ol li{padding-left:12px;border-left:2px solid var(--line2);font-size:13px}
+details.area .why{font-size:12px;color:var(--t2)}
+details.area .why.missing{color:var(--attn)}
+
+@media (max-width:640px){#app{padding:16px 12px 64px}.chip{display:none}.ft,.handoff,.pulse{margin-left:0}}
+@media (prefers-reduced-motion:reduce){.r{transition:none}}
+</style></head><body>
+<div id="app" data-needs="0" data-first="">
+<input type="radio" name="tab" value="board" id="tab-board" class="tab-radio" checked><input type="radio" name="tab" value="history" id="tab-history" class="tab-radio">
+<header class="top"><h1><span>Project</span></h1>
+<div class="right"><nav class="tabs" aria-label="Views"><label for="tab-board" title="Press 1">Board</label><label for="tab-history" title="Press 2">History</label></nav></div></header>
+<main class="tab tab-board"><section class="focus idle" data-key="yebg:open:queue:::Bug: header overlaps">
+<div class="fl"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="lbl">Nothing in progress. Next up</span><span class="chip">core</span></div>
+<h2 class="ft" title="id yebg">Bug: header overlaps</h2><div class="pulse">Last change <time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time>: added <span class="t2">Sweep the path</span></div></section><details class="g s-todo" open><summary><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><b>After that</b><span class="c">5</span></summary><ul><li class="r" data-key="m7sw:open:queue:::Buy seeds" title="id m7sw"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Buy seeds</div></div><span class="chip">core</span></li><li class="r" data-key="xr8y:open:queue:::Rake leaves" title="id xr8y"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Rake leaves</div></div><span class="chip">core</span></li><li class="r" data-key="xewh:open:queue:::Fix hose" title="id xewh"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Fix hose</div></div><span class="chip">core</span></li><li class="r" data-key="vn5c:open:queue:::Sweep the path" title="id vn5c"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Sweep the path</div></div><span class="chip">core</span></li><li class="r" data-key="rrfd:open:queue:::Oil the hinges" title="id rrfd"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Oil the hinges</div></div><span class="chip">core</span></li></ul></details><details class="g s-inbox" open><summary><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><b>Inbox, to sort</b><span class="c">2</span></summary><ul><li class="r" data-key="aes8:inbox::::A very long first line that keeps going and going well past the…" title="id aes8"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">A very long first line that keeps going and going well past the…</div></div></li><li class="r" data-key="xcma:inbox::::x" title="id xcma"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">x</div></div></li></ul></details><details class="g s-later" open><summary><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><b>Later</b><span class="c">1</span></summary><ul><li class="r" data-key="4yrm:open:someday:::Idea: a dark mode" title="id 4yrm"><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><div class="body"><div class="tt">Idea: a dark mode</div></div><span class="m">someday</span><span class="chip">core</span></li></ul></details></main>
+<main class="tab tab-history"><details class="g" open><summary><b>Just happened</b><span class="c">10</span></summary><ul><li class="act" data-key="2026-11-10T09:00:00.000Zvn5cadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Sweep the path</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zrrfdadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Oil the hinges</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxr8yadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Rake leaves</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxewhadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Fix hose</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zm7swadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Buy seeds</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Idea: a dark mode</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zaes8jotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">A very long first line that keeps going and going well past the…</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Idea: a dark mode</span></li></ul></details><details class="g" open><summary><b>Areas and principles</b><span class="c">1</span></summary><ul><li><details class="area"><summary><span>core</span><span class="c">7 open, 0 rules</span></summary><div class="desc">Always in scope. Its principles load for every task; items with no better home live here.</div></details></li></ul></details></main>
+</div></body></html>
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"4yrm","title":"Idea: a dark mode","home":"inbox"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"aes8","title":"A very long first line that keeps going and going well past the…","home":"inbox"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"yebg","title":"Bug: header overlaps","home":"inbox"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"sorted","id":"4yrm","title":"Idea: a dark mode","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"sorted","id":"yebg","title":"Bug: header overlaps","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"m7sw","title":"Buy seeds","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"xewh","title":"Fix hose","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"xr8y","title":"Rake leaves","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"rrfd","title":"Oil the hinges","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"vn5c","title":"Sweep the path","home":"core"}
+--- home/sessions/v2-<hash>.json
+{
+  "started": "2026-11-10T09:00:00.000Z",
+  "done": [],
+  "lastHome": null,
+  "freshFor": null,
+  "asked": []
+}
+
+== final tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-idea-a-dark-mode.md
+---
+id: "4yrm"
+kind: task
+state: open
+when: someday
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Idea: a dark mode
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/m7sw-buy-seeds.md
+---
+id: m7sw
+kind: task
+state: open
+when: queue
+tags: []
+rank: 2
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Buy seeds
+--- project/.work/areas/core/rrfd-oil-the-hinges.md
+---
+id: rrfd
+kind: task
+state: open
+when: queue
+tags: []
+rank: 6
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Oil the hinges
+--- project/.work/areas/core/vn5c-sweep-the-path.md
+---
+id: vn5c
+kind: task
+state: open
+when: queue
+tags: []
+rank: 5
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Sweep the path
+--- project/.work/areas/core/xewh-fix-hose.md
+---
+id: xewh
+kind: task
+state: open
+when: queue
+tags: []
+rank: 4
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Fix hose
+--- project/.work/areas/core/xr8y-rake-leaves.md
+---
+id: xr8y
+kind: task
+state: open
+when: queue
+tags: []
+rank: 3
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Rake leaves
+--- project/.work/areas/core/yebg-1.png
+PNGDATA
+[no newline]
+--- project/.work/areas/core/yebg-2.png
+PNGDATA
+[no newline]
+--- project/.work/areas/core/yebg-bug-header-overlaps.md
+---
+id: yebg
+kind: task
+state: open
+when: queue
+rank: 1
+created: 2026-11-10
+updated: 2026-11-10
+files: [yebg-1.png, yebg-2.png]
+---
+# Bug: header overlaps
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick]
+reviewed:
+--- project/.work/inbox/.gitkeep
+--- project/.work/inbox/aes8-a-very-long-first-line-that-keeps-going.md
+---
+id: aes8
+kind: task
+state: inbox
+created: 2026-11-10
+updated: 2026-11-10
+---
+# A very long first line that keeps going and going well past the…
+
+A very long first line that keeps going and going well past the seventy character title limit for sure
+--- project/.work/inbox/xcma-x.md
+---
+id: xcma
+kind: task
+state: inbox
+created: 2026-11-10
+updated: 2026-11-10
+---
+# x
+--- project/.work/projects/.gitkeep
+--- project/.work/session.md
+--- project/.work/summary.md
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- project/list.md
+- [ ] Buy seeds
+* Rake leaves
+1. Fix hose
+[no newline]
+--- project/out/board.html
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project | wk</title><style>
+:root{color-scheme:light dark;
+--bg:#fbfbfa;--s1:#f3f3f1;--s2:#ebebe8;--line:rgba(20,22,26,.07);--line2:rgba(20,22,26,.12);
+--t1:#1a1b1e;--t2:#5a5d64;--t3:#868991;--accent:#4353e0;--attn:#b05a0c;--ok:#15803d;
+--st-now:#3e5ee6;--st-review:#c26a06;--st-due:#d92d2d;--st-done:#16a34a;--st-sleeping:#7c3aed;--st-waiting:#0d9488;
+--p1:#db2777;--p2:#0284c7;--p3:#65a30d;--p4:#ea580c;--p5:#9333ea;--p6:#ca8a04}
+@media (prefers-color-scheme:dark){:root{
+--bg:#0f1012;--s1:#17181b;--s2:#1e1f23;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.11);
+--t1:#ececee;--t2:#a3a6ad;--t3:#73767e;--accent:#8492ff;--attn:#f0a35c;--ok:#5bd38a;
+--st-now:#7b93ff;--st-review:#f5a524;--st-due:#f87171;--st-done:#4ade80;--st-sleeping:#a78bfa;--st-waiting:#2dd4bf;
+--p1:#f472b6;--p2:#38bdf8;--p3:#a3e635;--p4:#fb923c;--p5:#c084fc;--p6:#facc15}}
+*{box-sizing:border-box;margin:0;padding:0}
+ul,ol{list-style:none}
+body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI Variable Text","Segoe UI",Roboto,sans-serif;letter-spacing:-.006em;-webkit-font-smoothing:antialiased}
+#app{max-width:880px;margin:0 auto;padding:24px 24px 80px}
+.t2{color:var(--t2)}.t3{color:var(--t3)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* Icons: shapes carry the state; colour repeats it. */
+.ic{flex:none;display:block;color:var(--c)}
+.s-later,.s-sleeping{--c:var(--t3)}.s-todo,.s-inbox{--c:var(--t2)}
+.s-now{--c:var(--st-now)}.s-review{--c:var(--st-review)}.s-due{--c:var(--st-due)}.s-done{--c:var(--st-done)}
+.s-sleeping{--c:var(--st-sleeping)}.s-waiting{--c:var(--st-waiting)}
+.ring{flex:none;display:block}.ring-track{stroke:var(--line2)}.ring-fill{stroke:var(--pc,var(--accent))}
+
+/* Top line and tabs */
+.tab-radio{position:absolute;opacity:0;pointer-events:none}
+.top{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;margin-bottom:24px}
+.top h1{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:600;min-width:0;flex:1}
+.branch{font-size:12px;font-weight:400;color:var(--t3)}
+.right{display:flex;align-items:center;gap:16px;font-size:13px}
+.hot{color:var(--st-review)}.hot b{font-weight:600}
+.tabs{display:flex;gap:2px}
+.tabs label{font-size:13px;color:var(--t2);padding:4px 10px;border-radius:6px;cursor:pointer}
+.tabs label:hover{color:var(--t1)}
+#tab-board:checked~.top label[for=tab-board],#tab-history:checked~.top label[for=tab-history]{background:var(--s2);color:var(--t1)}
+#tab-board:focus-visible~.top label[for=tab-board],#tab-history:focus-visible~.top label[for=tab-history]{outline:2px solid var(--accent);outline-offset:2px}
+#tab-board:checked~.tab-history,#tab-history:checked~.tab-board{display:none}
+.live{display:inline-flex;align-items:center;gap:6px;color:var(--t3)}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--t3)}
+.live.on::before{background:var(--ok)}.live.off::before{background:var(--attn)}
+.notify{font:inherit;color:var(--accent);background:none;border:0;cursor:pointer}
+
+/* The focus card */
+.focus{padding:16px 20px;border:1px solid var(--line2);border-radius:10px;background:var(--s1);margin-bottom:24px}
+.focus.working{border-color:color-mix(in srgb,var(--st-now) 55%,transparent);background:color-mix(in srgb,var(--st-now) 10%,var(--s1))}
+.fl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.fl .lbl{font-weight:600;color:var(--t2);margin-right:4px}
+.working .fl .lbl{color:var(--st-now)}
+.focus.idle[style]{border-color:color-mix(in srgb,var(--pc) 35%,transparent);background:color-mix(in srgb,var(--pc) 8%,var(--s1))}
+.fl .prog{display:inline-flex;align-items:center;gap:6px}
+.ft{font-size:16px;font-weight:600;line-height:1.4;margin:8px 0 0 22px;text-wrap:pretty}
+.handoff{font-size:13px;color:var(--t2);margin:8px 0 0 22px;max-width:72ch;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pulse{font-size:12px;color:var(--t3);margin:12px 0 0 22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Status groups */
+.g{margin-top:8px}
+.g>summary,.projects h3{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--s1);border-radius:6px;font-size:13px;list-style:none}
+.g>summary{cursor:pointer}
+.g>summary::-webkit-details-marker{display:none}
+.g>summary b{font-weight:600}
+.g.s-now>summary,.g.s-review>summary,.g.s-due>summary,.g.s-done>summary,.g.s-sleeping>summary,.g.s-waiting>summary{background:color-mix(in srgb,var(--c) 12%,var(--s1))}
+.g.s-now>summary b,.g.s-review>summary b,.g.s-due>summary b,.g.s-done>summary b,.g.s-sleeping>summary b,.g.s-waiting>summary b{color:var(--c)}
+.c{color:var(--t3);font-weight:400;font-size:12px;font-variant-numeric:tabular-nums}
+.g>summary::after,.project>summary::after{content:"";width:5px;height:5px;margin:0 2px 2px auto;border-right:1.5px solid var(--t3);border-bottom:1.5px solid var(--t3);transform:rotate(45deg)}
+.g:not([open])>summary::after,.project:not([open])>summary::after{transform:rotate(-45deg);margin-bottom:0}
+
+/* Rows: one size for every task */
+.r{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);transition:background-color 1.2s ease}
+.r .ic{margin-top:3px}
+.r .body{flex:1;min-width:0}
+.r .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.r .note{font-size:12px;color:var(--t2);margin-top:2px}
+.r .m{flex:none;font-size:12px;color:var(--t3);margin-top:2px;font-variant-numeric:tabular-nums}
+.r .kind{flex:none;font-size:12px;color:var(--t3);width:56px;margin-top:1px}
+.chip{flex:none;font-size:12px;color:var(--t2);background:var(--s2);padding:0 8px;border-radius:999px;line-height:20px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip[style]{color:color-mix(in srgb,var(--pc) 80%,var(--t1));background:color-mix(in srgb,var(--pc) 15%,transparent)}
+.chip[style]::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pc);margin-right:6px;vertical-align:1px}
+.fresh{background:color-mix(in srgb,var(--accent) 12%,transparent)!important;transition:none}
+.more>summary{cursor:pointer;list-style:none;font-size:13px;color:var(--t3);padding:10px 12px 10px 38px}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary:hover{color:var(--t2)}
+.empty{color:var(--t3);font-size:13px;padding:10px 12px 10px 38px}
+
+/* Projects */
+.projects{margin-top:32px}
+.projects h3{font-weight:600}
+.project>summary{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;list-style:none}
+.project>summary::-webkit-details-marker{display:none}
+.project>summary:hover .pn{color:var(--t1)}
+.project[open]>summary .pn{font-weight:600}
+.pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project>ul{margin-left:19px;border-left:2px solid color-mix(in srgb,var(--pc,var(--line2)) 45%,transparent)}
+
+/* History */
+.act{display:grid;grid-template-columns:5em 6.5em minmax(0,1fr);gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.act time,.act .verb{color:var(--t3);font-variant-numeric:tabular-nums}
+.act .what{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.area{padding:10px 12px;border-bottom:1px solid var(--line)}
+details.area summary{display:flex;justify-content:space-between;gap:12px;cursor:pointer;list-style:none}
+details.area summary::-webkit-details-marker{display:none}
+details.area .desc{font-size:12px;color:var(--t3);margin-top:4px}
+details.area ol{margin-top:8px;display:grid;gap:8px}
+details.area ol li{padding-left:12px;border-left:2px solid var(--line2);font-size:13px}
+details.area .why{font-size:12px;color:var(--t2)}
+details.area .why.missing{color:var(--attn)}
+
+@media (max-width:640px){#app{padding:16px 12px 64px}.chip{display:none}.ft,.handoff,.pulse{margin-left:0}}
+@media (prefers-reduced-motion:reduce){.r{transition:none}}
+</style></head><body>
+<div id="app" data-needs="0" data-first="">
+<input type="radio" name="tab" value="board" id="tab-board" class="tab-radio" checked><input type="radio" name="tab" value="history" id="tab-history" class="tab-radio">
+<header class="top"><h1><span>Project</span></h1>
+<div class="right"><nav class="tabs" aria-label="Views"><label for="tab-board" title="Press 1">Board</label><label for="tab-history" title="Press 2">History</label></nav></div></header>
+<main class="tab tab-board"><section class="focus idle" data-key="yebg:open:queue:::Bug: header overlaps">
+<div class="fl"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="lbl">Nothing in progress. Next up</span><span class="chip">core</span></div>
+<h2 class="ft" title="id yebg">Bug: header overlaps</h2><div class="pulse">Last change <time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time>: added <span class="t2">Sweep the path</span></div></section><details class="g s-todo" open><summary><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><b>After that</b><span class="c">5</span></summary><ul><li class="r" data-key="m7sw:open:queue:::Buy seeds" title="id m7sw"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Buy seeds</div></div><span class="chip">core</span></li><li class="r" data-key="xr8y:open:queue:::Rake leaves" title="id xr8y"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Rake leaves</div></div><span class="chip">core</span></li><li class="r" data-key="xewh:open:queue:::Fix hose" title="id xewh"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Fix hose</div></div><span class="chip">core</span></li><li class="r" data-key="vn5c:open:queue:::Sweep the path" title="id vn5c"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Sweep the path</div></div><span class="chip">core</span></li><li class="r" data-key="rrfd:open:queue:::Oil the hinges" title="id rrfd"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Oil the hinges</div></div><span class="chip">core</span></li></ul></details><details class="g s-inbox" open><summary><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><b>Inbox, to sort</b><span class="c">2</span></summary><ul><li class="r" data-key="aes8:inbox::::A very long first line that keeps going and going well past the…" title="id aes8"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">A very long first line that keeps going and going well past the…</div></div></li><li class="r" data-key="xcma:inbox::::x" title="id xcma"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">x</div></div></li></ul></details><details class="g s-later" open><summary><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><b>Later</b><span class="c">1</span></summary><ul><li class="r" data-key="4yrm:open:someday:::Idea: a dark mode" title="id 4yrm"><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><div class="body"><div class="tt">Idea: a dark mode</div></div><span class="m">someday</span><span class="chip">core</span></li></ul></details></main>
+<main class="tab tab-history"><details class="g" open><summary><b>Just happened</b><span class="c">10</span></summary><ul><li class="act" data-key="2026-11-10T09:00:00.000Zvn5cadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Sweep the path</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zrrfdadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Oil the hinges</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxr8yadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Rake leaves</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxewhadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Fix hose</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zm7swadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Buy seeds</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Idea: a dark mode</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zaes8jotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">A very long first line that keeps going and going well past the…</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Idea: a dark mode</span></li></ul></details><details class="g" open><summary><b>Areas and principles</b><span class="c">1</span></summary><ul><li><details class="area"><summary><span>core</span><span class="c">7 open, 0 rules</span></summary><div class="desc">Always in scope. Its principles load for every task; items with no better home live here.</div></details></li></ul></details></main>
+</div></body></html>
+--- project/shot.png
+PNGDATA
+[no newline]
+--- home/boards/project-<hash>.html
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project | wk</title><style>
+:root{color-scheme:light dark;
+--bg:#fbfbfa;--s1:#f3f3f1;--s2:#ebebe8;--line:rgba(20,22,26,.07);--line2:rgba(20,22,26,.12);
+--t1:#1a1b1e;--t2:#5a5d64;--t3:#868991;--accent:#4353e0;--attn:#b05a0c;--ok:#15803d;
+--st-now:#3e5ee6;--st-review:#c26a06;--st-due:#d92d2d;--st-done:#16a34a;--st-sleeping:#7c3aed;--st-waiting:#0d9488;
+--p1:#db2777;--p2:#0284c7;--p3:#65a30d;--p4:#ea580c;--p5:#9333ea;--p6:#ca8a04}
+@media (prefers-color-scheme:dark){:root{
+--bg:#0f1012;--s1:#17181b;--s2:#1e1f23;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.11);
+--t1:#ececee;--t2:#a3a6ad;--t3:#73767e;--accent:#8492ff;--attn:#f0a35c;--ok:#5bd38a;
+--st-now:#7b93ff;--st-review:#f5a524;--st-due:#f87171;--st-done:#4ade80;--st-sleeping:#a78bfa;--st-waiting:#2dd4bf;
+--p1:#f472b6;--p2:#38bdf8;--p3:#a3e635;--p4:#fb923c;--p5:#c084fc;--p6:#facc15}}
+*{box-sizing:border-box;margin:0;padding:0}
+ul,ol{list-style:none}
+body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI Variable Text","Segoe UI",Roboto,sans-serif;letter-spacing:-.006em;-webkit-font-smoothing:antialiased}
+#app{max-width:880px;margin:0 auto;padding:24px 24px 80px}
+.t2{color:var(--t2)}.t3{color:var(--t3)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+
+/* Icons: shapes carry the state; colour repeats it. */
+.ic{flex:none;display:block;color:var(--c)}
+.s-later,.s-sleeping{--c:var(--t3)}.s-todo,.s-inbox{--c:var(--t2)}
+.s-now{--c:var(--st-now)}.s-review{--c:var(--st-review)}.s-due{--c:var(--st-due)}.s-done{--c:var(--st-done)}
+.s-sleeping{--c:var(--st-sleeping)}.s-waiting{--c:var(--st-waiting)}
+.ring{flex:none;display:block}.ring-track{stroke:var(--line2)}.ring-fill{stroke:var(--pc,var(--accent))}
+
+/* Top line and tabs */
+.tab-radio{position:absolute;opacity:0;pointer-events:none}
+.top{display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;margin-bottom:24px}
+.top h1{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:600;min-width:0;flex:1}
+.branch{font-size:12px;font-weight:400;color:var(--t3)}
+.right{display:flex;align-items:center;gap:16px;font-size:13px}
+.hot{color:var(--st-review)}.hot b{font-weight:600}
+.tabs{display:flex;gap:2px}
+.tabs label{font-size:13px;color:var(--t2);padding:4px 10px;border-radius:6px;cursor:pointer}
+.tabs label:hover{color:var(--t1)}
+#tab-board:checked~.top label[for=tab-board],#tab-history:checked~.top label[for=tab-history]{background:var(--s2);color:var(--t1)}
+#tab-board:focus-visible~.top label[for=tab-board],#tab-history:focus-visible~.top label[for=tab-history]{outline:2px solid var(--accent);outline-offset:2px}
+#tab-board:checked~.tab-history,#tab-history:checked~.tab-board{display:none}
+.live{display:inline-flex;align-items:center;gap:6px;color:var(--t3)}
+.live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--t3)}
+.live.on::before{background:var(--ok)}.live.off::before{background:var(--attn)}
+.notify{font:inherit;color:var(--accent);background:none;border:0;cursor:pointer}
+
+/* The focus card */
+.focus{padding:16px 20px;border:1px solid var(--line2);border-radius:10px;background:var(--s1);margin-bottom:24px}
+.focus.working{border-color:color-mix(in srgb,var(--st-now) 55%,transparent);background:color-mix(in srgb,var(--st-now) 10%,var(--s1))}
+.fl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.fl .lbl{font-weight:600;color:var(--t2);margin-right:4px}
+.working .fl .lbl{color:var(--st-now)}
+.focus.idle[style]{border-color:color-mix(in srgb,var(--pc) 35%,transparent);background:color-mix(in srgb,var(--pc) 8%,var(--s1))}
+.fl .prog{display:inline-flex;align-items:center;gap:6px}
+.ft{font-size:16px;font-weight:600;line-height:1.4;margin:8px 0 0 22px;text-wrap:pretty}
+.handoff{font-size:13px;color:var(--t2);margin:8px 0 0 22px;max-width:72ch;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.pulse{font-size:12px;color:var(--t3);margin:12px 0 0 22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Status groups */
+.g{margin-top:8px}
+.g>summary,.projects h3{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--s1);border-radius:6px;font-size:13px;list-style:none}
+.g>summary{cursor:pointer}
+.g>summary::-webkit-details-marker{display:none}
+.g>summary b{font-weight:600}
+.g.s-now>summary,.g.s-review>summary,.g.s-due>summary,.g.s-done>summary,.g.s-sleeping>summary,.g.s-waiting>summary{background:color-mix(in srgb,var(--c) 12%,var(--s1))}
+.g.s-now>summary b,.g.s-review>summary b,.g.s-due>summary b,.g.s-done>summary b,.g.s-sleeping>summary b,.g.s-waiting>summary b{color:var(--c)}
+.c{color:var(--t3);font-weight:400;font-size:12px;font-variant-numeric:tabular-nums}
+.g>summary::after,.project>summary::after{content:"";width:5px;height:5px;margin:0 2px 2px auto;border-right:1.5px solid var(--t3);border-bottom:1.5px solid var(--t3);transform:rotate(45deg)}
+.g:not([open])>summary::after,.project:not([open])>summary::after{transform:rotate(-45deg);margin-bottom:0}
+
+/* Rows: one size for every task */
+.r{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);transition:background-color 1.2s ease}
+.r .ic{margin-top:3px}
+.r .body{flex:1;min-width:0}
+.r .tt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.r .note{font-size:12px;color:var(--t2);margin-top:2px}
+.r .m{flex:none;font-size:12px;color:var(--t3);margin-top:2px;font-variant-numeric:tabular-nums}
+.r .kind{flex:none;font-size:12px;color:var(--t3);width:56px;margin-top:1px}
+.chip{flex:none;font-size:12px;color:var(--t2);background:var(--s2);padding:0 8px;border-radius:999px;line-height:20px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip[style]{color:color-mix(in srgb,var(--pc) 80%,var(--t1));background:color-mix(in srgb,var(--pc) 15%,transparent)}
+.chip[style]::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pc);margin-right:6px;vertical-align:1px}
+.fresh{background:color-mix(in srgb,var(--accent) 12%,transparent)!important;transition:none}
+.more>summary{cursor:pointer;list-style:none;font-size:13px;color:var(--t3);padding:10px 12px 10px 38px}
+.more>summary::-webkit-details-marker{display:none}
+.more>summary:hover{color:var(--t2)}
+.empty{color:var(--t3);font-size:13px;padding:10px 12px 10px 38px}
+
+/* Projects */
+.projects{margin-top:32px}
+.projects h3{font-weight:600}
+.project>summary{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;list-style:none}
+.project>summary::-webkit-details-marker{display:none}
+.project>summary:hover .pn{color:var(--t1)}
+.project[open]>summary .pn{font-weight:600}
+.pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.project>ul{margin-left:19px;border-left:2px solid color-mix(in srgb,var(--pc,var(--line2)) 45%,transparent)}
+
+/* History */
+.act{display:grid;grid-template-columns:5em 6.5em minmax(0,1fr);gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
+.act time,.act .verb{color:var(--t3);font-variant-numeric:tabular-nums}
+.act .what{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+details.area{padding:10px 12px;border-bottom:1px solid var(--line)}
+details.area summary{display:flex;justify-content:space-between;gap:12px;cursor:pointer;list-style:none}
+details.area summary::-webkit-details-marker{display:none}
+details.area .desc{font-size:12px;color:var(--t3);margin-top:4px}
+details.area ol{margin-top:8px;display:grid;gap:8px}
+details.area ol li{padding-left:12px;border-left:2px solid var(--line2);font-size:13px}
+details.area .why{font-size:12px;color:var(--t2)}
+details.area .why.missing{color:var(--attn)}
+
+@media (max-width:640px){#app{padding:16px 12px 64px}.chip{display:none}.ft,.handoff,.pulse{margin-left:0}}
+@media (prefers-reduced-motion:reduce){.r{transition:none}}
+</style></head><body>
+<div id="app" data-needs="0" data-first="">
+<input type="radio" name="tab" value="board" id="tab-board" class="tab-radio" checked><input type="radio" name="tab" value="history" id="tab-history" class="tab-radio">
+<header class="top"><h1><span>Project</span></h1>
+<div class="right"><nav class="tabs" aria-label="Views"><label for="tab-board" title="Press 1">Board</label><label for="tab-history" title="Press 2">History</label></nav></div></header>
+<main class="tab tab-board"><section class="focus idle" data-key="yebg:open:queue:::Bug: header overlaps">
+<div class="fl"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="lbl">Nothing in progress. Next up</span><span class="chip">core</span></div>
+<h2 class="ft" title="id yebg">Bug: header overlaps</h2><div class="pulse">Last change <time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time>: added <span class="t2">Sweep the path</span></div></section><details class="g s-todo" open><summary><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><b>After that</b><span class="c">5</span></summary><ul><li class="r" data-key="m7sw:open:queue:::Buy seeds" title="id m7sw"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Buy seeds</div></div><span class="chip">core</span></li><li class="r" data-key="xr8y:open:queue:::Rake leaves" title="id xr8y"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Rake leaves</div></div><span class="chip">core</span></li><li class="r" data-key="xewh:open:queue:::Fix hose" title="id xewh"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Fix hose</div></div><span class="chip">core</span></li><li class="r" data-key="vn5c:open:queue:::Sweep the path" title="id vn5c"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Sweep the path</div></div><span class="chip">core</span></li><li class="r" data-key="rrfd:open:queue:::Oil the hinges" title="id rrfd"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Oil the hinges</div></div><span class="chip">core</span></li></ul></details><details class="g s-inbox" open><summary><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><b>Inbox, to sort</b><span class="c">2</span></summary><ul><li class="r" data-key="aes8:inbox::::A very long first line that keeps going and going well past the…" title="id aes8"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">A very long first line that keeps going and going well past the…</div></div></li><li class="r" data-key="xcma:inbox::::x" title="id xcma"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">x</div></div></li></ul></details><details class="g s-later" open><summary><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><b>Later</b><span class="c">1</span></summary><ul><li class="r" data-key="4yrm:open:someday:::Idea: a dark mode" title="id 4yrm"><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><div class="body"><div class="tt">Idea: a dark mode</div></div><span class="m">someday</span><span class="chip">core</span></li></ul></details></main>
+<main class="tab tab-history"><details class="g" open><summary><b>Just happened</b><span class="c">10</span></summary><ul><li class="act" data-key="2026-11-10T09:00:00.000Zvn5cadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Sweep the path</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zrrfdadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Oil the hinges</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxr8yadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Rake leaves</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxewhadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Fix hose</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zm7swadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Buy seeds</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Idea: a dark mode</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zaes8jotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">A very long first line that keeps going and going well past the…</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Idea: a dark mode</span></li></ul></details><details class="g" open><summary><b>Areas and principles</b><span class="c">1</span></summary><ul><li><details class="area"><summary><span>core</span><span class="c">7 open, 0 rules</span></summary><div class="desc">Always in scope. Its principles load for every task; items with no better home live here.</div></details></li></ul></details></main>
+</div></body></html>
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"4yrm","title":"Idea: a dark mode","home":"inbox"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"aes8","title":"A very long first line that keeps going and going well past the…","home":"inbox"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"yebg","title":"Bug: header overlaps","home":"inbox"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"sorted","id":"4yrm","title":"Idea: a dark mode","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"sorted","id":"yebg","title":"Bug: header overlaps","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"m7sw","title":"Buy seeds","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"xewh","title":"Fix hose","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"xr8y","title":"Rake leaves","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"rrfd","title":"Oil the hinges","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"vn5c","title":"Sweep the path","home":"core"}
+--- home/sessions/v2-<hash>.json
+{
+  "started": "2026-11-10T09:00:00.000Z",
+  "done": [],
+  "lastHome": null,
+  "freshFor": null,
+  "asked": []
+}

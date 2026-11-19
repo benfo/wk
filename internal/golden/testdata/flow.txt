@@ -1,0 +1,36 @@
+# Start, check, done, wait, handoff and sessions, outside git.
+$ wk init --store repo --preset general
+$ wk add "Write the intro"
+$ wk add "Draft chapter one"
+$ wk add "Draft chapter two" --when "after:4y"
+$ wk add "Proofread everything" --when someday
+$ wk ls
+$ wk brief
+$ wk check
+$ wk start 4yrm
+$ wk start 4yrm
+$ wk check --checked "spellcheck clean" --test "Read it aloud\nCheck the tone"
+$ wk done 4yrm
+$ wk handoff "Intro drafted.\nNext: chapter one."
+$ wk handoff "1\n2\n3\n4\n5\n6"
+$ wk brief
+$ wk next
+$ wk ls
+$ wk wait aes8 "an editor"
+$ wk wait --clear aes8
+tree
+$ wk start aes8
+$ wk jot "Chapter two needs a map\nmaybe two"
+$ wk start xcma
+$ wk wait aes8 "the editor"
+$ wk start xcma
+$ wk check --fresh --handoff "Proofing.\nNext: done."
+$ wk done xcma
+$ wk done xcma
+$ wk done yebg --force
+$ wk ls --all
+$ wk done nope
+$ wk show yebg
+now 2026-11-10T11:30:00.000Z
+$ wk board --out board.html
+tree

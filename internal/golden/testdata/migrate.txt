@@ -1,0 +1,24 @@
+# Converting a v1 plan in place, outside git.
+write .work/config.yml version: 1\nstore: repo\ngit:\n  branch: epic\n  commit: checkpoint\n
+write .work/project.md Name: Old plan\n
+write .work/handoff.md Last time: T-002.\n
+write .work/epics/E-001.md ---\ntitle: Launch\nstatus: active\ncreated: 2026-01-02\n---\nShip it.\n
+write .work/epics/E-002.md ---\ntitle: Old epic\nstatus: done\ndone_on: 2025-05-01\n---\n
+write .work/tasks/T-001.md ---\ntitle: Build the page\nstatus: next\nepic: E-001\ntags: [ui]\nrank: 2\ncreated: 2026-01-03\n---\nWith care.\n
+write .work/tasks/T-002.md ---\ntitle: Write copy\nstatus: next\ncreated: 2026-01-04\nblocked: true\nblocked_reason: copywriter\n---\n
+write .work/tasks/T-003.md ---\ntitle: Old thing\nstatus: done\nupdated: 2025-02-02\n---\n
+write .work/ideas/I-001.md ---\ncreated: 2026-01-05\n---\nA dark mode\nfor night owls\n
+write .work/decisions/D-001.md ---\ntitle: Use plain files\nsuperseded_by: D-002\n---\nBecause.\n
+write .work/decisions/D-002.md ---\ntitle: Use markdown files\nsupersedes: D-001\n---\n
+write .work/learnings/L-001.md ---\ncreated: 2026-01-06\n---\nCRLF bites\n
+write .work/archive/T-004.md ---\ntitle: Archived task\nstatus: done\ndone_on: 2024-03-03\n---\n
+write .work/principles/ui.md # UI\n1. Keep it calm\n2) One accent colour\n
+write .work/principles/Core.md 1. Write it down\n
+$ wk brief
+$ wk migrate
+$ wk migrate
+$ wk show T-001
+$ wk show t2
+$ wk ls --all
+$ wk project
+tree

@@ -1,0 +1,365 @@
+$ wk init --store repo --preset general
+Created <DIR>/.work (preset: general)
+Skills: .claude/skills/wk, .claude/skills/wk-setup
+Added the wk pointer to AGENTS.md
+Next: wk brief, then the wk-setup skill (wk guide setup).
+$ wk area new ui "Screens"
+Area ui: Screens
+$ wk add "Revisit the palette" --when start:ui
+Added 4yrm Revisit the palette (core, when start:ui)
+$ wk add "Write release notes" --when "end:zz"
+! No project zz.
+[exit 1]
+$ wk project new "Garden redesign" --touches ui,nowhere
+! No area "nowhere". Create it first: wk area new nowhere "<description>"
+[exit 1]
+$ wk project new "Garden redesign" --touches ui
+Project yebg Garden redesign (touches ui)
+Add tasks with: wk add "<title>" --in yebg
+Due now (work starts in its areas; pull them in with wk move <id> --in yebg):
+  4yrm Revisit the palette (core)
+$ wk project new "garden REDESIGN"
+! A project called "garden REDESIGN" is already open.
+[exit 1]
+$ wk add "Pick plants" --in aes8
+! No home "aes8". Use inbox, an area (core, ui) or an open project id.
+[exit 1]
+$ wk add "Order soil" --in aes8 --tags quick
+! No home "aes8". Use inbox, an area (core, ui) or an open project id.
+[exit 1]
+$ wk add "Write release notes" --when end:aes8 --force
+! No project aes8.
+[exit 1]
+$ wk project
+yebg Garden redesign  ░░░░░░░░░░  0/0
+areas   core 3 · ui 0
+$ wk project list --json
+{
+  "projects": [
+    {
+      "id": "yebg",
+      "title": "Garden redesign",
+      "done": 0,
+      "total": 0
+    }
+  ]
+}
+$ wk project show aes8
+! No project aes8.
+[exit 1]
+$ wk project close aes8
+! No project aes8.
+[exit 1]
+$ wk start yebg
+! No item yebg.
+[exit 1]
+$ wk decide "Native plants only" --why "less water"
+Decision m7sw Native plants only (core)
+$ wk learn "Clay soil drains slowly"
+Learning xr8y Clay soil drains slowly (core)
+$ wk check --checked "looked fine"
+! Nothing is now. Start a task first: wk start <id>
+[exit 1]
+$ wk done yebg
+! No item yebg.
+[exit 1]
+$ wk start xcma --no-branch
+now   xcma Write release notes (core)
+$ wk done xcma --force
+done  xcma Write release notes
+Handoff written from the next task (pass --handoff for more). Next task unrelated, or context heavy? Suggest a fresh session.
+$ wk project show aes8
+! No project aes8.
+[exit 1]
+$ wk project close aes8
+! No project aes8.
+[exit 1]
+$ wk ls due
+start   4yrm Revisit the palette [due] (core)
+$ wk project
+yebg Garden redesign  ░░░░░░░░░░  0/0
+areas   core 2 · ui 0
+$ wk review
+Due: 4yrm Revisit the palette (start:ui)
+Project yebg Garden redesign has nothing left: close it?
+Go through these with the user in short batches, then: wk review --done
+$ wk brief
+No summary yet.
+Due: 4yrm Revisit the palette (start:ui). Queue, reschedule or drop each.
+Review due: no review recorded yet (wk review, wk guide review).
+No principles yet. Offer a principles session (wk guide principles).
+Handoff (<FILE-DATE>):
+  Done: xcma Write release notes.
+  Next: aes8 Write release notes (core).
+now    (nothing in progress)
+next   aes8 Write release notes (core)
+due    4yrm Revisit the palette [due] (core)
+$ wk review
+Due: 4yrm Revisit the palette (start:ui)
+Project yebg Garden redesign has nothing left: close it?
+Go through these with the user in short batches, then: wk review --done
+$ wk review --done
+Review recorded (2026-12-20).
+$ wk brief
+No summary yet.
+Due: 4yrm Revisit the palette (start:ui). Queue, reschedule or drop each.
+No principles yet. Offer a principles session (wk guide principles).
+Handoff (<FILE-DATE>):
+  Done: xcma Write release notes.
+  Next: aes8 Write release notes (core).
+now    (nothing in progress)
+next   aes8 Write release notes (core)
+due    4yrm Revisit the palette [due] (core)
+$ wk show yebg
+! No item yebg.
+[exit 1]
+$ wk ls --archived
+No open tasks.
+$ wk show T-001
+! No item T-001.
+[exit 1]
+== tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-revisit-the-palette.md
+---
+id: "4yrm"
+kind: task
+state: open
+when: start:ui
+tags: []
+created: 2026-11-10
+updated: 2026-11-10
+due: 2026-11-10
+---
+# Revisit the palette
+--- project/.work/areas/core/aes8-write-release-notes.md
+---
+id: aes8
+kind: task
+state: open
+when: queue
+tags: []
+rank: 1
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Write release notes
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/m7sw-native-plants-only.md
+---
+id: m7sw
+kind: decision
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Native plants only
+
+Why: less water
+--- project/.work/areas/core/xcma-write-release-notes.md
+---
+id: xcma
+kind: task
+state: done
+when: queue
+tags: []
+rank: 2
+created: 2026-11-10
+updated: 2026-11-10
+done_on: 2026-11-10
+---
+# Write release notes
+--- project/.work/areas/core/xr8y-clay-soil-drains-slowly.md
+---
+id: xr8y
+kind: learning
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Clay soil drains slowly
+--- project/.work/areas/ui/area.md
+# ui
+
+Screens
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick]
+reviewed: '2026-12-20'
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/projects/yebg-garden-redesign/project.md
+---
+id: yebg
+kind: project
+state: open
+touches: [ui]
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Garden redesign
+
+## Goal
+
+## Acceptance
+--- project/.work/session.md
+Done: xcma Write release notes.
+Next: aes8 Write release notes (core).
+--- project/.work/summary.md
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Revisit the palette","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"project started","id":"yebg","title":"Garden redesign","home":"yebg"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"due","id":"4yrm","title":"Revisit the palette","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"decided","id":"m7sw","title":"Native plants only","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"learned","id":"xr8y","title":"Clay soil drains slowly","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"started","id":"xcma","title":"Write release notes","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"done","id":"xcma","title":"Write release notes","home":"core"}
+--- home/sessions/v2-<hash>.json
+{
+  "started": "2026-11-10T09:00:00.000Z",
+  "done": [],
+  "lastHome": null,
+  "freshFor": null,
+  "asked": []
+}
+
+== final tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-revisit-the-palette.md
+---
+id: "4yrm"
+kind: task
+state: open
+when: start:ui
+tags: []
+created: 2026-11-10
+updated: 2026-11-10
+due: 2026-11-10
+---
+# Revisit the palette
+--- project/.work/areas/core/aes8-write-release-notes.md
+---
+id: aes8
+kind: task
+state: open
+when: queue
+tags: []
+rank: 1
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Write release notes
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/m7sw-native-plants-only.md
+---
+id: m7sw
+kind: decision
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Native plants only
+
+Why: less water
+--- project/.work/areas/core/xcma-write-release-notes.md
+---
+id: xcma
+kind: task
+state: done
+when: queue
+tags: []
+rank: 2
+created: 2026-11-10
+updated: 2026-11-10
+done_on: 2026-11-10
+---
+# Write release notes
+--- project/.work/areas/core/xr8y-clay-soil-drains-slowly.md
+---
+id: xr8y
+kind: learning
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Clay soil drains slowly
+--- project/.work/areas/ui/area.md
+# ui
+
+Screens
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick]
+reviewed: '2026-12-20'
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/projects/yebg-garden-redesign/project.md
+---
+id: yebg
+kind: project
+state: open
+touches: [ui]
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Garden redesign
+
+## Goal
+
+## Acceptance
+--- project/.work/session.md
+Done: xcma Write release notes.
+Next: aes8 Write release notes (core).
+--- project/.work/summary.md
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Revisit the palette","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"project started","id":"yebg","title":"Garden redesign","home":"yebg"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"due","id":"4yrm","title":"Revisit the palette","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"decided","id":"m7sw","title":"Native plants only","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"learned","id":"xr8y","title":"Clay soil drains slowly","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"started","id":"xcma","title":"Write release notes","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"done","id":"xcma","title":"Write release notes","home":"core"}
+--- home/sessions/v2-<hash>.json
+{
+  "started": "2026-11-10T09:00:00.000Z",
+  "done": [],
+  "lastHome": null,
+  "freshFor": null,
+  "asked": []
+}

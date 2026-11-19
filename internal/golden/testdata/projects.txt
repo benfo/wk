@@ -1,0 +1,36 @@
+# Areas, projects, triggers, review and the project list.
+$ wk init --store repo --preset general
+$ wk area new ui "Screens"
+$ wk add "Revisit the palette" --when start:ui
+$ wk add "Write release notes" --when "end:zz"
+$ wk project new "Garden redesign" --touches ui,nowhere
+$ wk project new "Garden redesign" --touches ui
+$ wk project new "garden REDESIGN"
+$ wk add "Pick plants" --in aes8
+$ wk add "Order soil" --in aes8 --tags quick
+$ wk add "Write release notes" --when end:aes8 --force
+$ wk project
+$ wk project list --json
+$ wk project show aes8
+$ wk project close aes8
+$ wk start yebg
+$ wk decide "Native plants only" --why "less water"
+$ wk learn "Clay soil drains slowly"
+$ wk check --checked "looked fine"
+$ wk done yebg
+$ wk start xcma --no-branch
+$ wk done xcma --force
+$ wk project show aes8
+$ wk project close aes8
+$ wk ls due
+$ wk project
+$ wk review
+today 2026-12-20
+$ wk brief
+$ wk review
+$ wk review --done
+$ wk brief
+$ wk show yebg
+$ wk ls --archived
+$ wk show T-001
+tree

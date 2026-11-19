@@ -1,0 +1,564 @@
+$ wk brief
+! This is a v1 plan, which this version can't read. Convert it with wk migrate.
+[exit 1]
+$ wk migrate
+Migrated to v2: 2 epics → projects, 4 tasks, 1 ideas → someday tasks, 2 decisions, 1 learnings.
+3 principles in 2 areas, each still needing instead and because.
+2 archived. Old ids still work: wk show T-013.
+Backup of the v1 plan: <DIR>/.work.v1-backup
+Next: wk init (refreshes the skills), then follow wk guide migrate with the user.
+$ wk migrate
+Already a v2 plan. Nothing to migrate.
+$ wk show T-001
+xr8y  task · open · queue · xcma
+Build the page
+tags: ui
+was: T-001
+created 2026-01-03 · updated 2026-11-10
+
+With care.
+$ wk show t2
+xewh  task · open · queue · core
+Write copy
+wait: copywriter
+was: T-002
+created 2026-01-04 · updated 2026-11-10
+$ wk ls --all
+queue   xr8y Build the page (xcma) #ui
+queue   xewh Write copy [waiting: copywriter] (core)
+someday rrfd A dark mode (core)
+$ wk project
+xcma Launch  ░░░░░░░░░░  0/1
+  next   xr8y Build the page
+areas   core 2 · ui 0
+== tree
+--- project/.work.v1-backup/archive/T-004.md
+---
+title: Archived task
+status: done
+done_on: 2024-03-03
+---
+--- project/.work.v1-backup/config.yml
+version: 1
+store: repo
+git:
+  branch: epic
+  commit: checkpoint
+--- project/.work.v1-backup/decisions/D-001.md
+---
+title: Use plain files
+superseded_by: D-002
+---
+Because.
+--- project/.work.v1-backup/decisions/D-002.md
+---
+title: Use markdown files
+supersedes: D-001
+---
+--- project/.work.v1-backup/epics/E-001.md
+---
+title: Launch
+status: active
+created: 2026-01-02
+---
+Ship it.
+--- project/.work.v1-backup/epics/E-002.md
+---
+title: Old epic
+status: done
+done_on: 2025-05-01
+---
+--- project/.work.v1-backup/handoff.md
+Last time: T-002.
+--- project/.work.v1-backup/ideas/I-001.md
+---
+created: 2026-01-05
+---
+A dark mode
+for night owls
+--- project/.work.v1-backup/learnings/L-001.md
+---
+created: 2026-01-06
+---
+CRLF bites
+--- project/.work.v1-backup/principles/Core.md
+1. Write it down
+--- project/.work.v1-backup/principles/ui.md
+# UI
+1. Keep it calm
+2) One accent colour
+--- project/.work.v1-backup/project.md
+Name: Old plan
+--- project/.work.v1-backup/tasks/T-001.md
+---
+title: Build the page
+status: next
+epic: E-001
+tags: [ui]
+rank: 2
+created: 2026-01-03
+---
+With care.
+--- project/.work.v1-backup/tasks/T-002.md
+---
+title: Write copy
+status: next
+created: 2026-01-04
+blocked: true
+blocked_reason: copywriter
+---
+--- project/.work.v1-backup/tasks/T-003.md
+---
+title: Old thing
+status: done
+updated: 2025-02-02
+---
+--- project/.work/archive/.gitkeep
+--- project/.work/archive/2024/areas/core/agxd-archived-task.md
+---
+id: agxd
+kind: task
+state: done
+when: queue
+created: 2026-11-10
+updated: 2026-11-10
+done_on: 2024-03-03
+was: T-004
+---
+# Archived task
+--- project/.work/archive/2025/m7sw-old-epic/project.md
+---
+id: m7sw
+kind: project
+state: done
+touches: []
+was: E-002
+created: 2026-11-10
+updated: 2026-11-10
+done_on: 2025-05-01
+---
+# Old epic
+--- project/.work/areas/core/4yrm-write-it-down.md
+---
+id: "4yrm"
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: ""
+because: ""
+---
+# Write it down
+--- project/.work/areas/core/adbf-use-plain-files.md
+---
+id: adbf
+kind: decision
+created: 2026-11-10
+updated: 2026-11-10
+was: D-001
+superseded_by: bmcj
+---
+# Use plain files
+
+Because.
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/bmcj-use-markdown-files.md
+---
+id: bmcj
+kind: decision
+created: 2026-11-10
+updated: 2026-11-10
+was: D-002
+supersedes: adbf
+---
+# Use markdown files
+--- project/.work/areas/core/gjgk-crlf-bites.md
+---
+id: gjgk
+kind: learning
+created: 2026-01-06
+updated: 2026-11-10
+was: L-001
+---
+# CRLF bites
+--- project/.work/areas/core/rrfd-a-dark-mode.md
+---
+id: rrfd
+kind: task
+state: open
+when: someday
+created: 2026-01-05
+updated: 2026-11-10
+was: I-001
+---
+# A dark mode
+
+for night owls
+--- project/.work/areas/core/vn5c-old-thing.md
+---
+id: vn5c
+kind: task
+state: done
+when: queue
+created: 2026-11-10
+updated: 2025-02-02
+was: T-003
+---
+# Old thing
+--- project/.work/areas/core/xewh-write-copy.md
+---
+id: xewh
+kind: task
+state: open
+when: queue
+rank: 2
+wait: copywriter
+created: 2026-01-04
+updated: 2026-11-10
+was: T-002
+wait_since: 2026-11-10
+---
+# Write copy
+--- project/.work/areas/ui/aes8-keep-it-calm.md
+---
+id: aes8
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: ""
+because: ""
+---
+# Keep it calm
+--- project/.work/areas/ui/area.md
+# ui
+
+Migrated from v1 principles/ui.md.
+--- project/.work/areas/ui/yebg-one-accent-colour.md
+---
+id: yebg
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: ""
+because: ""
+---
+# One accent colour
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch: project
+    commit: check
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick, ui]
+reviewed:
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/projects/xcma-launch/project.md
+---
+id: xcma
+kind: project
+state: open
+touches: [ui]
+was: E-001
+created: 2026-01-02
+updated: 2026-11-10
+---
+# Launch
+
+Ship it.
+--- project/.work/projects/xcma-launch/xr8y-build-the-page.md
+---
+id: xr8y
+kind: task
+state: open
+when: queue
+tags: [ui]
+rank: 1
+created: 2026-01-03
+updated: 2026-11-10
+was: T-001
+---
+# Build the page
+
+With care.
+--- project/.work/session.md
+Last time: T-002.
+--- project/.work/summary.md
+Name: Old plan
+
+== final tree
+--- project/.work.v1-backup/archive/T-004.md
+---
+title: Archived task
+status: done
+done_on: 2024-03-03
+---
+--- project/.work.v1-backup/config.yml
+version: 1
+store: repo
+git:
+  branch: epic
+  commit: checkpoint
+--- project/.work.v1-backup/decisions/D-001.md
+---
+title: Use plain files
+superseded_by: D-002
+---
+Because.
+--- project/.work.v1-backup/decisions/D-002.md
+---
+title: Use markdown files
+supersedes: D-001
+---
+--- project/.work.v1-backup/epics/E-001.md
+---
+title: Launch
+status: active
+created: 2026-01-02
+---
+Ship it.
+--- project/.work.v1-backup/epics/E-002.md
+---
+title: Old epic
+status: done
+done_on: 2025-05-01
+---
+--- project/.work.v1-backup/handoff.md
+Last time: T-002.
+--- project/.work.v1-backup/ideas/I-001.md
+---
+created: 2026-01-05
+---
+A dark mode
+for night owls
+--- project/.work.v1-backup/learnings/L-001.md
+---
+created: 2026-01-06
+---
+CRLF bites
+--- project/.work.v1-backup/principles/Core.md
+1. Write it down
+--- project/.work.v1-backup/principles/ui.md
+# UI
+1. Keep it calm
+2) One accent colour
+--- project/.work.v1-backup/project.md
+Name: Old plan
+--- project/.work.v1-backup/tasks/T-001.md
+---
+title: Build the page
+status: next
+epic: E-001
+tags: [ui]
+rank: 2
+created: 2026-01-03
+---
+With care.
+--- project/.work.v1-backup/tasks/T-002.md
+---
+title: Write copy
+status: next
+created: 2026-01-04
+blocked: true
+blocked_reason: copywriter
+---
+--- project/.work.v1-backup/tasks/T-003.md
+---
+title: Old thing
+status: done
+updated: 2025-02-02
+---
+--- project/.work/archive/.gitkeep
+--- project/.work/archive/2024/areas/core/agxd-archived-task.md
+---
+id: agxd
+kind: task
+state: done
+when: queue
+created: 2026-11-10
+updated: 2026-11-10
+done_on: 2024-03-03
+was: T-004
+---
+# Archived task
+--- project/.work/archive/2025/m7sw-old-epic/project.md
+---
+id: m7sw
+kind: project
+state: done
+touches: []
+was: E-002
+created: 2026-11-10
+updated: 2026-11-10
+done_on: 2025-05-01
+---
+# Old epic
+--- project/.work/areas/core/4yrm-write-it-down.md
+---
+id: "4yrm"
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: ""
+because: ""
+---
+# Write it down
+--- project/.work/areas/core/adbf-use-plain-files.md
+---
+id: adbf
+kind: decision
+created: 2026-11-10
+updated: 2026-11-10
+was: D-001
+superseded_by: bmcj
+---
+# Use plain files
+
+Because.
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/bmcj-use-markdown-files.md
+---
+id: bmcj
+kind: decision
+created: 2026-11-10
+updated: 2026-11-10
+was: D-002
+supersedes: adbf
+---
+# Use markdown files
+--- project/.work/areas/core/gjgk-crlf-bites.md
+---
+id: gjgk
+kind: learning
+created: 2026-01-06
+updated: 2026-11-10
+was: L-001
+---
+# CRLF bites
+--- project/.work/areas/core/rrfd-a-dark-mode.md
+---
+id: rrfd
+kind: task
+state: open
+when: someday
+created: 2026-01-05
+updated: 2026-11-10
+was: I-001
+---
+# A dark mode
+
+for night owls
+--- project/.work/areas/core/vn5c-old-thing.md
+---
+id: vn5c
+kind: task
+state: done
+when: queue
+created: 2026-11-10
+updated: 2025-02-02
+was: T-003
+---
+# Old thing
+--- project/.work/areas/core/xewh-write-copy.md
+---
+id: xewh
+kind: task
+state: open
+when: queue
+rank: 2
+wait: copywriter
+created: 2026-01-04
+updated: 2026-11-10
+was: T-002
+wait_since: 2026-11-10
+---
+# Write copy
+--- project/.work/areas/ui/aes8-keep-it-calm.md
+---
+id: aes8
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: ""
+because: ""
+---
+# Keep it calm
+--- project/.work/areas/ui/area.md
+# ui
+
+Migrated from v1 principles/ui.md.
+--- project/.work/areas/ui/yebg-one-accent-colour.md
+---
+id: yebg
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: ""
+because: ""
+---
+# One accent colour
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch: project
+    commit: check
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick, ui]
+reviewed:
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/projects/xcma-launch/project.md
+---
+id: xcma
+kind: project
+state: open
+touches: [ui]
+was: E-001
+created: 2026-01-02
+updated: 2026-11-10
+---
+# Launch
+
+Ship it.
+--- project/.work/projects/xcma-launch/xr8y-build-the-page.md
+---
+id: xr8y
+kind: task
+state: open
+when: queue
+tags: [ui]
+rank: 1
+created: 2026-01-03
+updated: 2026-11-10
+was: T-001
+---
+# Build the page
+
+With care.
+--- project/.work/session.md
+Last time: T-002.
+--- project/.work/summary.md
+Name: Old plan

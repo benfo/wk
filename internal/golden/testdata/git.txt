@@ -1,0 +1,41 @@
+# Plans inside git: stores, ignores, workflow, branches and the change summary at check.
+$ git init -q -b main
+$ git config user.email test@example.com
+$ git config user.name Test
+$ git config commit.gpgsign false
+write README.md hello\n
+write TODO.md - one\n
+write src/app.js // TODO: tidy\n// FIXME later\n
+write CLAUDE.md # House rules\nUse tabs.\n
+$ git add .
+$ git commit -q -m init
+$ wk init --store local
+$ wk init --store local
+$ wk brief
+$ wk setup
+$ wk add "Fix the login bug"
+$ wk add "Speed up search"
+$ wk start 4yrm
+$ wk check
+$ wk config set git.branch task
+$ wk config set git.commit check
+$ wk config set commit_style "short, imperative"
+$ wk done 4yrm --force
+$ wk start aes8
+write src/search.js fast()\n
+write src/app.js changed\n
+$ wk check --test "Search feels instant"
+$ wk done aes8
+$ wk add "Write docs"
+$ wk start yebg --no-branch
+$ wk wait yebg "review"
+$ wk config set git.branch project
+$ wk project new "Search revamp"
+$ wk add "Index titles" --in xcma
+$ wk start m7sw
+$ wk brief --json
+$ wk board --out board.html
+$ wk setup --done
+write AGENTS.md # Agents\nBe brief.\n
+$ wk brief
+tree

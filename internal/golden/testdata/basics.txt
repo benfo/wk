@@ -1,0 +1,50 @@
+# A plan outside git: init, add, show, ls, move, tags, next, brief, json.
+$ wk
+$ wk init
+$ wk init --store nowhere
+$ wk init --store ignore
+$ wk init --store repo
+$ wk init --store home
+$ wk add "Water the plants"
+$ wk add "Water the plants"
+$ wk add "Water all the plants" --force --tags garden,quick
+$ wk add "Fix the gate latch" --tags bug --body "It sticks.\nUse oil."
+$ wk add "Paint the fence" --when later --tags gardn
+$ wk add "Repaint the shed someday" --when someday
+$ wk add "A title that is far far far too long to fit in the seventy character limit"
+$ wk add
+$ wk ls
+$ wk ls --json
+$ wk ls bug
+$ wk ls later
+$ wk ls nothing-here
+$ wk tags
+$ wk tags --json
+$ wk next
+$ wk next --json
+$ wk show zz
+$ wk show "not an id!"
+$ wk move
+$ wk move yebg
+$ wk move yebg --top
+$ wk move xcma --when next
+$ wk move m7sw --before 4yrm
+$ wk move m7sw --when queue
+$ wk move 4yrm --after m7sw
+$ wk move 4yrm --top --bottom
+$ wk move aes8 --when "on:2026-12-01"
+$ wk move aes8 --when "on:2026-13-01"
+$ wk move aes8 --when soonish
+$ wk ls queued
+$ wk show yebg
+$ wk show yebg --json
+$ wk show y --all
+$ wk brief
+$ wk brief --json
+$ wk config
+$ wk config --json
+$ wk summary
+$ wk summary "Name: Garden jobs\nWho: me"
+$ wk summary
+$ wk frobnicate
+tree

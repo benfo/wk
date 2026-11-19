@@ -1,0 +1,394 @@
+$ wk init --store repo --preset general
+Created <DIR>/.work (preset: general)
+Skills: .claude/skills/wk, .claude/skills/wk-setup
+Added the wk pointer to AGENTS.md
+Next: wk brief, then the wk-setup skill (wk guide setup).
+$ wk area new ui "Screens, layout\nand styling"
+Area ui: Screens, layout
+$ wk area new ui "again"
+! Area ui already exists.
+[exit 1]
+$ wk area new "Bad Name" "x"
+! Area names are lowercase letters, digits and dashes, like ui or front-end.
+[exit 1]
+$ wk area new docs
+! Describe the area in a line: wk area new docs "<what it covers>"
+[exit 1]
+$ wk area
+core       0 open tasks, 0 principles  Always in scope. Its principles load for every task; items with no better home live here.
+ui         0 open tasks, 0 principles  Screens, layout
+$ wk decide "Use plain files"
+! A decision needs a reason: --why "<why>"
+[exit 1]
+$ wk decide "Use plain files" --why "Diffs stay readable\nNo server" --rejected "A database"
+Decision 4yrm Use plain files (core)
+$ wk learn "Git stores CRLF on Windows\nset autocrlf"
+Learning aes8 Git stores CRLF on Windows (core)
+$ wk learn "1\n2\n3"
+! Learning is 3 lines, limit is 2 (1 over). Shorten it.
+[exit 1]
+$ wk principle "Keep commands short"
+! Name the default it overrides: --instead "<what a model would do otherwise>". If there is none, it isn't a principle.
+[exit 1]
+$ wk principle "Keep commands short" --instead "long flags"
+! Say why: --because "<reason>"
+[exit 1]
+$ wk principle "Keep commands short" --instead "long flags" --because "agents type them\nmany times" --in ui --test "lint:flags"
+Principle yebg Keep commands short (ui)
+$ wk principle "Keep all commands short" --instead "x" --because "y" --in ui
+! Similar: yebg Keep commands short
+! Edit or supersede it instead.
+[exit 1]
+$ wk principle "Prefer files" --instead "databases" --because "diffs" --from 4yrm
+Principle xcma Prefer files (core)
+$ wk principle "Prefer text" --instead "binary" --because "diffs" --from aes8
+Principle m7sw Prefer text (core)
+$ wk principle "Old rule" --instead "a" --because "b" --in ui
+Principle xr8y Old rule (ui)
+$ wk supersede 4yrm aes8
+! 4yrm is a decision; aes8 is a learning.
+[exit 1]
+$ wk area list
+core       0 open tasks, 2 principles  Always in scope. Its principles load for every task; items with no better home live here.
+ui         0 open tasks, 2 principles  Screens, layout
+$ wk show aes8
+aes8  learning · core
+Git stores CRLF on Windows
+distilled_into: m7sw
+created 2026-11-10 · updated 2026-11-10
+
+set autocrlf
+$ wk add "Polish the header"
+Added xewh Polish the header (core)
+$ wk add "Header polish pass" --force --tags ux
+Added vn5c Header polish pass (core)
+New tag: ux (known: quick).
+$ wk add "Fix the footer"
+Added rrfd Fix the footer (core)
+$ wk edit 4yrm --title "Nope"
+! Decisions are never edited. Record a new one and run: wk supersede <old> <new>
+[exit 1]
+$ wk edit xcma
+! Nothing to change. Use --title, --body, --tags, --instead, --because or --ref.
+[exit 1]
+$ wk edit xcma --title "Fix the sticky footer" --tags bug,ux --ref T-12 --body "Seen on mobile"
+Updated xcma Fix the sticky footer
+$ wk edit xcma --instead "nothing"
+Updated xcma Fix the sticky footer
+$ wk merge 4yrm 4yrm
+! Can't merge an item into itself.
+[exit 1]
+$ wk ls
+queue   xewh Polish the header (core)
+queue   vn5c Header polish pass (core) #ux
+queue   rrfd Fix the footer (core)
+$ wk drop 4yrm
+! decisions are superseded, not dropped: wk supersede <old> <new>
+[exit 1]
+== tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-use-plain-files.md
+---
+id: "4yrm"
+kind: decision
+created: 2026-11-10
+updated: 2026-11-10
+distilled_into: xcma
+---
+# Use plain files
+
+Why: Diffs stay readable
+  No server
+Rejected: A database
+--- project/.work/areas/core/aes8-git-stores-crlf-on-windows.md
+---
+id: aes8
+kind: learning
+created: 2026-11-10
+updated: 2026-11-10
+distilled_into: m7sw
+---
+# Git stores CRLF on Windows
+
+set autocrlf
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/m7sw-prefer-text.md
+---
+id: m7sw
+kind: principle
+from: aes8
+created: 2026-11-10
+updated: 2026-11-10
+instead: binary
+because: diffs
+---
+# Prefer text
+--- project/.work/areas/core/rrfd-fix-the-footer.md
+---
+id: rrfd
+kind: task
+state: open
+when: queue
+tags: []
+rank: 3
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Fix the footer
+--- project/.work/areas/core/vn5c-header-polish-pass.md
+---
+id: vn5c
+kind: task
+state: open
+when: queue
+tags: [ux]
+rank: 2
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Header polish pass
+--- project/.work/areas/core/xcma-fix-the-sticky-footer.md
+---
+id: xcma
+kind: principle
+tags: [bug, ux]
+from: "4yrm"
+ref: T-12
+created: 2026-11-10
+updated: 2026-11-10
+instead: nothing
+because: diffs
+---
+# Fix the sticky footer
+
+Seen on mobile
+--- project/.work/areas/core/xewh-polish-the-header.md
+---
+id: xewh
+kind: task
+state: open
+when: queue
+tags: []
+rank: 1
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Polish the header
+--- project/.work/areas/ui/area.md
+# ui
+
+Screens, layout
+and styling
+--- project/.work/areas/ui/xr8y-old-rule.md
+---
+id: xr8y
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: a
+because: b
+---
+# Old rule
+--- project/.work/areas/ui/yebg-keep-commands-short.md
+---
+id: yebg
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: long flags
+because: "agents type them\nmany times"
+test: lint:flags
+---
+# Keep commands short
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick]
+reviewed:
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/session.md
+--- project/.work/summary.md
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"decided","id":"4yrm","title":"Use plain files","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"learned","id":"aes8","title":"Git stores CRLF on Windows","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"new principle","id":"yebg","title":"Keep commands short","home":"ui"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"new principle","id":"xcma","title":"Prefer files","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"new principle","id":"m7sw","title":"Prefer text","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"new principle","id":"xr8y","title":"Old rule","home":"ui"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"xewh","title":"Polish the header","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"vn5c","title":"Header polish pass","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"rrfd","title":"Fix the footer","home":"core"}
+
+== final tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-use-plain-files.md
+---
+id: "4yrm"
+kind: decision
+created: 2026-11-10
+updated: 2026-11-10
+distilled_into: xcma
+---
+# Use plain files
+
+Why: Diffs stay readable
+  No server
+Rejected: A database
+--- project/.work/areas/core/aes8-git-stores-crlf-on-windows.md
+---
+id: aes8
+kind: learning
+created: 2026-11-10
+updated: 2026-11-10
+distilled_into: m7sw
+---
+# Git stores CRLF on Windows
+
+set autocrlf
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/m7sw-prefer-text.md
+---
+id: m7sw
+kind: principle
+from: aes8
+created: 2026-11-10
+updated: 2026-11-10
+instead: binary
+because: diffs
+---
+# Prefer text
+--- project/.work/areas/core/rrfd-fix-the-footer.md
+---
+id: rrfd
+kind: task
+state: open
+when: queue
+tags: []
+rank: 3
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Fix the footer
+--- project/.work/areas/core/vn5c-header-polish-pass.md
+---
+id: vn5c
+kind: task
+state: open
+when: queue
+tags: [ux]
+rank: 2
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Header polish pass
+--- project/.work/areas/core/xcma-fix-the-sticky-footer.md
+---
+id: xcma
+kind: principle
+tags: [bug, ux]
+from: "4yrm"
+ref: T-12
+created: 2026-11-10
+updated: 2026-11-10
+instead: nothing
+because: diffs
+---
+# Fix the sticky footer
+
+Seen on mobile
+--- project/.work/areas/core/xewh-polish-the-header.md
+---
+id: xewh
+kind: task
+state: open
+when: queue
+tags: []
+rank: 1
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Polish the header
+--- project/.work/areas/ui/area.md
+# ui
+
+Screens, layout
+and styling
+--- project/.work/areas/ui/xr8y-old-rule.md
+---
+id: xr8y
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: a
+because: b
+---
+# Old rule
+--- project/.work/areas/ui/yebg-keep-commands-short.md
+---
+id: yebg
+kind: principle
+created: 2026-11-10
+updated: 2026-11-10
+instead: long flags
+because: "agents type them\nmany times"
+test: lint:flags
+---
+# Keep commands short
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick]
+reviewed:
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/session.md
+--- project/.work/summary.md
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"decided","id":"4yrm","title":"Use plain files","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"learned","id":"aes8","title":"Git stores CRLF on Windows","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"new principle","id":"yebg","title":"Keep commands short","home":"ui"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"new principle","id":"xcma","title":"Prefer files","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"new principle","id":"m7sw","title":"Prefer text","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"new principle","id":"xr8y","title":"Old rule","home":"ui"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"xewh","title":"Polish the header","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"vn5c","title":"Header polish pass","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"rrfd","title":"Fix the footer","home":"core"}

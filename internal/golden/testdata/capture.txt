@@ -1,0 +1,27 @@
+# Jots, the inbox, attachments, --from lists and the board.
+$ wk init --store repo --preset general
+$ wk jot "Idea: a dark mode"
+$ wk jot ""
+$ wk jot "A very long first line that keeps going and going well past the seventy character title limit for sure"
+write shot.png PNGDATA
+$ wk jot "Bug: header overlaps" --file shot.png --file shot.png
+$ wk jot "x" --file missing.png
+$ wk inbox
+$ wk inbox --json
+$ wk move 4yrm --when later
+$ wk move 4yrm --in inbox
+$ wk move 4yrm --in core --when someday
+$ wk move yebg --in core
+$ wk show yebg
+write list.md - [ ] Buy seeds\n* Rake leaves\n1. Fix hose\n\n- [x] Buy seeds
+$ wk add --from list.md
+write list.md - [ ] Buy seeds\n* Rake leaves\n1. Fix hose
+$ wk add --from list.md --json
+stdin Sweep the path\nOil the hinges
+$ wk add --from -
+$ wk add "x" --from list.md
+$ wk add --from nothing.md
+$ wk brief
+$ wk board --out out/board.html
+$ wk board
+tree

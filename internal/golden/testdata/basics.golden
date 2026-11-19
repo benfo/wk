@@ -1,0 +1,625 @@
+$ wk
+! No wk plan found for this project. Run: wk init --store <repo|ignore|local|home>
+[exit 1]
+$ wk init
+! Choose where to keep the plan:
+!   wk init --store repo     .work/ in the repo, committed
+!   wk init --store ignore   .work/ in the repo, listed in .gitignore
+!   wk init --store local    .work/ in the repo, listed in .git/info/exclude (only you)
+!   wk init --store home     outside the repo, in ~/.wk/projects/<slug>/
+[exit 1]
+$ wk init --store nowhere
+! Unknown store "nowhere".
+! Choose where to keep the plan:
+!   wk init --store repo     .work/ in the repo, committed
+!   wk init --store ignore   .work/ in the repo, listed in .gitignore
+!   wk init --store local    .work/ in the repo, listed in .git/info/exclude (only you)
+!   wk init --store home     outside the repo, in ~/.wk/projects/<slug>/
+[exit 1]
+$ wk init --store ignore
+! --store ignore needs a git repo. Use --store repo or --store home here.
+[exit 1]
+$ wk init --store repo
+Created <DIR>/.work (preset: general)
+Skills: .claude/skills/wk, .claude/skills/wk-setup
+Added the wk pointer to AGENTS.md
+Next: wk brief, then the wk-setup skill (wk guide setup).
+$ wk init --store home
+Already set up (store: repo): <DIR>/.work
+Not moving it to "home". Moving a plan is not supported.
+Skills: .claude/skills/wk, .claude/skills/wk-setup
+$ wk add "Water the plants"
+Added 4yrm Water the plants (core)
+$ wk add "Water the plants"
+! Similar: 4yrm Water the plants
+! Update or merge the existing item, or rerun with --force.
+[exit 1]
+$ wk add "Water all the plants" --force --tags garden,quick
+Added aes8 Water all the plants (core)
+New tag: garden (known: quick).
+$ wk add "Fix the gate latch" --tags bug --body "It sticks.\nUse oil."
+Added yebg Fix the gate latch (core)
+New tag: bug (known: garden, quick).
+$ wk add "Paint the fence" --when later --tags gardn
+Added xcma Paint the fence (core, when later)
+New tag: gardn. Did you mean garden?
+$ wk add "Repaint the shed someday" --when someday
+Added m7sw Repaint the shed someday (core, when someday)
+$ wk add "A title that is far far far too long to fit in the seventy character limit"
+! Task title is 74 characters, limit is 70 (4 over). Shorten it.
+[exit 1]
+$ wk add
+! Give a title: wk add "<title>" (or --from <file>)
+[exit 1]
+$ wk ls
+queue   4yrm Water the plants (core)
+queue   aes8 Water all the plants (core) #garden #quick
+queue   yebg Fix the gate latch (core) #bug
+later   xcma Paint the fence (core) #gardn
+someday m7sw Repaint the shed someday (core)
+$ wk ls --json
+[
+  {
+    "id": "4yrm",
+    "kind": "task",
+    "state": "open",
+    "when": "queue",
+    "tags": [],
+    "rank": 1,
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "title": "Water the plants",
+    "body": "",
+    "home": "core",
+    "archived": false
+  },
+  {
+    "id": "aes8",
+    "kind": "task",
+    "state": "open",
+    "when": "queue",
+    "tags": [
+      "garden",
+      "quick"
+    ],
+    "rank": 2,
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "title": "Water all the plants",
+    "body": "",
+    "home": "core",
+    "archived": false
+  },
+  {
+    "id": "yebg",
+    "kind": "task",
+    "state": "open",
+    "when": "queue",
+    "tags": [
+      "bug"
+    ],
+    "rank": 3,
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "title": "Fix the gate latch",
+    "body": "It sticks.\nUse oil.",
+    "home": "core",
+    "archived": false
+  },
+  {
+    "id": "xcma",
+    "kind": "task",
+    "state": "open",
+    "when": "later",
+    "tags": [
+      "gardn"
+    ],
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "title": "Paint the fence",
+    "body": "",
+    "home": "core",
+    "archived": false
+  },
+  {
+    "id": "m7sw",
+    "kind": "task",
+    "state": "open",
+    "when": "someday",
+    "tags": [],
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "title": "Repaint the shed someday",
+    "body": "",
+    "home": "core",
+    "archived": false
+  }
+]
+$ wk ls bug
+queue   yebg Fix the gate latch (core) #bug
+$ wk ls later
+later   xcma Paint the fence (core) #gardn
+$ wk ls nothing-here
+Nothing matches: nothing-here
+$ wk tags
+bug 1, garden 1, gardn 1, quick 1
+$ wk tags --json
+{
+  "bug": 1,
+  "garden": 1,
+  "gardn": 1,
+  "quick": 1
+}
+$ wk next
+now    (nothing in progress)
+next   4yrm Water the plants (core)
+next   aes8 Water all the plants (core)
+next   yebg Fix the gate latch (core)
+$ wk next --json
+{
+  "now": null,
+  "review": [],
+  "queue": [
+    {
+      "id": "4yrm",
+      "kind": "task",
+      "state": "open",
+      "when": "queue",
+      "tags": [],
+      "rank": 1,
+      "created": "2026-11-10",
+      "updated": "2026-11-10",
+      "title": "Water the plants",
+      "body": "",
+      "home": "core",
+      "archived": false
+    },
+    {
+      "id": "aes8",
+      "kind": "task",
+      "state": "open",
+      "when": "queue",
+      "tags": [
+        "garden",
+        "quick"
+      ],
+      "rank": 2,
+      "created": "2026-11-10",
+      "updated": "2026-11-10",
+      "title": "Water all the plants",
+      "body": "",
+      "home": "core",
+      "archived": false
+    },
+    {
+      "id": "yebg",
+      "kind": "task",
+      "state": "open",
+      "when": "queue",
+      "tags": [
+        "bug"
+      ],
+      "rank": 3,
+      "created": "2026-11-10",
+      "updated": "2026-11-10",
+      "title": "Fix the gate latch",
+      "body": "It sticks.\nUse oil.",
+      "home": "core",
+      "archived": false
+    }
+  ],
+  "queue_total": 3,
+  "due": [],
+  "waiting": []
+}
+$ wk show zz
+! No item zz.
+[exit 1]
+$ wk show "not an id!"
+! "not an id!" is not an id. Ids look like r8vn.
+[exit 1]
+$ wk move
+! error: missing required argument 'id'
+[exit 1]
+$ wk move yebg
+! Say what changes: --in <home>, --when <when>, or a place (--before, --after, --top, --bottom).
+[exit 1]
+$ wk move yebg --top
+Moved yebg Fix the gate latch: #1 of 3 in the queue
+$ wk move xcma --when next
+Moved xcma Paint the fence: #1 of 4 in the queue
+$ wk move m7sw --before 4yrm
+! m7sw isn't in the queue. Queue it with --when queue or --when next.
+[exit 1]
+$ wk move m7sw --when queue
+Moved m7sw Repaint the shed someday: #5 of 5 in the queue
+$ wk move 4yrm --after m7sw
+Moved 4yrm Water the plants: #5 of 5 in the queue
+$ wk move 4yrm --top --bottom
+! Give one place: --before <id>, --after <id>, --top or --bottom.
+[exit 1]
+$ wk move aes8 --when "on:2026-12-01"
+Moved aes8 Water all the plants: when on:2026-12-01
+$ wk move aes8 --when "on:2026-13-01"
+! on: needs a date like 2026-12-01, not "2026-13-01".
+[exit 1]
+$ wk move aes8 --when soonish
+! Unknown when "soonish". Use next, queue, later, someday, after:<id>, end:<project>, start:<area> or on:<YYYY-MM-DD>.
+[exit 1]
+$ wk ls queued
+next    xcma Paint the fence (core) #gardn
+queue   yebg Fix the gate latch (core) #bug
+queue   m7sw Repaint the shed someday (core)
+queue   4yrm Water the plants (core)
+$ wk show yebg
+yebg  task · open · queue · core
+Fix the gate latch
+tags: bug
+created 2026-11-10 · updated 2026-11-10
+
+It sticks.
+Use oil.
+$ wk show yebg --json
+{
+  "id": "yebg",
+  "kind": "task",
+  "state": "open",
+  "when": "queue",
+  "tags": [
+    "bug"
+  ],
+  "rank": 0,
+  "created": "2026-11-10",
+  "updated": "2026-11-10",
+  "title": "Fix the gate latch",
+  "body": "It sticks.\nUse oil.",
+  "home": "core",
+  "archived": false
+}
+$ wk show y --all
+yebg  task · open · queue · core
+Fix the gate latch
+tags: bug
+created 2026-11-10 · updated 2026-11-10
+
+It sticks.
+Use oil.
+$ wk brief
+No summary yet.
+No principles yet. Offer a principles session (wk guide principles).
+Handoff: none yet.
+now    (nothing in progress)
+next   xcma Paint the fence (core)
+next   yebg Fix the gate latch (core)
+next   m7sw Repaint the shed someday (core)
+       +1 more queued (wk ls queued)
+$ wk brief --json
+{
+  "summary": null,
+  "handoff": null,
+  "now": null,
+  "review": [],
+  "queue": [
+    {
+      "id": "xcma",
+      "kind": "task",
+      "state": "open",
+      "when": "next",
+      "tags": [
+        "gardn"
+      ],
+      "rank": -1,
+      "created": "2026-11-10",
+      "updated": "2026-11-10",
+      "title": "Paint the fence",
+      "body": "",
+      "home": "core",
+      "archived": false
+    },
+    {
+      "id": "yebg",
+      "kind": "task",
+      "state": "open",
+      "when": "queue",
+      "tags": [
+        "bug"
+      ],
+      "rank": 0,
+      "created": "2026-11-10",
+      "updated": "2026-11-10",
+      "title": "Fix the gate latch",
+      "body": "It sticks.\nUse oil.",
+      "home": "core",
+      "archived": false
+    },
+    {
+      "id": "m7sw",
+      "kind": "task",
+      "state": "open",
+      "when": "queue",
+      "tags": [],
+      "rank": 3,
+      "created": "2026-11-10",
+      "updated": "2026-11-10",
+      "title": "Repaint the shed someday",
+      "body": "",
+      "home": "core",
+      "archived": false
+    }
+  ],
+  "queue_total": 4,
+  "due": [],
+  "waiting": [],
+  "empty_plan": false,
+  "workflow": {
+    "git": {
+      "branch": null,
+      "commit": null
+    },
+    "commit_style": null,
+    "checks": {
+      "quick": null,
+      "full": null
+    },
+    "tracker": null
+  }
+}
+$ wk config
+store: repo · preset: general
+git.branch: (not chosen) · git.commit: (not chosen)
+commit_style: -
+checks.quick: - · checks.full: -
+tracker: - · tags: quick
+reviewed: never
+$ wk config --json
+{
+  "version": 2,
+  "store": "repo",
+  "preset": "general",
+  "workflow": {
+    "git": {
+      "branch": null,
+      "commit": null
+    },
+    "commit_style": null,
+    "checks": {
+      "quick": null,
+      "full": null
+    },
+    "tracker": null
+  },
+  "tags": [
+    "quick"
+  ],
+  "reviewed": null,
+  "setup": null
+}
+$ wk summary
+No summary yet. Write one: wk summary "What: …\nWho: …\nGoal: …\nOut of scope: …\nDone when: …"
+$ wk summary "Name: Garden jobs\nWho: me"
+Summary saved (2 lines).
+$ wk summary
+Name: Garden jobs
+Who: me
+$ wk frobnicate
+! Unknown command "frobnicate". See wk --help.
+[exit 1]
+== tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-water-the-plants.md
+---
+id: "4yrm"
+kind: task
+state: open
+when: queue
+tags: []
+rank: 4
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Water the plants
+--- project/.work/areas/core/aes8-water-all-the-plants.md
+---
+id: aes8
+kind: task
+state: open
+when: on:2026-12-01
+tags: [garden, quick]
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Water all the plants
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/m7sw-repaint-the-shed-someday.md
+---
+id: m7sw
+kind: task
+state: open
+when: queue
+tags: []
+rank: 3
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Repaint the shed someday
+--- project/.work/areas/core/xcma-paint-the-fence.md
+---
+id: xcma
+kind: task
+state: open
+when: next
+tags: [gardn]
+rank: -1
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Paint the fence
+--- project/.work/areas/core/yebg-fix-the-gate-latch.md
+---
+id: yebg
+kind: task
+state: open
+when: queue
+tags: [bug]
+rank: 0
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Fix the gate latch
+
+It sticks.
+Use oil.
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick]
+reviewed:
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/session.md
+--- project/.work/summary.md
+Name: Garden jobs
+Who: me
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Water the plants","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"aes8","title":"Water all the plants","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"yebg","title":"Fix the gate latch","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"xcma","title":"Paint the fence","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"m7sw","title":"Repaint the shed someday","home":"core"}
+--- home/sessions/v2-<hash>.json
+{
+  "started": "2026-11-10T09:00:00.000Z",
+  "done": [],
+  "lastHome": null,
+  "freshFor": null,
+  "asked": []
+}
+
+== final tree
+--- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
+--- project/.claude/skills/wk/SKILL.md (packaged skill)
+--- project/.work/archive/.gitkeep
+--- project/.work/areas/core/4yrm-water-the-plants.md
+---
+id: "4yrm"
+kind: task
+state: open
+when: queue
+tags: []
+rank: 4
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Water the plants
+--- project/.work/areas/core/aes8-water-all-the-plants.md
+---
+id: aes8
+kind: task
+state: open
+when: on:2026-12-01
+tags: [garden, quick]
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Water all the plants
+--- project/.work/areas/core/area.md
+# core
+
+Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/m7sw-repaint-the-shed-someday.md
+---
+id: m7sw
+kind: task
+state: open
+when: queue
+tags: []
+rank: 3
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Repaint the shed someday
+--- project/.work/areas/core/xcma-paint-the-fence.md
+---
+id: xcma
+kind: task
+state: open
+when: next
+tags: [gardn]
+rank: -1
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Paint the fence
+--- project/.work/areas/core/yebg-fix-the-gate-latch.md
+---
+id: yebg
+kind: task
+state: open
+when: queue
+tags: [bug]
+rank: 0
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Fix the gate latch
+
+It sticks.
+Use oil.
+--- project/.work/config.yml
+# wk plan settings. Change them with: wk config set <key> <value>
+# workflow.git: branch none|task|project, commit ask|task|check; empty means not chosen yet.
+version: 2
+store: repo
+preset: general
+workflow:
+  git:
+    branch:
+    commit:
+  commit_style:
+  checks:
+    quick:
+    full:
+  tracker:
+tags: [quick]
+reviewed:
+--- project/.work/inbox/.gitkeep
+--- project/.work/projects/.gitkeep
+--- project/.work/session.md
+--- project/.work/summary.md
+Name: Garden jobs
+Who: me
+--- project/AGENTS.md
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+--- home/events/<hash>.jsonl
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Water the plants","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"aes8","title":"Water all the plants","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"yebg","title":"Fix the gate latch","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"xcma","title":"Paint the fence","home":"core"}
+{"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"m7sw","title":"Repaint the shed someday","home":"core"}
+--- home/sessions/v2-<hash>.json
+{
+  "started": "2026-11-10T09:00:00.000Z",
+  "done": [],
+  "lastHome": null,
+  "freshFor": null,
+  "asked": []
+}

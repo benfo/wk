@@ -1,0 +1,30 @@
+# Command-line parsing: unknown options, missing arguments, json errors, help.
+$ wk init --store repo --preset general
+$ wk add
+$ wk show
+$ wk add "x" --frce
+$ wk add "x" --in
+$ wk add "x" --tag bug
+$ wk ls --json --bogus
+$ wk show nope --json
+$ wk --json show nope
+$ wk add "Spaced -- out" --tags=a,b
+$ wk add -- "--weird title"
+$ wk ls --all
+$ wk config set
+$ wk config set nope 1
+$ wk config set git.branch sideways
+$ wk config set checks.quick "npm test"
+$ wk config set commit_style "one line: no body # ok"
+$ wk config set tracker none
+$ wk config set tags "Bug, ux,"
+$ wk config set workflow.checks.full "make check"
+$ wk config set preset software
+$ wk config
+$ wk config --json
+$ wk handoff "Done for today"
+$ wk guide nope
+$ wk setup
+$ wk setup --done
+$ wk setup --json
+tree
