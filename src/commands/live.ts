@@ -1,10 +1,19 @@
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import http from "node:http";
+import path from "node:path";
 import { readConfig, type Ctx } from "../context.js";
 import { Store } from "../store.js";
 import { boardHtml, openUrl } from "./board.js";
 
 export const DEFAULT_PORT = 4123;
+
+/** The folder holding git's HEAD file, worktree-aware; null outside git. */
+function gitDir(base: string): string | null {
+  const r = spawnSync("git", ["rev-parse", "--git-path", "HEAD"], { cwd: base, encoding: "utf8", windowsHide: true });
+  return r.status === 0 && r.stdout.trim() ? path.dirname(path.resolve(base, r.stdout.trim())) : null;
+}
+
 const DEBOUNCE_MS = 150;
 const HEARTBEAT_MS = 25_000;
 
@@ -48,12 +57,20 @@ export function serveBoard(ctx: Ctx, opts: { port?: number; host?: string } = {}
 
   // Many files change at once (wk done also writes the handoff), so wait for the burst to settle.
   let timer: NodeJS.Timeout | null = null;
-  const watcher = fs.watch(ctx.root, { recursive: true }, () => {
+  const push = () => {
     if (timer) clearTimeout(timer);
     timer = setTimeout(() => {
       for (const c of clients) c.write("data: reload\n\n");
     }, DEBOUNCE_MS);
-  });
+  };
+  const watcher = fs.watch(ctx.root, { recursive: true }, push);
+  // Switching branches doesn't touch the plan, but the board shows the branch: watch git's HEAD too.
+  const headDir = ctx.git ? gitDir(ctx.base) : null;
+  const headWatcher = headDir
+    ? fs.watch(headDir, (_event, file) => {
+        if (file === "HEAD") push();
+      })
+    : null;
   const heartbeat = setInterval(() => {
     for (const c of clients) c.write(": ping\n\n");
   }, HEARTBEAT_MS);
@@ -61,6 +78,7 @@ export function serveBoard(ctx: Ctx, opts: { port?: number; host?: string } = {}
   const close = () =>
     new Promise<void>((resolve) => {
       watcher.close();
+      headWatcher?.close();
       clearInterval(heartbeat);
       if (timer) clearTimeout(timer);
       for (const c of clients) c.end();

@@ -4,7 +4,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { result, type Result } from "../output.js";
 import type { Ctx } from "../context.js";
-import { byQueue, daysBetween, isDue, isQueued, isWaiting, state, when } from "../model.js";
+import { byQueue, daysBetween, isDue, isQueued, isWaiting, state, triggerOf, when } from "../model.js";
+import { lastEvent, readEvents } from "../events.js";
+import { currentBranch } from "../git.js";
 import { str, tagsOf, touchesOf, type Item, type Project, type Store } from "../store.js";
 import { readSummary, projectTasks } from "./homes.js";
 import { activePrinciples } from "./knowledge.js";
@@ -39,9 +41,44 @@ function meta(v: View, item: Item, opts: { home?: boolean; when?: boolean } = {}
   return `<div class="meta">${parts.join("")}</div>`;
 }
 
-function row(v: View, item: Item, opts: { home?: boolean; when?: boolean; note?: string } = {}): string {
+/** A key that changes when the row's meaning changes, so the live page can flash what's new. */
+function key(item: Item): string {
+  return esc(`${item.id}:${str(item, "state")}:${str(item, "when")}:${str(item, "due")}:${str(item, "wait")}:${item.title}`);
+}
+
+function row(v: View, item: Item, opts: { home?: boolean; when?: boolean; note?: string; since?: string } = {}): string {
   const note = opts.note ? `<div class="note">${esc(opts.note)}</div>` : "";
-  return `<li class="row" data-id="${item.id}"><div class="title">${esc(item.title)}</div>${meta(v, item, opts)}${note}</li>`;
+  const since = opts.since ? `<div class="note">${opts.since}</div>` : "";
+  return `<li class="row" data-key="${key(item)}"><div class="title">${esc(item.title)}</div>${meta(v, item, opts)}${note}${since}</li>`;
+}
+
+/** "just now", "12 min", "3 h", "2 d": short enough for a glance. */
+export function ago(iso: string, nowMs: number): string {
+  const mins = Math.max(0, Math.round((nowMs - Date.parse(iso)) / 60_000));
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins} min`;
+  if (mins < 60 * 24) return `${Math.round(mins / 60)} h`;
+  return `${Math.round(mins / (60 * 24))} d`;
+}
+
+/** A relative time the live page keeps ticking; `prefix` and `suffix` wrap the number. */
+function clock(iso: string, nowMs: number, prefix = "", suffix = ""): string {
+  const t = ago(iso, nowMs);
+  const text = t === "just now" ? (suffix ? `${prefix}just now` : `${prefix}a moment`) : `${prefix}${t}${suffix}`;
+  return `<time class="ago" datetime="${esc(iso)}" data-prefix="${esc(prefix)}" data-suffix="${esc(suffix)}">${esc(text)}</time>`;
+}
+
+/** Plain words for a trigger: when a sleeping item comes back. */
+function wakeLabel(v: View, store: Store, w: string): string {
+  const [kind, arg] = [w.slice(0, w.indexOf(":")), w.slice(w.indexOf(":") + 1)];
+  if (kind === "after") {
+    const target = store.list().find((i) => i.id === arg);
+    return `After “${target ? target.title : arg}” is done`;
+  }
+  if (kind === "end") return `When ${v.homeNames[arg] ?? arg} ends`;
+  if (kind === "start") return `Next time work starts in ${arg}`;
+  if (kind === "on") return `On ${arg}`;
+  return w;
 }
 
 function bar(done: number, total: number, long = false): string {
@@ -60,31 +97,86 @@ function testsOf(item: Item): string[] {
   return item.body.split("\n").filter((l) => /^Test:\s*/i.test(l)).map((l) => l.replace(/^Test:\s*/i, ""));
 }
 
-/** Keeps the page and the live script in step: the script swaps #app and flashes rows it hasn't seen. */
+/**
+ * The live page: swaps #app in place when the plan changes (keeping each pane's scroll), flashes
+ * rows it hasn't seen, ticks the relative times, puts the needs-you count in the tab title and icon,
+ * and, if the user allowed it, sends a notification when something new needs them while the tab is hidden.
+ */
 const LIVE_SCRIPT = `<script>
 (function () {
-  var dot = document.getElementById("live");
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function ids() { var s = {}; document.querySelectorAll("[data-id]").forEach(function (e) { s[e.getAttribute("data-id") + "|" + e.textContent] = 1; }); return s; }
-  function swap(html) {
-    var before = ids();
-    var scroll = {};
-    document.querySelectorAll("[data-pane]").forEach(function (p) { scroll[p.getAttribute("data-pane")] = p.scrollTop; });
-    var next = new DOMParser().parseFromString(html, "text/html").getElementById("app");
-    if (!next) return;
-    document.getElementById("app").replaceWith(next);
-    document.querySelectorAll("[data-pane]").forEach(function (p) { p.scrollTop = scroll[p.getAttribute("data-pane")] || 0; });
-    if (reduce) return;
-    document.querySelectorAll("[data-id]").forEach(function (e) {
-      if (!before[e.getAttribute("data-id") + "|" + e.textContent]) e.classList.add("fresh");
+  var status = "live";
+  function app() { return document.getElementById("app"); }
+  function keys() { var s = {}; document.querySelectorAll("[data-key]").forEach(function (e) { s[e.getAttribute("data-key")] = 1; }); return s; }
+  function showStatus() {
+    var dot = document.getElementById("live");
+    if (!dot) return;
+    dot.className = "live " + (status === "live" ? "on" : status === "off" ? "off" : "");
+    dot.title = status === "live" ? "Live: updates as the plan changes" : "Reconnecting";
+  }
+  function needs() { return Number(app().getAttribute("data-needs") || 0); }
+  function icon(n) {
+    var c = document.createElement("canvas"); c.width = c.height = 32;
+    var g = c.getContext("2d");
+    g.fillStyle = "#3d5afe"; g.beginPath(); g.roundRect(2, 2, 28, 28, 7); g.fill();
+    g.fillStyle = "#fff"; g.font = "bold 15px system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("wk", 16, 17);
+    if (n) { g.fillStyle = "#f59e0b"; g.beginPath(); g.arc(25, 7, 7, 0, 7); g.fill(); }
+    var link = document.querySelector("link[rel=icon]") || document.head.appendChild(Object.assign(document.createElement("link"), { rel: "icon" }));
+    link.href = c.toDataURL();
+  }
+  function tick() {
+    var now = Date.now();
+    document.querySelectorAll("time.ago").forEach(function (t) {
+      var m = Math.max(0, Math.round((now - Date.parse(t.getAttribute("datetime"))) / 60000));
+      var n = m < 1 ? "" : m < 60 ? m + " min" : m < 1440 ? Math.round(m / 60) + " h" : Math.round(m / 1440) + " d";
+      var pre = t.getAttribute("data-prefix") || "", suf = t.getAttribute("data-suffix") || "";
+      t.textContent = n ? pre + n + suf : (suf ? pre + "just now" : pre + "a moment");
     });
+  }
+  function send(title, body) {
+    try { new Notification(title, { body: body, tag: "wk", renotify: true }); } catch (e) { console.warn("wk: notification failed", e); }
+  }
+  function notifyButton() {
+    var b = document.getElementById("notify");
+    if (!b) return;
+    b.hidden = false;
+    if (!("Notification" in window)) { b.textContent = "Notifications unsupported"; b.disabled = true; return; }
+    var p = Notification.permission;
+    if (p === "default") {
+      b.textContent = "Notify me"; b.title = "Get a desktop notification when something new needs you";
+      b.onclick = function () { Notification.requestPermission().then(function (r) { notifyButton(); if (r === "granted") send("wk notifications are on", "You will hear from this board when something new needs you."); }); };
+    } else if (p === "granted") {
+      b.remove();
+    } else {
+      b.textContent = "Notifications blocked"; b.title = "Allow notifications for this site in the browser (the icon left of the address), then reload.";
+      b.onclick = null;
+    }
+  }
+  function swap(html) {
+    var doc = new DOMParser().parseFromString(html, "text/html");
+    var next = doc.getElementById("app");
+    if (!next) return;
+    var before = keys(), was = needs(), scroll = {};
+    document.querySelectorAll("[data-pane]").forEach(function (p) { scroll[p.getAttribute("data-pane")] = p.scrollTop; });
+    app().replaceWith(next);
+    document.title = doc.title;
+    document.querySelectorAll("[data-pane]").forEach(function (p) { p.scrollTop = scroll[p.getAttribute("data-pane")] || 0; });
+    showStatus(); notifyButton(); icon(needs()); tick();
+    // Notify whenever you are not looking at the board: another window has focus, or the tab is hidden.
+    if (needs() > was && (document.hidden || !document.hasFocus()) && "Notification" in window && Notification.permission === "granted") {
+      send(app().getAttribute("data-first") || "Something needs you", document.title);
+    }
+    if (reduce) return;
+    document.querySelectorAll("[data-key]").forEach(function (e) { if (!before[e.getAttribute("data-key")]) e.classList.add("fresh"); });
   }
   function connect() {
     var es = new EventSource("/events");
-    es.onopen = function () { dot.className = "live on"; dot.title = "Live: updates as the plan changes"; };
-    es.onerror = function () { dot.className = "live off"; dot.title = "Reconnecting"; };
+    es.onopen = function () { status = "live"; showStatus(); };
+    es.onerror = function () { status = "off"; showStatus(); };
     es.onmessage = function () { fetch("/", { cache: "no-store" }).then(function (r) { return r.text(); }).then(swap); };
   }
+  status = "connecting"; showStatus(); notifyButton(); icon(needs()); tick();
+  setInterval(tick, 30000);
   connect();
 })();
 </script>`;
@@ -106,6 +198,7 @@ ul{list-style:none}
 .top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .top h1{font-size:16px;font-weight:600;letter-spacing:-.005em}
 .top .wf{color:var(--text-3);font-size:12px;margin-left:12px}
+.branch{margin-left:12px}.branch code{font-size:12px;color:var(--text-2);background:var(--line);padding:2px 6px;border-radius:4px}
 .stats{display:flex;gap:16px;align-items:center;color:var(--text-2);font-size:12px;font-variant-numeric:tabular-nums}
 .stats b{color:var(--text);font-weight:600}
 .stats .hot b{color:var(--attn)}
@@ -178,6 +271,15 @@ details.area .why.missing{color:var(--attn)}
 .know .title{font-weight:400;font-size:13px;color:var(--text-2)}
 .project .name code{color:var(--text-3)}
 .calm{color:var(--text-3);padding:8px 0 16px}
+.for{color:var(--text-3);font-weight:400}
+.wake h4{font-size:12px;font-weight:500;color:var(--text-3);padding:8px 0 0}
+.wake h4+ul .row:first-child{border-top:0}
+.activity .act{display:grid;grid-template-columns:6.5em 7.5em minmax(0,1fr);gap:8px;padding:4px 0;font-size:12px;align-items:baseline}
+.activity .act time{color:var(--text-3);font-variant-numeric:tabular-nums}
+.activity .act .verb{color:var(--text-2)}
+.activity .act .what{color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act.fresh{background:var(--accent-soft)}
+.notify{font:inherit;font-size:12px;color:var(--accent);background:none;border:1px solid var(--line);border-radius:6px;padding:2px 8px;cursor:pointer}
 .empty{color:var(--text-3);padding:24px 0;text-align:center}
 .later{margin-top:16px;color:var(--text-2)}
 .later summary{cursor:pointer;font-size:12px;font-weight:600;padding:8px 0}
@@ -200,17 +302,24 @@ export function boardHtml(ctx: Ctx, store: Store, opts: { live?: boolean } = {})
   const queue = tasks.filter((t) => isQueued(t) && !isWaiting(t)).sort(byQueue);
   const due = tasks.filter((t) => isDue(t) && state(t) === "open" && !isQueued(t));
   const waiting = tasks.filter((t) => isWaiting(t) && state(t) !== "done");
-  const later = tasks.filter((t) => state(t) === "open" && !isQueued(t) && !isDue(t) && !isWaiting(t) && when(t) !== "someday");
-  const someday = tasks.filter((t) => state(t) === "open" && when(t) === "someday" && !isDue(t));
+  const resting = tasks.filter((t) => state(t) === "open" && !isQueued(t) && !isDue(t) && !isWaiting(t));
+  const later = resting.filter((t) => when(t) === "later");
+  const sleeping = resting.filter((t) => triggerOf(when(t)));
+  const events = readEvents(ctx, 200);
+  const nowMs = Date.now();
+  const someday = resting.filter((t) => when(t) === "someday");
   const recent = tasks
     .filter((t) => state(t) === "done" && daysBetween(str(t, "done_on") || str(t, "updated"), ctx.today) <= RECENT_DAYS)
     .sort((a, b) => str(b, "done_on").localeCompare(str(a, "done_on")));
   const needsYou = review.length + due.length + inbox.length;
 
+  const title = headline(readSummary(ctx), path.basename(ctx.base));
+  const branch = ctx.git ? currentBranch(ctx.base) : null;
+  const firstNeed = review[0] ?? due[0] ?? inbox[0];
   // Top line: what this is, and the few counts worth a glance.
-  const live = opts.live ? '<span id="live" class="live" title="Connecting">live</span>' : "";
+  const live = opts.live ? '<button id="notify" class="notify" hidden>Notify me</button><span id="live" class="live" title="Connecting">live</span>' : "";
   const stat = (n: number, label: string, hot = false) => `<span class="${hot && n ? "hot" : ""}"><b>${n}</b> ${label}</span>`;
-  const top = `<header class="top"><div><h1>${esc(headline(readSummary(ctx), path.basename(ctx.base)))}<span class="wf">${esc(workflowLine(ctx)?.replace(/^Workflow: /, "") ?? "")}</span></h1></div>
+  const top = `<header class="top"><div><h1>${esc(title)}${branch ? `<span class="branch" title="Current git branch"><code>${esc(branch)}</code></span>` : ""}<span class="wf">${esc(workflowLine(ctx)?.replace(/^Workflow: /, "") ?? "")}</span></h1></div>
 <div class="stats">${stat(needsYou, needsYou === 1 ? "needs you" : "need you", true)}${stat(queue.length, "queued")}${stat(recent.length, "done this week")}<span>${ctx.today}</span>${live}</div></header>`;
 
   // The hero: the task in progress, or what comes next.
@@ -221,7 +330,8 @@ export function boardHtml(ctx: Ctx, store: Store, opts: { live?: boolean } = {})
     const p = now.home.type === "project" ? projects.find((x) => x.id === now.home.name) : undefined;
     const prog = p ? projectTasks(store, p) : null;
     const body = now.body.split("\n").filter((l) => l.trim()).slice(0, 3).map((l) => `<li>${esc(l)}</li>`).join("");
-    hero = `<section class="hero" data-id="${now.id}"><div><div class="eyebrow">In progress</div><h2>${esc(now.title)}</h2>${meta(v, now)}
+    const started = lastEvent(events, now.id, "started");
+    hero = `<section class="hero" data-key="${key(now)}"><div><div class="eyebrow">In progress${started ? ` <span class="for">${clock(started.at, nowMs, "started ", " ago")}</span>` : ""}</div><h2>${esc(now.title)}</h2>${meta(v, now)}
 ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total, true) : ""}</div>${handoffBlock}</section>`;
   } else {
     const first = review[0] ?? queue[0];
@@ -231,16 +341,30 @@ ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total
 
   // Pane 1: the queue, in order, then what sleeps.
   const queueRows = queue.map((t) => row(v, t));
-  const sleeping = [...later, ...someday];
-  const laterBlock = sleeping.length
-    ? `<details class="later"><summary>Later and someday (${sleeping.length})</summary><ul>${sleeping.map((t) => row(v, t, { when: true })).join("")}</ul></details>`
+  const wakes = new Map<string, Item[]>();
+  for (const t of sleeping) wakes.set(when(t), [...(wakes.get(when(t)) ?? []), t]);
+  const wakeBlock = wakes.size
+    ? `<section class="group wake"><h3>Wakes up later<span class="num">${sleeping.length}</span></h3>${[...wakes.entries()]
+        .map(([w, items]) => `<h4>${esc(wakeLabel(v, store, w))}</h4><ul>${items.map((t) => row(v, t)).join("")}</ul>`)
+        .join("")}</section>`
+    : "";
+  const parked = [...later, ...someday];
+  const laterBlock = parked.length
+    ? `<details class="later"><summary>Later and someday (${parked.length})</summary><ul>${parked.map((t) => row(v, t, { when: true })).join("")}</ul></details>`
     : "";
   const paneNext = `<section class="pane"><header><h2>Up next</h2><span class="num">${queue.length} queued</span></header>
-<div class="scroll" data-pane="next">${queueRows.length ? `<ul class="queue">${queueRows.join("")}</ul>` : '<p class="empty">Nothing queued.</p>'}${laterBlock}</div></section>`;
+<div class="scroll" data-pane="next">${queueRows.length ? `<ul class="queue">${queueRows.join("")}</ul>` : '<p class="empty">Nothing queued.</p>'}${wakeBlock}${laterBlock}</div></section>`;
 
   // Pane 2: what needs a person: review, due, inbox, then waits.
   const needs = [
-    group("Ready for you to try", review.map((t) => row(v, t, { note: testsOf(t)[0] ? `Try: ${testsOf(t)[0]}` : undefined })), { tone: "attn" }),
+    group(
+      "Ready for you to try",
+      review.map((t) => {
+        const since = lastEvent(events, t.id, "ready to try");
+        return row(v, t, { note: testsOf(t)[0] ? `Try: ${testsOf(t)[0]}` : undefined, since: since ? `Waiting ${clock(since.at, nowMs, "for ")}` : undefined });
+      }),
+      { tone: "attn" },
+    ),
     group("Due", due.map((t) => row(v, t, { when: true })), { tone: "attn" }),
     group("Inbox, to sort", inbox.map((t) => row(v, t, { home: false })), { tone: "attn" }),
     group("Waiting", waiting.map((t) => row(v, t, { note: `On ${str(t, "wait")}` }))),
@@ -254,7 +378,7 @@ ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total
   const projectRows = openProjects.map((p) => {
     const { done, total } = projectTasks(store, p);
     const touches = touchesOf(p).map((t) => `<span class="tag">${esc(t)}</span>`).join("");
-    return `<li class="project" data-id="${p.id}"><div class="name"><span>${esc(p.title)}</span><code>${p.id}</code></div>${bar(done, total)}${touches ? `<div class="meta">${touches}</div>` : ""}</li>`;
+    return `<li class="project" data-key="${p.id}:${done}/${total}"><div class="name"><span>${esc(p.title)}</span><code>${p.id}</code></div>${bar(done, total)}${touches ? `<div class="meta">${touches}</div>` : ""}</li>`;
   });
   const areaRows = store.areas().map((a) => {
     const rules = activePrinciples(store, a);
@@ -272,8 +396,12 @@ ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total
     .filter((i) => (i.kind === "decision" || i.kind === "learning") && !str(i, "superseded_by"))
     .sort((a, b) => str(b, "created").localeCompare(str(a, "created")))
     .slice(0, 6)
-    .map((i) => `<li class="row" data-id="${i.id}"><div class="title">${esc(i.title)}</div><div class="meta"><span class="kind">${i.kind}</span><span>${esc(homeLabel(v, i))}</span></div></li>`);
+    .map((i) => `<li class="row" data-key="${i.id}"><div class="title">${esc(i.title)}</div><div class="meta"><span class="kind">${i.kind}</span><span>${esc(homeLabel(v, i))}</span></div></li>`);
+  const activity = events.slice(0, 8).map(
+    (e) => `<li class="act" data-key="${esc(e.at + e.id + e.verb)}">${clock(e.at, nowMs, "", " ago")}<span class="verb">${esc(e.verb)}</span><span class="what">${esc(e.title)}</span></li>`,
+  );
   const side = [
+    activity.length ? `<section class="group activity"><h3>Just happened</h3><ul>${activity.join("")}</ul></section>` : "",
     group("Projects", projectRows, { count: openProjects.length }),
     group("Areas and principles", areaRows),
     knowledge.length ? `<section class="group know"><h3>Recent decisions and learnings</h3><ul>${knowledge.join("")}</ul></section>` : "",
@@ -283,8 +411,8 @@ ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total
 
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>wk board</title><style>${CSS}</style></head><body>
-<div id="app">
+<title>${esc(`${needsYou ? `(${needsYou}) ` : ""}${title} | wk`)}</title><style>${CSS}</style></head><body>
+<div id="app" data-needs="${needsYou}" data-first="${esc(firstNeed ? `Ready for you: ${firstNeed.title}` : "")}">
 ${top}
 ${hero}
 <div class="panes">${paneNext}${paneNeeds}${paneSide}</div>

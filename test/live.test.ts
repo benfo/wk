@@ -2,7 +2,7 @@ import http from "node:http";
 import { describe, expect, it } from "vitest";
 import { loadContext } from "../src/context.js";
 import { serveBoard } from "../src/commands/live.js";
-import { plan, TODAY } from "./helpers.js";
+import { git, hasGit, plan, TODAY } from "./helpers.js";
 
 /** Resolves with the first `data:` event from the live board's event stream. */
 function nextEvent(url: string): { connected: Promise<void>; event: Promise<string>; stop: () => void } {
@@ -59,6 +59,22 @@ describe("wk board --serve", () => {
     } finally {
       await first.close();
       await second.close();
+    }
+  });
+
+  it.skipIf(!hasGit)("shows the branch, and pushes a reload when it switches", async () => {
+    const p = plan({ git: true });
+    const live = await serveBoard(loadContext(p.dir, TODAY, p.home), { port: 0 });
+    try {
+      expect(await (await fetch(live.url)).text()).toContain('<span class="branch" title="Current git branch"><code>main</code></span>');
+      const sse = nextEvent(live.url);
+      await sse.connected;
+      git(p.dir, "switch", "-q", "-c", "feature-x");
+      await expect(sse.event).resolves.toBe("reload");
+      sse.stop();
+      expect(await (await fetch(live.url)).text()).toContain("<code>feature-x</code>");
+    } finally {
+      await live.close();
     }
   });
 

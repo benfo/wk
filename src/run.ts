@@ -18,6 +18,7 @@ import { brief, next } from "./commands/views.js";
 import { decide, drop, edit, learn, merge, principle, supersede } from "./commands/knowledge.js";
 import { loadContext, type Ctx } from "./context.js";
 import { wireFeatures } from "./features.js";
+import { appendEvents, diff, snapshot } from "./events.js";
 
 const collect = (value: string, prev: string[] = []) => [...prev, value];
 import { Store } from "./store.js";
@@ -31,6 +32,8 @@ export interface RunOptions {
   stdin?: string;
   /** Random source for ids; tests swap it to force collisions. */
   pick?: (n: number) => number;
+  /** Timestamp for logged events (ISO); tests pin it. */
+  now?: string;
 }
 
 export interface RunOutput {
@@ -62,7 +65,14 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
   };
   const act = (cmd: Command, fn: Handler) => {
     const ctx = loadContext(cwd, today, options.home, options.pick);
-    emit(cmd, fn(ctx, new Store(ctx)));
+    const store = new Store(ctx);
+    // Log what changed, for the board: a snapshot before and after, so no command has to remember to.
+    const before = snapshot(store);
+    emit(cmd, fn(ctx, store));
+    const after = new Store(ctx);
+    const archived = () => new Set([...after.archived().map((i) => i.id), ...after.archivedProjects().map((p) => p.id)]);
+    let known: Set<string> | null = null;
+    appendEvents(ctx, diff(before, snapshot(after), (id) => (known ??= archived()).has(id)), options.now);
   };
 
   program

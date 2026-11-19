@@ -25,7 +25,7 @@ describe("wk board", () => {
       expect(html).toContain(s);
     }
     expect(html).toContain("terminals lack &lt;glyphs&gt;");
-    expect(html).toContain('<div class="eyebrow">In progress</div>');
+    expect(html).toContain('<div class="eyebrow">In progress <span class="for">');
     expect(html).toContain('data-pane="needs"');
     expect(html).toContain("prefers-color-scheme:dark");
     expect(html).not.toMatch(/<script|https?:\/\//);
