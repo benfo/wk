@@ -1,7 +1,8 @@
 import { Command, CommanderError } from "commander";
 import { todayString } from "../context.js";
 import { render, WkError, type Result } from "../output.js";
-import { addTask, init, show } from "./commands.js";
+import { init } from "./commands/init.js";
+import { addTask, ls, show } from "./commands/items.js";
 import { loadContext, type Ctx } from "./context.js";
 import { Store } from "./store.js";
 
@@ -71,6 +72,15 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .description("print one item in full; any unique start of the id works")
     .action(function (this: Command, id: string) {
       act(this, (ctx, s) => show(ctx, s, id));
+    });
+
+  program
+    .command("ls [words...]")
+    .description("list items; each word filters by kind, state, when, home, tag or id (e.g. wk ls bug ui someday)")
+    .option("--archived", "list archived items instead")
+    .action(function (this: Command, words: string[]) {
+      const o = this.opts();
+      act(this, (ctx, s) => ls(ctx, s, words ?? [], o));
     });
 
   const json = argv.includes("--json");

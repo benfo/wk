@@ -40,6 +40,18 @@ export function plan(opts: { git?: boolean; init?: boolean; store?: string } = {
   return p;
 }
 
+/** Writes an item file by hand, for states the commands under test can't reach yet. */
+export function put(p: Plan, home: string[], id: string, title: string, data: Record<string, string | number | string[]>): string {
+  const lines = ["---", `id: ${id}`];
+  for (const [k, v] of Object.entries({ kind: "task", ...data })) lines.push(`${k}: ${Array.isArray(v) ? `[${v.join(", ")}]` : v}`);
+  lines.push("created: 2026-11-10", "updated: 2026-11-10", "---", `# ${title}`, "");
+  const dir = p.file(...home);
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${id}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}.md`);
+  fs.writeFileSync(file, lines.join("\n"));
+  return file;
+}
+
 /** A random source that returns these alphabet indexes in turn, then repeats the last. */
 export function fixedPick(...indexes: number[]): (n: number) => number {
   let i = 0;

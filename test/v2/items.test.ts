@@ -78,7 +78,7 @@ describe("add and show", () => {
     const m = /^Added ([a-z2-9]{4}) Banner border shifts right \(core\)$/.exec(out);
     expect(m).not.toBeNull();
     const id = m![1];
-    expect(p.files("areas", "core")).toEqual(["area.md", `${id}-banner-border-shifts-right.md`]);
+    expect(p.files("areas", "core").sort()).toEqual(["area.md", `${id}-banner-border-shifts-right.md`].sort());
     expect(p.read("areas", "core", `${id}-banner-border-shifts-right.md`)).toBe(
       [
         "---",
@@ -87,6 +87,7 @@ describe("add and show", () => {
         "state: open",
         "when: queue",
         "tags: [bug, ui]",
+        "rank: 1",
         "created: 2026-11-10",
         "updated: 2026-11-10",
         "---",
