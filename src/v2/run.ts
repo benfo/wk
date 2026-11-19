@@ -2,7 +2,8 @@ import { Command, CommanderError } from "commander";
 import { todayString } from "../context.js";
 import { render, WkError, type Result } from "../output.js";
 import { init } from "./commands/init.js";
-import { areaList, areaNew, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
+import { areaList, areaNew, projectClose, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
+import { review } from "./commands/review.js";
 import { addTask, ls, move, show } from "./commands/items.js";
 import { board } from "./commands/board.js";
 import { inbox, jot } from "./commands/capture.js";
@@ -131,6 +132,22 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .description("one project with its tasks, decisions and learnings")
     .action(function (this: Command, id: string) {
       act(this, (ctx, s) => projectShow(ctx, s, id));
+    });
+
+  project
+    .command("close <id>")
+    .description("close a finished project: offers learnings to distill, fires end: triggers, archives it")
+    .action(function (this: Command, id: string) {
+      act(this, (ctx, s) => projectClose(ctx, s, id));
+    });
+
+  program
+    .command("review")
+    .description("the weekly review: inbox, due, stale, waiting, empty projects, principles, duplicates")
+    .option("--done", "record that the review happened")
+    .action(function (this: Command) {
+      const o = this.opts();
+      act(this, (ctx, s) => review(ctx, s, o));
     });
 
   const area = program.command("area").description("areas: ongoing responsibilities that never end");

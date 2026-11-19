@@ -4,7 +4,8 @@ import { progressBar, result, unescapeText, WkError, type Result } from "../../o
 import type { Ctx } from "../context.js";
 import { checkLines, checkTitle, LIMITS } from "../limits.js";
 import { byQueue, isOpen, isQueued, itemLine, state } from "../model.js";
-import { touchesOf, type Project, type Store } from "../store.js";
+import { str, touchesOf, type Item, type Project, type Store } from "../store.js";
+import { dueLines, fire } from "./triggers.js";
 import { SUMMARY_FILE } from "./init.js";
 import { parseTags, plural } from "./shared.js";
 
@@ -29,6 +30,8 @@ export function projectNew(ctx: Ctx, store: Store, rawTitle: string, opts: { tou
   const p = store.createProject(title, body, { state: "open", touches });
   const lines = [`Project ${p.id} ${title}${touches.length ? ` (touches ${touches.join(", ")})` : ""}`];
   lines.push(`Add tasks with: wk add "<title>" --in ${p.id}`);
+  const fired = fire(ctx, store, (k, arg) => k === "start" && touches.includes(arg));
+  lines.push(...dueLines(fired, "work starts in its areas; pull them in with wk move <id> --in " + p.id));
   return result(lines, { id: p.id, title, touches, dir: p.dir });
 }
 
@@ -69,6 +72,50 @@ export function projectShow(_ctx: Ctx, store: Store, raw: string): Result {
   const knowledge = store.list().filter((i) => i.kind !== "task" && i.home.name === p.id);
   for (const k of knowledge) lines.push(`  ${k.kind.padEnd(6)} ${k.id} ${k.title}`);
   return { lines, data: { ...p.data, title: p.title, body: p.body, done, total }, full: true };
+}
+
+/**
+ * Closes a project: leftovers must find another home first; learnings and decisions are offered
+ * for distilling into principles; end: triggers fire; the folder moves to the archive.
+ */
+export function projectClose(ctx: Ctx, store: Store, raw: string): Result {
+  const p = store.project(raw);
+  if (p.data.state === "done") return result([`${p.title} is already closed.`], { id: p.id });
+  const { tasks, done, total } = projectTasks(store, p);
+  const open = tasks.filter((t) => state(t) !== "done");
+  if (open.length) {
+    throw new WkError(
+      [
+        `Still open in ${p.title}:`,
+        ...open.slice(0, 5).map((t) => `  ${itemLine(t)}`),
+        ...(open.length > 5 ? [`  +${open.length - 5} more`] : []),
+        "Move each to an area or another project (wk move <id> --in <home>), or drop it, then close again.",
+      ].join("\n"),
+    );
+  }
+  const knowledge = store.list().filter((i) => (i.kind === "learning" || i.kind === "decision") && i.home.name === p.id && !str(i, "distilled_into"));
+  p.data.state = "done";
+  p.data.done_on = ctx.today;
+  store.saveProject(p);
+  const fired = fire(ctx, store, (k, arg) => k === "end" && arg === p.id);
+  store.archiveProject(p, ctx.today.slice(0, 4));
+  const lines = [`Closed ${p.id} ${p.title} (${done}/${total} done), archived.`];
+  if (knowledge.length) {
+    lines.push("Distill: any of these a capable model would get wrong next time? Make them principles (wk principle --from <id>):");
+    lines.push(...knowledge.slice(0, 6).map((k) => `  ${k.kind} ${k.id} ${k.title}`));
+  }
+  lines.push(...dueLines(fired, `${p.title} ended`));
+  return result(lines, { id: p.id, done, total, distill: knowledge.map((k) => k.id), due: fired.map((f) => f.id) });
+}
+
+/** `wk done`: say when a project has nothing left. */
+export function doneProject(_ctx: Ctx, store: Store, item: Item): string[] {
+  if (item.home.type !== "project") return [];
+  const p = store.projects().find((x) => x.id === item.home.name);
+  if (!p) return [];
+  const { tasks } = projectTasks(store, p);
+  if (tasks.some((t) => state(t) !== "done")) return [];
+  return [`Nothing left in ${p.title}: close it with wk project close ${p.id} (wk guide close).`];
 }
 
 export function areaNew(_ctx: Ctx, store: Store, name: string, rawDescription: string | undefined): Result {
