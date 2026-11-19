@@ -4,6 +4,7 @@ import { render, WkError, type Result } from "../output.js";
 import { init } from "./commands/init.js";
 import { areaList, areaNew, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
 import { addTask, ls, move, show } from "./commands/items.js";
+import { board } from "./commands/board.js";
 import { configure } from "./commands/configure.js";
 import { check, done, handoff, start, wait } from "./commands/flow.js";
 import { brief, next } from "./commands/views.js";
@@ -273,6 +274,16 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
   program.command("merge <keep> <drop>").description("fold a duplicate into another item of the same kind and delete it")
     .action(function (this: Command, keep: string, gone: string) {
       act(this, (ctx, s) => merge(ctx, s, keep, gone));
+    });
+
+  program
+    .command("board")
+    .description("write the plan as an HTML page: now, queue, due, waiting, projects, areas and principles")
+    .option("--open", "open it in the browser")
+    .option("--out <file>", "where to write it (default: ~/.wk/boards/, outside the plan)")
+    .action(function (this: Command) {
+      const o = this.opts();
+      act(this, (ctx, s) => board(ctx, s, o));
     });
 
   program
