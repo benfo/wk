@@ -61,11 +61,12 @@ ul,ol{list-style:none}
 .pill{display:inline-block;min-width:22px;padding:0 7px;border-radius:999px;background:var(--fill);color:var(--text-3);font-size:12px;font-weight:500;line-height:20px;text-align:center;font-variant-numeric:tabular-nums}
 .group h4{font-size:13px;font-weight:500;color:var(--text-3);padding:16px 0 0}
 
-.row{padding:12px 0;border-bottom:1px solid var(--line);transition:background-color 1.2s ease}
+.row{padding:12px 0;border-bottom:1px solid var(--line)}
 .row:last-child{border-bottom:0}
 .row .title{line-height:1.4}
 .row .note{color:var(--text-2);font-size:13px;margin-top:4px}
-.fresh{background:color-mix(in srgb,var(--accent) 10%,transparent)!important;transition:none}
+[data-key]{--flash:transparent;background:var(--flash);box-shadow:-12px 0 0 var(--flash),12px 0 0 var(--flash);transition:background-color 1.2s ease,box-shadow 1.2s ease}
+.fresh{--flash:color-mix(in srgb,var(--accent) 10%,transparent);transition:none}
 .meta{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-top:4px;color:var(--text-3);font-size:13px}
 .meta .when{color:var(--text-3)}
 .line{padding:6px 0;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

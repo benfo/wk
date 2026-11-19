@@ -68,7 +68,10 @@ export const LIVE_SCRIPT = `<script>
       send(app().getAttribute("data-first") || "Something needs you", document.title);
     }
     if (reduce) return;
-    document.querySelectorAll("[data-key]").forEach(function (e) { if (!before[e.getAttribute("data-key")]) e.classList.add("fresh"); });
+    // Tint what changed, then let it fade (the transition runs once the class goes).
+    var fresh = [];
+    document.querySelectorAll("[data-key]").forEach(function (e) { if (!before[e.getAttribute("data-key")]) { e.classList.add("fresh"); fresh.push(e); } });
+    setTimeout(function () { fresh.forEach(function (e) { e.classList.remove("fresh"); }); }, 800);
   }
   // The tab you are on survives refreshes and visits; 1 and 2 switch tabs.
   function savedTab() { try { return localStorage.getItem("wk-board-tab") || "now"; } catch (e) { return "now"; } }
