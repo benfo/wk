@@ -13,6 +13,9 @@ export function nowView(b: Board): string {
   return `<main class="view now">${hero(b)}${needsStrip(b)}<div class="cols">${cols}</div></main>`;
 }
 
+/** A long title steps down a size so the hero stays a headline, not a paragraph. */
+const long = (t: Item) => (t.title.length > 70 ? ' class="long"' : "");
+
 /** The task in progress (blue), or what comes next (neutral), beside the handoff. */
 function hero(b: Board): string {
   const { now, heroItem, v } = b;
@@ -23,11 +26,11 @@ function hero(b: Board): string {
     const prog = p ? projectTasks(b.store, p) : null;
     const body = now.body.split("\n").filter((l) => l.trim()).slice(0, 3).map((l) => `<li>${esc(l)}</li>`).join("");
     const started = lastEvent(b.events, now.id, "started");
-    return `<section class="hero working" data-key="${key(now)}"><div><div class="eyebrow">In progress${started ? ` <span class="for">${clock(started.at, b.nowMs, "started ", " ago")}</span>` : ""}</div><h2 title="id ${now.id}">${esc(now.title)}</h2>${meta(v, now)}
+    return `<section class="hero working" data-key="${key(now)}"><div><div class="eyebrow">In progress${started ? ` <span class="for">${clock(started.at, b.nowMs, "started ", " ago")}</span>` : ""}</div><h2${long(now)} title="id ${now.id}">${esc(now.title)}</h2>${meta(v, now)}
 ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total, true) : ""}</div>${handoffBlock}</section>`;
   }
   const label = heroItem ? "Nothing in progress. Up next" : "Nothing in progress";
-  return `<section class="hero idle"><div><div class="eyebrow">${label}</div><h2${heroItem ? ` title="id ${heroItem.id}"` : ""}>${heroItem ? esc(heroItem.title) : "Nothing in progress."}</h2>${heroItem ? meta(v, heroItem) : ""}</div>${handoffBlock}</section>`;
+  return `<section class="hero idle"><div><div class="eyebrow">${label}</div><h2${heroItem ? `${long(heroItem)} title="id ${heroItem.id}"` : ""}>${heroItem ? esc(heroItem.title) : "Nothing in progress."}</h2>${heroItem ? meta(v, heroItem) : ""}</div>${handoffBlock}</section>`;
 }
 
 function inboxLine(b: Board): string {

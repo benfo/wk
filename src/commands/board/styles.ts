@@ -39,6 +39,7 @@ ul,ol{list-style:none}
 .working .eyebrow{color:var(--accent)}
 .working .eyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
 .hero h2{font-size:clamp(28px,1.6vw + 16px,40px);line-height:1.15;font-weight:650;letter-spacing:-.025em;text-wrap:balance;max-width:24ch}
+.hero h2.long{font-size:clamp(22px,1vw + 14px,28px);line-height:1.25;max-width:40ch}
 .hero .meta{margin-top:16px}
 .hero .body{margin-top:16px;color:var(--text-2);max-width:60ch}
 .hero .body li{padding:2px 0}
