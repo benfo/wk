@@ -8,7 +8,9 @@ import { bar, clock, esc, group, key, meta, row, testsOf } from "./parts.js";
 
 /** The Now tab: a glance beside your agent at what's happening, what needs you and what's next. */
 export function nowView(b: Board): string {
-  return `<main class="view now">${hero(b)}${needsStrip(b)}<div class="cols"><div>${queueList(b)}</div><div>${projects(b)}${activity(b)}</div></div></main>`;
+  // A column with nothing to show drops out, so the other one moves left instead of leaving a hole.
+  const cols = [queueList(b), projects(b) + activity(b)].filter(Boolean).map((c) => `<div>${c}</div>`).join("");
+  return `<main class="view now">${hero(b)}${needsStrip(b)}<div class="cols">${cols}</div></main>`;
 }
 
 /** The task in progress (blue), or what comes next (neutral), beside the handoff. */
@@ -46,13 +48,19 @@ function needsStrip(b: Board): string {
   return `<section class="needs"><h2>${b.needsYou} ${b.needsYou === 1 ? "needs" : "need"} you</h2><ul>${rows.join("")}</ul>${inboxLine(b)}</section>`;
 }
 
-/** The queue in order, minus the task the hero already shows. */
+/**
+ * The queue in order. When the hero already shows the first queued task, this is what comes after it,
+ * numbered on from 2; if that was the only one, the section steps aside.
+ */
 function queueList(b: Board): string {
+  const inbox = b.needsYou ? "" : inboxLine(b);
   const rest = b.queue.filter((t) => t !== b.heroItem);
+  if (b.heroItem && !rest.length) return inbox;
+  const heading = b.heroItem ? "After that" : "Up next";
   const list = rest.length
     ? `<ul class="queue"${b.heroItem ? ' style="--from:1"' : ""}>${rest.map((t) => row(b.v, t)).join("")}</ul>`
-    : `<p class="empty">${b.heroItem ? "Nothing else queued." : "Nothing queued."}</p>`;
-  return `<section class="group"><h3>Up next<span class="pill">${b.queue.length}</span></h3>${list}${b.needsYou ? "" : inboxLine(b)}</section>`;
+    : '<p class="empty">Nothing queued.</p>';
+  return `<section class="group"><h3>${heading}<span class="pill">${rest.length}</span></h3>${list}${inbox}</section>`;
 }
 
 /** Where a task stands, as a sort rank, a label and a tone. */

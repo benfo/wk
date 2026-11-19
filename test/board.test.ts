@@ -36,6 +36,21 @@ describe("wk board", () => {
     expect(fs.existsSync(p.file("board.html"))).toBe(false);
   });
 
+  it("does not list the queued task the hero already shows", () => {
+    const p = plan();
+    p.wk("add", "Fix the banner");
+    p.wk("board", "--out", "one.html");
+    const one = fs.readFileSync(path.join(p.dir, "one.html"), "utf8");
+    expect(one).toContain("Nothing in progress. Up next");
+    expect(one).not.toMatch(/Up next<span|After that|Nothing else queued/);
+
+    p.wk("add", "Add a dark theme");
+    p.wk("board", "--out", "two.html");
+    const two = fs.readFileSync(path.join(p.dir, "two.html"), "utf8");
+    expect(two).toContain('After that<span class="pill">1</span>');
+    expect(two).not.toMatch(/<div class="title">Fix the banner</);
+  });
+
   it("writes where --out says", () => {
     const p = plan();
     expect(p.wk("board", "--out", "plan.html")).toContain(path.join(p.dir, "plan.html"));
