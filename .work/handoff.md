@@ -1,4 +1,4 @@
-Planning done: v2 design in docs/v2.md, three epics, 17 tasks.
-Nothing built yet; v1 code untouched (old uncommitted tweaks folded into the doc).
-First: T-001 new item store. T-010 needs a decision on when start:<area> fires.
-Plan, docs/v2.md, AGENTS.md and .claude/skills/wk are uncommitted.
+<!-- fresh session -->
+T-001 done: v2 store in src/v2 (ids, slugs, core area, init/add/show), on branch v2.
+Try v2 via node dist/v2/cli.js after npm run build; v1 wk is untouched.
+Next: T-002 wk ls word filters. T-010 still needs a decision on start:<area>.

@@ -68,7 +68,7 @@ function addPointer(base: string, name: string, onlyIfExists = false): boolean {
 }
 
 /** Appends ignore patterns that are not there yet. Returns the ones added. */
-function addIgnores(file: string, patterns: string[]): string[] {
+export function addIgnores(file: string, patterns: string[]): string[] {
   const existing = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
   const have = new Set(existing.split(/\r?\n/).map((l) => l.trim()));
   const missing = patterns.filter((p) => !have.has(p) && !have.has(p.replace(/\/$/, "")));
