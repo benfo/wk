@@ -1,1 +1,1 @@
-nck4 board redesign committed (2c65838), waiting for the user to try it. Two columns, hero no longer repeated in the queue, ids/tags only in the hero, done/areas/decisions folded.
+a76z board round 2 committed, waiting for the user to try: Now/Plan tabs, 16px type, blue working hero, amber needs-you strip (inbox no longer counts).

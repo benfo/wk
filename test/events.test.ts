@@ -69,8 +69,10 @@ describe("board: activity, timers, sleeping and alerts", () => {
     p.wk("jot", "Button looks off");
     p.wk("board", "--out", "b.html");
     const html = fs.readFileSync(`${p.dir}/b.html`, "utf8");
-    expect(html).toContain("<title>(2) Joke CLI | wk</title>");
-    expect(html).toContain('data-needs="2"');
+    // The jotted note waits in the inbox; only the task ready to try asks you to act.
+    expect(html).toContain("<title>(1) Joke CLI | wk</title>");
+    expect(html).toContain('data-needs="1"');
+    expect(html).toContain("1 in the inbox to sort");
     expect(html).toContain('data-first="Ready for you: Record each run"');
     expect(html).toContain("Just happened");
     expect(html).toMatch(/<span class="verb">jotted<\/span><span class="what">Button looks off<\/span>/);
@@ -79,7 +81,7 @@ describe("board: activity, timers, sleeping and alerts", () => {
     for (const w of ["When Usage history ends", "Next time work starts in ui", "On 2026-12-01", "After “Record each run” is done"]) {
       expect(html).toContain(`<h4>${w}</h4>`);
     }
-    expect(html).toContain("Later and someday<span class=\"num\">1</span>");
+    expect(html).toContain('Later and someday<span class="pill">1</span></h3><h4>core</h4>');
     expect(html).not.toMatch(/<script|https?:\/\//);
   });
 

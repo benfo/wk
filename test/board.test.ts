@@ -26,7 +26,8 @@ describe("wk board", () => {
     }
     expect(html).toContain("terminals lack &lt;glyphs&gt;");
     expect(html).toContain('<div class="eyebrow">In progress <span class="for">');
-    expect(html).toContain('data-pane="next"');
+    expect(html).toContain('<label for="tab-now" title="Press 1">Now</label><label for="tab-plan" title="Press 2">Plan</label>');
+    expect(html).toContain('<main class="view plan">');
     expect(html).toContain("prefers-color-scheme:dark");
     expect(html).not.toMatch(/<script|https?:\/\//);
     expect(fs.existsSync(p.file("board.html"))).toBe(false);
