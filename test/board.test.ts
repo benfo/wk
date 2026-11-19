@@ -32,6 +32,9 @@ describe("wk board", () => {
     expect(html).toContain(`<details class="project" data-id="${pid}">`);
     const project = html.slice(html.indexOf(`data-id="${pid}"`));
     expect(project.slice(0, project.indexOf("</details>"))).toMatch(/aria-label="In progress">.*?<div class="tt">Record each run<\/div>/);
+    // The project's tasks carry its colour; area tasks stay grey.
+    expect(html).toContain('<span class="chip" style="--pc:var(--p1)">Usage history</span>');
+    expect(html).toContain('<span class="chip">core</span>');
     expect(html).toContain("prefers-color-scheme:dark");
     expect(html).not.toMatch(/<script|https?:\/\//);
     expect(fs.existsSync(p.file("board.html"))).toBe(false);

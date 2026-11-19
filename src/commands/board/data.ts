@@ -45,7 +45,10 @@ export function collect(ctx: Ctx, store: Store): Board {
   return {
     ctx,
     store,
-    v: { homeNames: Object.fromEntries(projects.map((p) => [p.id, p.title])) },
+    v: {
+      homeNames: Object.fromEntries(projects.map((p) => [p.id, p.title])),
+      hues: Object.fromEntries(projects.map((p, i) => [p.id, i])),
+    },
     all,
     tasks,
     openProjects: projects.filter((p) => p.data.state !== "done"),

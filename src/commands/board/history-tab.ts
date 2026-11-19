@@ -2,7 +2,7 @@ import { state } from "../../model.js";
 import { str } from "../../store.js";
 import { activePrinciples } from "../knowledge.js";
 import type { Board } from "./data.js";
-import { capped, clock, esc, group, homeLabel, row } from "./parts.js";
+import { capped, chip, clock, esc, group, row } from "./parts.js";
 
 /** The History tab: what got done, what changed, and what the plan has learned. */
 export function historyTab(b: Board): string {
@@ -15,7 +15,7 @@ export function historyTab(b: Board): string {
     .filter((i) => (i.kind === "decision" || i.kind === "learning") && !str(i, "superseded_by"))
     .sort((x, y) => str(y, "created").localeCompare(str(x, "created")))
     .slice(0, 10)
-    .map((i) => `<li class="r" data-key="${i.id}" title="id ${i.id}"><span class="kind">${i.kind}</span><div class="body"><div class="tt">${esc(i.title)}</div></div><span class="chip">${esc(homeLabel(b.v, i))}</span></li>`);
+    .map((i) => `<li class="r" data-key="${i.id}" title="id ${i.id}"><span class="kind">${i.kind}</span><div class="body"><div class="tt">${esc(i.title)}</div></div>${chip(b.v, i)}</li>`);
   const body = [
     group("done", "Done this week", done.length, capped(done, 12)),
     group(null, "Just happened", changes.length, changes.join("")),

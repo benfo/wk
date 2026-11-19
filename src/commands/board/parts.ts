@@ -7,6 +7,8 @@ export const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", 
 
 export interface View {
   homeNames: Record<string, string>;
+  /** Each project's colour slot, in plan order, so a project keeps its colour when others close. */
+  hues: Record<string, number>;
 }
 
 /** "Name: Daily Dad Joke CLI" reads better as "Daily Dad Joke CLI". */
@@ -91,44 +93,62 @@ export function kindOf(t: Item): Kind {
   return "later";
 }
 
-/** Status icons in the manner of an issue tracker: an empty ring to do, half full in progress, a tick when done. */
+/**
+ * Status icons in the manner of an issue tracker: an empty ring to do, half full in progress, a tick when done.
+ * Drawn in currentColor; each status sets its own colour (`.s-<kind>` in the stylesheet), so the shape and the
+ * colour say the same thing.
+ */
 export function icon(kind: Kind): string {
-  const ring = (cls: string, dash = "") => `<circle class="${cls}" cx="7" cy="7" r="5.5" fill="none" stroke-width="1.5"${dash}/>`;
+  const ring = (dash = "") => `<circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"${dash}/>`;
+  const line = (d: string) => `<path d="${d}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>`;
   const body: Record<Kind, string> = {
-    later: ring("k-t3", ' stroke-dasharray="2.2 2.2"'),
-    inbox: ring("k-t2", ' stroke-dasharray="2.2 2.2"') + '<circle class="k-t2f" cx="7" cy="7" r="1.6"/>',
-    sleeping: ring("k-t3", ' stroke-dasharray="0.6 2.6" stroke-linecap="round"'),
-    todo: ring("k-t2"),
-    waiting: ring("k-t3") + '<path class="k-t3" d="M5.6 5v4M8.4 5v4" stroke-width="1.4" stroke-linecap="round"/>',
-    due: ring("k-attn") + '<path class="k-attn" d="M7 4.2V7.4l2 1.2" fill="none" stroke-width="1.4" stroke-linecap="round"/>',
-    now: ring("k-acc") + '<path class="k-accf" d="M7 3.5A3.5 3.5 0 0 1 7 10.5Z"/>',
-    review: ring("k-attn") + '<path class="k-attnf" d="M7 3.5A3.5 3.5 0 1 1 3.5 7H7Z"/>',
-    done: '<circle class="k-accf" cx="7" cy="7" r="6.25"/><path class="k-bg" d="M4.4 7.2 6.2 9l3.5-3.7" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+    later: ring(' stroke-dasharray="2.2 2.2"'),
+    inbox: ring(' stroke-dasharray="2.2 2.2"') + '<circle cx="7" cy="7" r="1.6" fill="currentColor"/>',
+    sleeping: ring(' stroke-dasharray="0.6 2.6" stroke-linecap="round"'),
+    todo: ring(),
+    waiting: ring() + line("M5.6 5v4M8.4 5v4"),
+    due: ring() + line("M7 4.2V7.4l2 1.2"),
+    now: ring() + '<path d="M7 3.5A3.5 3.5 0 0 1 7 10.5Z" fill="currentColor"/>',
+    review: ring() + '<path d="M7 3.5A3.5 3.5 0 1 1 3.5 7H7Z" fill="currentColor"/>',
+    done: '<circle cx="7" cy="7" r="6.25" fill="currentColor"/><path d="M4.4 7.2 6.2 9l3.5-3.7" fill="none" stroke="var(--bg)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
   };
-  return `<svg class="ic" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="${KIND_LABEL[kind]}">${body[kind]}</svg>`;
+  return `<svg class="ic s-${kind}" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="${KIND_LABEL[kind]}">${body[kind]}</svg>`;
 }
 
-/** Project progress as a small ring that fills clockwise. */
-export function ring(done: number, total: number, size = 16): string {
+/** Six project colours; a project keeps its colour wherever it shows (chips, rings). Areas stay grey. */
+const HUES = 6;
+
+/** The style that gives an element its project's colour, or nothing for an area. */
+export function hue(v: View, home: string): string {
+  const n = v.hues[home];
+  return n === undefined ? "" : ` style="--pc:var(--p${(n % HUES) + 1})"`;
+}
+
+/** Where an item lives, as a small chip in its project's colour. */
+export function chip(v: View, item: Item): string {
+  return `<span class="chip"${hue(v, item.home.name)}>${esc(shortName(homeLabel(v, item)))}</span>`;
+}
+
+/** Project progress as a small ring that fills clockwise, in the project's colour when `style` gives one. */
+export function ring(done: number, total: number, size = 16, style = ""): string {
   const r = size / 2 - 2;
   const c = 2 * Math.PI * r;
   const f = total ? done / total : 0;
   const mid = size / 2;
-  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${done} of ${total} done"><circle cx="${mid}" cy="${mid}" r="${r}" fill="none" class="ring-track" stroke-width="2"/><circle cx="${mid}" cy="${mid}" r="${r}" fill="none" class="ring-fill" stroke-width="2" stroke-dasharray="${(c * f).toFixed(2)} ${c.toFixed(2)}" stroke-linecap="round" transform="rotate(-90 ${mid} ${mid})"/></svg>`;
+  return `<svg class="ring" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${done} of ${total} done"${style}><circle cx="${mid}" cy="${mid}" r="${r}" fill="none" class="ring-track" stroke-width="2"/><circle cx="${mid}" cy="${mid}" r="${r}" fill="none" class="ring-fill" stroke-width="2" stroke-dasharray="${(c * f).toFixed(2)} ${c.toFixed(2)}" stroke-linecap="round" transform="rotate(-90 ${mid} ${mid})"/></svg>`;
 }
 
 /** One task: status icon, title (with an optional note under it), then quiet facts and its project on the right. */
 export function row(v: View, t: Item, opts: { project?: boolean; right?: string; note?: string; kind?: Kind } = {}): string {
   const note = opts.note ? `<div class="note">${opts.note}</div>` : "";
   const right = opts.right ? `<span class="m">${opts.right}</span>` : "";
-  const chip = opts.project === false ? "" : `<span class="chip">${esc(shortName(homeLabel(v, t)))}</span>`;
-  return `<li class="r" data-key="${key(t)}" title="id ${t.id}">${icon(opts.kind ?? kindOf(t))}<div class="body"><div class="tt">${esc(t.title)}</div>${note}</div>${right}${chip}</li>`;
+  return `<li class="r" data-key="${key(t)}" title="id ${t.id}">${icon(opts.kind ?? kindOf(t))}<div class="body"><div class="tt">${esc(t.title)}</div>${note}</div>${right}${opts.project === false ? "" : chip(v, t)}</li>`;
 }
 
 /** A status group: a header bar with the icon, name and count, then its rows. Folds like a tracker's groups. */
 export function group(kind: Kind | null, name: string, count: number, rows: string, opts: { tone?: string; open?: boolean } = {}): string {
   if (!count) return "";
-  return `<details class="g${opts.tone ? ` ${opts.tone}` : ""}"${opts.open === false ? "" : " open"}><summary>${kind ? icon(kind) : ""}<b>${esc(name)}</b><span class="c">${count}</span></summary><ul>${rows}</ul></details>`;
+  return `<details class="g${kind ? ` s-${kind}` : ""}${opts.tone ? ` ${opts.tone}` : ""}"${opts.open === false ? "" : " open"}><summary>${kind ? icon(kind) : ""}<b>${esc(name)}</b><span class="c">${count}</span></summary><ul>${rows}</ul></details>`;
 }
 
 /** The first few rows, then the rest behind "N more". */

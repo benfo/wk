@@ -1,14 +1,19 @@
 /**
  * The board's one stylesheet. One family, four sizes (12, 13, 14, 16), spacing on a 4px grid. Emphasis comes
- * from weight and colour, not size. Blue means in progress, amber means it needs you; everything else is grey.
+ * from weight and colour, not size. Colour always means something: each status has one (blue in progress,
+ * amber ready to try, red due, green done, violet sleeping, teal waiting) and each project has one of six hues.
  */
 export const CSS = `
 :root{color-scheme:light dark;
 --bg:#fbfbfa;--s1:#f3f3f1;--s2:#ebebe8;--line:rgba(20,22,26,.07);--line2:rgba(20,22,26,.12);
---t1:#1a1b1e;--t2:#5a5d64;--t3:#868991;--accent:#4353e0;--attn:#b05a0c;--ok:#15803d}
+--t1:#1a1b1e;--t2:#5a5d64;--t3:#868991;--accent:#4353e0;--attn:#b05a0c;--ok:#15803d;
+--st-now:#3e5ee6;--st-review:#c26a06;--st-due:#d92d2d;--st-done:#16a34a;--st-sleeping:#7c3aed;--st-waiting:#0d9488;
+--p1:#db2777;--p2:#0284c7;--p3:#65a30d;--p4:#ea580c;--p5:#9333ea;--p6:#ca8a04}
 @media (prefers-color-scheme:dark){:root{
 --bg:#0f1012;--s1:#17181b;--s2:#1e1f23;--line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.11);
---t1:#ececee;--t2:#a3a6ad;--t3:#73767e;--accent:#8492ff;--attn:#f0a35c;--ok:#5bd38a}}
+--t1:#ececee;--t2:#a3a6ad;--t3:#73767e;--accent:#8492ff;--attn:#f0a35c;--ok:#5bd38a;
+--st-now:#7b93ff;--st-review:#f5a524;--st-due:#f87171;--st-done:#4ade80;--st-sleeping:#a78bfa;--st-waiting:#2dd4bf;
+--p1:#f472b6;--p2:#38bdf8;--p3:#a3e635;--p4:#fb923c;--p5:#c084fc;--p6:#facc15}}
 *{box-sizing:border-box;margin:0;padding:0}
 ul,ol{list-style:none}
 body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI Variable Text","Segoe UI",Roboto,sans-serif;letter-spacing:-.006em;-webkit-font-smoothing:antialiased}
@@ -17,10 +22,11 @@ body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-san
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
 /* Icons: shapes carry the state; colour repeats it. */
-.ic{flex:none;display:block}
-.k-t2{stroke:var(--t2)}.k-t3{stroke:var(--t3)}.k-t2f{fill:var(--t2)}
-.k-acc{stroke:var(--accent)}.k-accf{fill:var(--accent)}.k-attn{stroke:var(--attn)}.k-attnf{fill:var(--attn)}.k-bg{stroke:var(--bg)}
-.ring{flex:none;display:block}.ring-track{stroke:var(--line2)}.ring-fill{stroke:var(--accent)}
+.ic{flex:none;display:block;color:var(--c)}
+.s-later,.s-sleeping{--c:var(--t3)}.s-todo,.s-inbox{--c:var(--t2)}
+.s-now{--c:var(--st-now)}.s-review{--c:var(--st-review)}.s-due{--c:var(--st-due)}.s-done{--c:var(--st-done)}
+.s-sleeping{--c:var(--st-sleeping)}.s-waiting{--c:var(--st-waiting)}
+.ring{flex:none;display:block}.ring-track{stroke:var(--line2)}.ring-fill{stroke:var(--pc,var(--accent))}
 
 /* Top line and tabs */
 .tab-radio{position:absolute;opacity:0;pointer-events:none}
@@ -28,7 +34,7 @@ body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-san
 .top h1{display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:600;min-width:0;flex:1}
 .branch{font-size:12px;font-weight:400;color:var(--t3)}
 .right{display:flex;align-items:center;gap:16px;font-size:13px}
-.hot{color:var(--attn)}.hot b{font-weight:600}
+.hot{color:var(--st-review)}.hot b{font-weight:600}
 .tabs{display:flex;gap:2px}
 .tabs label{font-size:13px;color:var(--t2);padding:4px 10px;border-radius:6px;cursor:pointer}
 .tabs label:hover{color:var(--t1)}
@@ -42,10 +48,11 @@ body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-san
 
 /* The focus card */
 .focus{padding:16px 20px;border:1px solid var(--line2);border-radius:10px;background:var(--s1);margin-bottom:24px}
-.focus.working{border-color:color-mix(in srgb,var(--accent) 40%,transparent);background:color-mix(in srgb,var(--accent) 7%,var(--s1))}
+.focus.working{border-color:color-mix(in srgb,var(--st-now) 55%,transparent);background:color-mix(in srgb,var(--st-now) 10%,var(--s1))}
 .fl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
 .fl .lbl{font-weight:600;color:var(--t2);margin-right:4px}
-.working .fl .lbl{color:var(--accent)}
+.working .fl .lbl{color:var(--st-now)}
+.focus.idle[style]{border-color:color-mix(in srgb,var(--pc) 35%,transparent);background:color-mix(in srgb,var(--pc) 8%,var(--s1))}
 .fl .prog{display:inline-flex;align-items:center;gap:6px}
 .ft{font-size:16px;font-weight:600;line-height:1.4;margin:8px 0 0 22px;text-wrap:pretty}
 .handoff{font-size:13px;color:var(--t2);margin:8px 0 0 22px;max-width:72ch;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
@@ -57,7 +64,8 @@ body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-san
 .g>summary{cursor:pointer}
 .g>summary::-webkit-details-marker{display:none}
 .g>summary b{font-weight:600}
-.g.attn>summary b{color:var(--attn)}
+.g.s-now>summary,.g.s-review>summary,.g.s-due>summary,.g.s-done>summary,.g.s-sleeping>summary,.g.s-waiting>summary{background:color-mix(in srgb,var(--c) 12%,var(--s1))}
+.g.s-now>summary b,.g.s-review>summary b,.g.s-due>summary b,.g.s-done>summary b,.g.s-sleeping>summary b,.g.s-waiting>summary b{color:var(--c)}
 .c{color:var(--t3);font-weight:400;font-size:12px;font-variant-numeric:tabular-nums}
 .g>summary::after,.project>summary::after{content:"";width:5px;height:5px;margin:0 2px 2px auto;border-right:1.5px solid var(--t3);border-bottom:1.5px solid var(--t3);transform:rotate(45deg)}
 .g:not([open])>summary::after,.project:not([open])>summary::after{transform:rotate(-45deg);margin-bottom:0}
@@ -71,6 +79,8 @@ body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-san
 .r .m{flex:none;font-size:12px;color:var(--t3);margin-top:2px;font-variant-numeric:tabular-nums}
 .r .kind{flex:none;font-size:12px;color:var(--t3);width:56px;margin-top:1px}
 .chip{flex:none;font-size:12px;color:var(--t2);background:var(--s2);padding:0 8px;border-radius:999px;line-height:20px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip[style]{color:color-mix(in srgb,var(--pc) 80%,var(--t1));background:color-mix(in srgb,var(--pc) 15%,transparent)}
+.chip[style]::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--pc);margin-right:6px;vertical-align:1px}
 .fresh{background:color-mix(in srgb,var(--accent) 12%,transparent)!important;transition:none}
 .more>summary{cursor:pointer;list-style:none;font-size:13px;color:var(--t3);padding:10px 12px 10px 38px}
 .more>summary::-webkit-details-marker{display:none}
@@ -82,9 +92,10 @@ body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-san
 .projects h3{font-weight:600}
 .project>summary{display:flex;align-items:center;gap:12px;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;list-style:none}
 .project>summary::-webkit-details-marker{display:none}
-.project>summary:hover .pn{color:var(--accent)}
+.project>summary:hover .pn{color:var(--t1)}
+.project[open]>summary .pn{font-weight:600}
 .pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.project>ul{margin-left:16px;border-left:1px solid var(--line2)}
+.project>ul{margin-left:19px;border-left:2px solid color-mix(in srgb,var(--pc,var(--line2)) 45%,transparent)}
 
 /* History */
 .act{display:grid;grid-template-columns:5em 6.5em minmax(0,1fr);gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
