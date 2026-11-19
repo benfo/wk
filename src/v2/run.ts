@@ -1,11 +1,14 @@
+import fs from "node:fs";
+import path from "node:path";
 import { Command, CommanderError } from "commander";
 import { todayString } from "../context.js";
 import { render, WkError, type Result } from "../output.js";
 import { init } from "./commands/init.js";
 import { areaList, areaNew, projectClose, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
 import { review } from "./commands/review.js";
-import { addTask, ls, move, show } from "./commands/items.js";
+import { addMany, addTask, ls, move, show } from "./commands/items.js";
 import { board } from "./commands/board.js";
+import { guide, GUIDE_TOPICS, setup } from "./commands/setup.js";
 import { inbox, jot } from "./commands/capture.js";
 import { configure } from "./commands/configure.js";
 import { check, done, handoff, start, wait } from "./commands/flow.js";
@@ -64,20 +67,48 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .command("init")
     .description("set up the plan")
     .option("--store <where>", "repo, ignore (.gitignore), local (.git/info/exclude) or home (~/.wk)")
+    .option("--preset <preset>", "software (default in a git repo) or general: seeds tags and a starting area")
     .action(function (this: Command) {
-      emit(this, init(cwd, { store: this.opts().store, home: options.home }));
+      const o = this.opts();
+      emit(this, init(cwd, { store: o.store, preset: o.preset, home: options.home }));
     });
 
   program
-    .command("add <title>")
+    .command("guide [topic]")
+    .description(`print the agent rules, or a guide: ${GUIDE_TOPICS.join(", ")}`)
+    .action(function (this: Command, topic?: string) {
+      emit(this, guide(topic));
+    });
+
+  program
+    .command("setup")
+    .description("list agent instruction files and the stored workflow; --done records their fingerprints")
+    .option("--done", "record the instruction files as checked")
+    .action(function (this: Command) {
+      const o = this.opts();
+      act(this, (ctx, s) => setup(ctx, s, o));
+    });
+
+  program
+    .command("add [title]")
     .description("add a sorted task: in core unless --in says otherwise, at the bottom of the queue")
     .option("--in <home>", "an area or a project id")
     .option("--when <when>", "next, queue (default), later, someday, after:<id>, end:<project>, start:<area>, on:<date>")
     .option("--body <text>", "short notes, 6 lines max")
     .option("--tags <tags>", "comma-separated tags, e.g. bug,quick")
     .option("--force", "add even if a similar task exists")
-    .action(function (this: Command, title: string) {
+    .option("--from <file>", "one title per line from a file, or - for stdin; all or nothing")
+    .action(function (this: Command, title: string | undefined) {
       const o = this.opts();
+      if (o.from !== undefined) {
+        if (title) throw new WkError("Give a title or --from, not both.");
+        const file = path.resolve(cwd, o.from);
+        if (o.from !== "-" && !fs.existsSync(file)) throw new WkError(`File not found: ${file}`);
+        const input = o.from === "-" ? (options.stdin ?? fs.readFileSync(0, "utf8")) : fs.readFileSync(file, "utf8");
+        act(this, (ctx, s) => addMany(ctx, s, input, o));
+        return;
+      }
+      if (!title) throw new WkError('Give a title: wk add "<title>" (or --from <file>)');
       act(this, (ctx, s) => addTask(ctx, s, title, o));
     });
 

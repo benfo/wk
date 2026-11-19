@@ -74,6 +74,6 @@ describe("when", () => {
   it("notes a tag the plan has never seen", () => {
     const p = plan();
     p.wk("add", "Fix the banner", "--tags", "bug");
-    expect(p.wk("add", "Fix the footer", "--tags", "bgu")).toContain("New tag: bgu (known: bug).");
+    expect(p.wk("add", "Fix the footer", "--tags", "bgu")).toContain("New tag: bgu (known: bug, quick).");
   });
 });

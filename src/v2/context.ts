@@ -96,16 +96,12 @@ const HEADER = [
 ].join("\n");
 
 export function configText(config: Config): string {
-  const out: Record<string, unknown> = {
-    version: config.version,
-    store: config.store,
-    preset: config.preset,
-    workflow: config.workflow,
-    tags: config.tags,
-    reviewed: config.reviewed,
-  };
-  if (config.setup) out.setup = config.setup;
-  return HEADER + "\n" + yaml.dump(out, { lineWidth: 120, flowLevel: 3 }).replace(/: null$/gm, ":");
+  const dump = (o: Record<string, unknown>) => yaml.dump(o, { lineWidth: 120 }).replace(/: null$/gm, ":");
+  const head = dump({ version: config.version, store: config.store, preset: config.preset, workflow: config.workflow });
+  // Tags read best on one line.
+  const tags = `tags: [${config.tags.join(", ")}]\n`;
+  const tail = dump({ reviewed: config.reviewed, ...(config.setup ? { setup: config.setup } : {}) });
+  return `${HEADER}\n${head}${tags}${tail}`;
 }
 
 export function readConfig(root: string): Config {

@@ -4,13 +4,21 @@ import { STORES, type StoreChoice } from "../../config.js";
 import { findRoot, homeRoot, projectBase, WORK_DIR } from "../../context.js";
 import { excludeFile } from "../../git.js";
 import { addIgnores } from "../../commands/init.js";
+import { findSources, sourcesLine } from "../../commands/sources.js";
 import { result, WkError, type Result } from "../../output.js";
-import { CONFIG_FILE, configText, defaultConfig, readConfig, V1_PLAN } from "../context.js";
+import { CONFIG_FILE, configText, defaultConfig, PRESETS, readConfig, V1_PLAN, type Preset } from "../context.js";
 import { ARCHIVE_DIR, AREA_FILE, AREAS_DIR, CORE_AREA, INBOX_DIR, PROJECTS_DIR } from "../store.js";
+import { addPointer, AGENT_POINTER, installSkills, SKILLS, SKILLS_DIR } from "./setup.js";
 
 export const SUMMARY_FILE = "summary.md";
 export const SESSION_FILE = "session.md";
 const CORE_DESCRIPTION = "Always in scope. Its principles load for every task; items with no better home live here.";
+
+/** What a preset seeds. Nothing else differs: the core stays domain-agnostic. */
+export const PRESET_SEEDS: Record<Preset, { tags: string[]; areas: [string, string][] }> = {
+  software: { tags: ["bug", "quick", "perf", "ux"], areas: [["code", "How it's built: structure, conventions and tooling."]] },
+  general: { tags: ["quick"], areas: [] },
+};
 
 const STORE_HELP = [
   "Choose where to keep the plan:",
@@ -37,12 +45,34 @@ export function ensureLayout(root: string, store: StoreChoice): void {
   writeIfMissing(path.join(root, SUMMARY_FILE), "");
   writeIfMissing(path.join(root, SESSION_FILE), "");
   if (store === "repo") {
-    // Git doesn't track empty folders.
     for (const dir of [INBOX_DIR, PROJECTS_DIR, ARCHIVE_DIR]) writeIfMissing(path.join(root, dir, ".gitkeep"), "");
   }
 }
 
-export function init(cwd: string, opts: { store?: string; home?: string }): Result {
+function isPersonal(store: StoreChoice): boolean {
+  return store === "local" || store === "home";
+}
+
+/** Skills, ignores and the AGENTS.md pointer: shared by a fresh init and a rerun. */
+function wireAgent(base: string, store: StoreChoice, git: boolean): string[] {
+  const lines = [`Skills: ${installSkills(base).join(", ")}`];
+  const skillPatterns = SKILLS.map((s) => `${SKILLS_DIR.split(path.sep).join("/")}/${s}/`);
+  const patterns = store === "repo" ? [] : store === "home" ? skillPatterns : [`${WORK_DIR}/`, ...skillPatterns];
+  if (patterns.length && git) {
+    const file = store === "ignore" ? path.join(base, ".gitignore") : excludeFile(base);
+    const added = file ? addIgnores(file, patterns) : [];
+    if (file && added.length) lines.push(`Ignored in ${path.relative(base, file).split(path.sep).join("/")}: ${added.join(" ")}`);
+  }
+  if (isPersonal(store)) {
+    lines.push("No AGENTS.md change (personal store). For other agents, add to your own instructions:", `  ${AGENT_POINTER}`);
+  } else {
+    const pointed = ["AGENTS.md", "CLAUDE.md"].filter((name) => addPointer(base, name, name === "CLAUDE.md"));
+    if (pointed.length) lines.push(`Added the wk pointer to ${pointed.join(" and ")}`);
+  }
+  return lines;
+}
+
+export function init(cwd: string, opts: { store?: string; preset?: string; home?: string }): Result {
   const existing = findRoot(cwd, opts.home);
   if (existing) {
     const config = readConfig(existing.root);
@@ -50,6 +80,7 @@ export function init(cwd: string, opts: { store?: string; home?: string }): Resu
     ensureLayout(existing.root, config.store);
     const lines = [`Already set up (store: ${config.store}): ${existing.root}`];
     if (opts.store && opts.store !== config.store) lines.push(`Not moving it to "${opts.store}". Moving a plan is not supported.`);
+    lines.push(...wireAgent(existing.base, config.store, projectBase(existing.base).git));
     return result(lines, { root: existing.root, store: config.store });
   }
   if (!opts.store) throw new WkError(STORE_HELP.join("\n"));
@@ -59,16 +90,20 @@ export function init(cwd: string, opts: { store?: string; home?: string }): Resu
   if ((store === "ignore" || store === "local") && !git) {
     throw new WkError(`--store ${store} needs a git repo. Use --store repo or --store home here.`);
   }
+  if (opts.preset && !PRESETS.includes(opts.preset as Preset)) throw new WkError(`Unknown preset "${opts.preset}". Use: ${PRESETS.join(", ")}`);
+  const preset: Preset = (opts.preset as Preset | undefined) ?? (git ? "software" : "general");
   const root = store === "home" ? homeRoot(base, opts.home) : path.join(base, WORK_DIR);
   fs.mkdirSync(root, { recursive: true });
-  fs.writeFileSync(path.join(root, CONFIG_FILE), configText(defaultConfig(store)));
+  const config = { ...defaultConfig(store, preset), tags: PRESET_SEEDS[preset].tags };
+  fs.writeFileSync(path.join(root, CONFIG_FILE), configText(config));
   ensureLayout(root, store);
-  const lines = [`Created ${root}`];
-  if (store === "ignore" || store === "local") {
-    const file = store === "ignore" ? path.join(base, ".gitignore") : excludeFile(base);
-    const added = file ? addIgnores(file, [`${WORK_DIR}/`]) : [];
-    if (file && added.length) lines.push(`Ignored in ${path.relative(base, file).split(path.sep).join("/")}: ${added.join(" ")}`);
+  for (const [name, description] of PRESET_SEEDS[preset].areas) {
+    fs.mkdirSync(path.join(root, AREAS_DIR, name), { recursive: true });
+    writeIfMissing(path.join(root, AREAS_DIR, name, AREA_FILE), areaText(name, description));
   }
-  lines.push("Next: wk brief");
-  return result(lines, { root, store });
+  const lines = [`Created ${root} (preset: ${preset})`, ...wireAgent(base, store, git)];
+  const found = sourcesLine(findSources(base, git));
+  if (found) lines.push(found);
+  lines.push("Next: wk brief, then the wk-setup skill (wk guide setup).");
+  return result(lines, { root, store, preset });
 }

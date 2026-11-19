@@ -236,5 +236,8 @@ export function handoff(ctx: Ctx, _store: Store, raw: string, opts: { fresh?: bo
   const text = handoffText(raw);
   writeHandoff(ctx, text, opts.fresh);
   const n = text.split("\n").length;
-  return result([`Handoff saved (${n} line${n === 1 ? "" : "s"}).`], { handoff: text });
+  const full = ctx.config.workflow.checks.full;
+  const lines = [`Handoff saved (${n} line${n === 1 ? "" : "s"}).`];
+  if (full) lines.push(`Ending the session? Run the full checks first if they have not run: ${full}`);
+  return result(lines, { handoff: text });
 }

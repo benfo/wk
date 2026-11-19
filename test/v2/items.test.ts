@@ -58,7 +58,7 @@ describe("init", () => {
   it.skipIf(!hasGit)("keeps an ignore-store plan out of git", () => {
     const p = plan({ git: true, store: "ignore" });
     expect(fs.readFileSync(path.join(p.dir, ".gitignore"), "utf8")).toContain(".work/");
-    expect(git(p.dir, "status", "--porcelain")).toBe("?? .gitignore");
+    expect(git(p.dir, "status", "--porcelain")).toBe("?? .gitignore\n?? AGENTS.md");
   });
 
   it("keeps a home-store plan outside the folder", () => {
@@ -75,7 +75,7 @@ describe("add and show", () => {
   it("writes a task to the core area as <id>-<slug>.md with the title as a heading", () => {
     const p = plan();
     const out = p.wk("add", "Banner border shifts right", "--tags", "bug,UI", "--body", "On 80 columns.\\nWide mascots only.");
-    const m = /^Added ([a-z2-9]{4}) Banner border shifts right \(core\)$/.exec(out);
+    const m = /^Added ([a-z2-9]{4}) Banner border shifts right \(core\)$/m.exec(out);
     expect(m).not.toBeNull();
     const id = m![1];
     expect(p.files("areas", "core").sort()).toEqual(["area.md", `${id}-banner-border-shifts-right.md`].sort());

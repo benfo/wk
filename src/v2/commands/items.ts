@@ -43,6 +43,33 @@ export function addTask(ctx: Ctx, store: Store, rawTitle: string, opts: AddOpts)
   return result([`Added ${item.id} ${title} (${home.name})`], { id: item.id, title, home: home.name, file: item.file });
 }
 
+/**
+ * Adds one task per line, all or nothing: every problem line is listed before anything is written.
+ * Checklist markers ("- [ ] ", "* ", "1. ") are stripped.
+ */
+export function addMany(ctx: Ctx, store: Store, input: string, opts: AddOpts): Result {
+  const titles = input
+    .replace(/\r\n/g, "\n")
+    .split("\n")
+    .map((l) => l.replace(/^\s*(?:[-*+]\s+(?:\[[ xX]\]\s+)?|\d+[.)]\s+)/, "").trim())
+    .filter(Boolean);
+  if (titles.length === 0) throw new WkError("No titles given.");
+  const problems: string[] = [];
+  const pool = openTasks(store);
+  titles.forEach((t, i) => {
+    try {
+      checkTitle(t, `Line ${i + 1}`);
+      if (!opts.force) guardSimilar(t, pool, false);
+      if (titles.indexOf(t) !== i) problems.push(`Line ${i + 1} repeats line ${titles.indexOf(t) + 1}.`);
+    } catch (e) {
+      problems.push(e instanceof WkError ? `Line ${i + 1}: ${e.message.split("\n")[0]}` : String(e));
+    }
+  });
+  if (problems.length) throw new WkError([...problems, "Nothing added. Fix those lines and rerun."].join("\n"));
+  const added = titles.map((t) => addTask(ctx, store, t, { ...opts, body: undefined, force: true }).data as { id: string; title: string });
+  return result([`Added ${added.length} tasks:`, ...added.map((a) => `${a.id} ${a.title}`)], added);
+}
+
 /** A rank just below the last queued task, so a new task joins the bottom of the queue. */
 export function bottomRank(store: Store): number {
   const ranks = store.list().filter(isQueued).map((i) => i.data.rank).filter((r): r is number => typeof r === "number");
