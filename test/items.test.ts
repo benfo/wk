@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { ID_ALPHABET, newId, slugify } from "../src/ids.js";
-import { run } from "../src/run.js";
+import { run } from "./helpers.js";
 import { git, hasGit, tmpDir } from "./helpers.js";
 import { fixedPick, plan } from "./helpers.js";
 

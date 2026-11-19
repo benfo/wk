@@ -19,6 +19,33 @@ export function todayString(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+/** The current time as ISO. WK_NOW pins it, so another implementation's output can be compared byte for byte. */
+export function nowIso(): string {
+  return process.env.WK_NOW ?? new Date().toISOString();
+}
+
+/**
+ * A random source for ids from the environment, for repeatable runs: WK_PICKS="3,4,5" returns those alphabet
+ * indexes in turn (then repeats the last); WK_SEED=<n> runs xorshift32 from n. Undefined means truly random.
+ */
+export function envPick(): ((n: number) => number) | undefined {
+  const picks = process.env.WK_PICKS;
+  if (picks) {
+    const list = picks.split(",").map(Number);
+    let i = 0;
+    return () => list[Math.min(i++, list.length - 1)];
+  }
+  const seed = Number(process.env.WK_SEED);
+  if (!seed) return undefined;
+  let x = seed >>> 0;
+  return (n) => {
+    x = (x ^ (x << 13)) >>> 0;
+    x = (x ^ (x >>> 17)) >>> 0;
+    x = (x ^ (x << 5)) >>> 0;
+    return x % n;
+  };
+}
+
 /** Where home-stored plans and per-machine state live. WK_HOME overrides `~/.wk`. */
 export function wkHome(override?: string): string {
   return override ?? process.env.WK_HOME ?? path.join(os.homedir(), ".wk");

@@ -1,4 +1,4 @@
-import type { Ctx } from "../../context.js";
+import { nowIso, type Ctx } from "../../context.js";
 import { readEvents, type PlanEvent } from "../../events.js";
 import { byQueue, daysBetween, isDue, isQueued, isWaiting, state, triggerOf, when } from "../../model.js";
 import { str, type Item, type Project, type Store } from "../../store.js";
@@ -66,7 +66,7 @@ export function collect(ctx: Ctx, store: Store): Board {
       .filter((t) => state(t) === "done" && daysBetween(str(t, "done_on") || str(t, "updated"), ctx.today) <= RECENT_DAYS)
       .sort((a, b) => str(b, "done_on").localeCompare(str(a, "done_on"))),
     events: readEvents(ctx, 200),
-    nowMs: Date.now(),
+    nowMs: Date.parse(nowIso()),
     needsYou: review.length + due.length,
   };
 }

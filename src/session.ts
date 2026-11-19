@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import type { Ctx } from "./context.js";
+import { nowIso, type Ctx } from "./context.js";
 
 /**
  * What wk knows about the current agent session. Kept per machine in ~/.wk/sessions/, never in
@@ -27,7 +27,7 @@ function file(ctx: Ctx): string {
 }
 
 function blank(): Session {
-  return { started: new Date().toISOString(), done: [], lastHome: null, freshFor: null, asked: [] };
+  return { started: nowIso(), done: [], lastHome: null, freshFor: null, asked: [] };
 }
 
 export function readSession(ctx: Ctx): Session {

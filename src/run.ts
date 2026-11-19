@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { Command, CommanderError } from "commander";
-import { todayString } from "./context.js";
+import { envPick, nowIso, todayString } from "./context.js";
 import { render, result, WkError, type Result } from "./output.js";
 import { init } from "./commands/init.js";
 import { areaList, areaNew, projectClose, projectList, projectNew, projectShow, summaryCmd } from "./commands/homes.js";
@@ -49,6 +49,7 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
   wireFeatures();
   const cwd = options.cwd ?? process.cwd();
   const today = options.today ?? process.env.WK_TODAY ?? todayString();
+  const pick = options.pick ?? envPick();
   const out: string[] = [];
   const err: string[] = [];
 
@@ -64,7 +65,7 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     out.push(render(res, cmd.optsWithGlobals() as { json?: boolean; all?: boolean }));
   };
   const act = (cmd: Command, fn: Handler) => {
-    const ctx = loadContext(cwd, today, options.home, options.pick);
+    const ctx = loadContext(cwd, today, options.home, pick);
     const store = new Store(ctx);
     // Log what changed, for the board: a snapshot before and after, so no command has to remember to.
     const before = snapshot(store);
@@ -72,7 +73,7 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     const after = new Store(ctx);
     const archived = () => new Set([...after.archived().map((i) => i.id), ...after.archivedProjects().map((p) => p.id)]);
     let known: Set<string> | null = null;
-    appendEvents(ctx, diff(before, snapshot(after), (id) => (known ??= archived()).has(id)), options.now);
+    appendEvents(ctx, diff(before, snapshot(after), (id) => (known ??= archived()).has(id)), options.now ?? nowIso());
   };
 
   program
@@ -96,7 +97,7 @@ export function run(argv: string[], options: RunOptions = {}): RunOutput {
     .command("migrate")
     .description("convert a v1 plan in place; old ids stay findable (wk show T-013)")
     .action(function (this: Command) {
-      emit(this, migrate(cwd, today, { home: options.home, pick: options.pick }));
+      emit(this, migrate(cwd, today, { home: options.home, pick }));
     });
 
   program

@@ -3,7 +3,29 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach } from "vitest";
-import { run, type RunOptions, type RunOutput } from "../src/run.js";
+import { run as runInProcess, type RunOptions, type RunOutput } from "../src/run.js";
+
+/**
+ * WK_BIN=<path to a wk executable> runs every command through that binary instead of in-process,
+ * so this suite checks another implementation of the same CLI.
+ */
+const BIN = process.env.WK_BIN;
+
+export function run(args: string[], o: RunOptions = {}): RunOutput {
+  if (!BIN) return runInProcess(args, o);
+  const env: Record<string, string> = { ...(process.env as Record<string, string>) };
+  for (const k of ["WK_TODAY", "WK_HOME", "WK_NOW", "WK_PICKS", "WK_SEED"]) delete env[k];
+  if (o.today) env.WK_TODAY = o.today;
+  if (o.home) env.WK_HOME = o.home;
+  if (o.now) env.WK_NOW = o.now;
+  const picks = (o.pick as { indexes?: number[] } | undefined)?.indexes;
+  if (picks) env.WK_PICKS = picks.join(",");
+  // A .js file runs through node, so the spawn path can be checked against the built TS CLI itself.
+  const [cmd, pre] = BIN.endsWith(".js") ? [process.execPath, [BIN]] : [BIN, []];
+  const r = spawnSync(cmd, [...pre, ...args], { cwd: o.cwd, env, input: o.stdin ?? "", encoding: "utf8" });
+  const trim = (s: string) => s.replace(/\r?\n$/, "");
+  return { code: r.status ?? 1, stdout: trim(r.stdout ?? ""), stderr: trim(r.stderr ?? "") };
+}
 
 const dirs: string[] = [];
 
@@ -89,5 +111,5 @@ export function put(p: Plan, home: string[], id: string, title: string, data: Re
 /** A random source that returns these alphabet indexes in turn, then repeats the last. */
 export function fixedPick(...indexes: number[]): (n: number) => number {
   let i = 0;
-  return () => indexes[Math.min(i++, indexes.length - 1)];
+  return Object.assign(() => indexes[Math.min(i++, indexes.length - 1)], { indexes });
 }

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { run } from "../src/run.js";
+import { run } from "./helpers.js";
 import { git, gitInit, hasGit, tmpDir, TODAY } from "./helpers.js";
 
 /** Files exactly as a v1 wk wrote them: every kind of item, one finished epic, two principle files. */
