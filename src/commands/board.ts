@@ -102,7 +102,7 @@ function testsOf(item: Item): string[] {
 }
 
 /**
- * The live page: swaps #app in place when the plan changes (keeping the tab you are on), flashes
+ * The live page: swaps #app in place when the plan changes (keeping the tab you are on and the projects you opened), flashes
  * rows it hasn't seen, ticks the relative times, puts the needs-you count in the tab title and icon,
  * and, if the user allowed it, sends a notification when something new needs them while the tab is hidden.
  */
@@ -160,7 +160,9 @@ const LIVE_SCRIPT = `<script>
     var doc = new DOMParser().parseFromString(html, "text/html");
     var next = doc.getElementById("app");
     if (!next) return;
-    var before = keys(), was = needs();
+    var before = keys(), was = needs(), opened = {};
+    document.querySelectorAll("details[data-id]").forEach(function (d) { if (d.open) opened[d.getAttribute("data-id")] = 1; });
+    next.querySelectorAll("details[data-id]").forEach(function (d) { if (opened[d.getAttribute("data-id")]) d.open = true; });
     app().replaceWith(next);
     document.title = doc.title;
     showTab(); showStatus(); notifyButton(); icon(needs()); tick();
@@ -277,9 +279,25 @@ ul,ol{list-style:none}
 .bar{flex:1;height:6px;border-radius:999px;background:var(--fill);overflow:hidden}
 .bar span{display:block;height:100%;border-radius:999px;background:var(--accent)}
 .progress .num{font-size:13px;color:var(--text-3);font-variant-numeric:tabular-nums;min-width:4ch;text-align:right}
-.project{padding:12px 0;border-bottom:1px solid var(--line)}
-.project:last-child{border-bottom:0}
+.project{border-bottom:1px solid var(--line)}
+li:last-child>.project{border-bottom:0}
+.project>summary{display:block;list-style:none;cursor:pointer;padding:12px 0;border-radius:8px}
+.project>summary::-webkit-details-marker{display:none}
+.pname{display:flex;align-items:baseline;gap:8px}
+.pname::after{content:"";width:6px;height:6px;margin-left:auto;border-right:1.5px solid var(--text-3);border-bottom:1.5px solid var(--text-3);transform:translateY(-3px) rotate(45deg);transition:transform .15s}
+.project[open] .pname::after{transform:translateY(0) rotate(-135deg)}
+.project>summary:hover .pname{color:var(--accent)}
 .project .progress{margin-top:8px}
+.ptasks{padding:0 0 16px}
+.ptask{display:flex;justify-content:space-between;align-items:baseline;gap:16px;padding:6px 0 6px 12px;border-left:2px solid var(--line);font-size:14px;color:var(--text-2)}
+.ptask .st{flex:none;font-size:13px;color:var(--text-3)}
+.ptask .st-now{color:var(--accent);font-weight:500}
+.ptask .st-attn{color:var(--attn);font-weight:500}
+.pdone{margin-top:8px}
+.pdone>summary{cursor:pointer;font-size:13px;color:var(--text-3);padding:4px 0 4px 14px;list-style:none}
+.pdone>summary::-webkit-details-marker{display:none}
+.pdone>summary:hover{color:var(--text-2)}
+.pdone .ptask{color:var(--text-3)}
 
 .activity .act{display:grid;grid-template-columns:4.5em 5.5em minmax(0,1fr);gap:12px;padding:6px 0;font-size:13px;align-items:baseline}
 .activity .act time,.activity .act .verb{color:var(--text-3);font-variant-numeric:tabular-nums}
@@ -301,7 +319,7 @@ details.area .why.missing{color:var(--attn)}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
 @media (max-width:1000px){#app{padding:16px 16px 48px}.hero{grid-template-columns:1fr;gap:24px;padding:28px 24px}.cols{grid-template-columns:1fr;gap:40px}.top{margin-bottom:24px}}
-@media (prefers-reduced-motion:reduce){.row,.tabs label{transition:none}}
+@media (prefers-reduced-motion:reduce){.row,.tabs label,.pname::after{transition:none}}
 `;
 
 /**
@@ -382,9 +400,27 @@ ${body ? `<ul class="body">${body}</ul>` : ""}${prog ? bar(prog.done, prog.total
     rest.length ? `<ul class="queue"${heroItem ? ' style="--from:1"' : ""}>${rest.map((t) => row(v, t)).join("")}</ul>` : `<p class="empty">${heroItem ? "Nothing else queued." : "Nothing queued."}</p>`
   }${needRows.length ? "" : inboxLine}</section>`;
   const openProjects = projects.filter((p: Project) => p.data.state !== "done");
+  // Each project opens to its tasks: open ones in the order you'd meet them, with where each stands; done ones folded.
+  const status = (t: Item): [number, string, string] => {
+    const st = state(t);
+    if (st === "now") return [0, "In progress", "st-now"];
+    if (st === "review") return [1, "Ready to try", "st-attn"];
+    if (isDue(t) && st === "open") return [2, "Due", "st-attn"];
+    if (isQueued(t) && !isWaiting(t)) return [3, `Up next, ${queue.indexOf(t) + 1}`, ""];
+    if (isWaiting(t)) return [4, "Waiting", ""];
+    if (triggerOf(when(t))) return [5, "Sleeping", ""];
+    return [6, when(t) || st, ""];
+  };
   const projectRows = openProjects.map((p) => {
-    const { done, total } = projectTasks(store, p);
-    return `<li class="project" data-key="${p.id}:${done}/${total}" title="${p.id}"><div>${esc(p.title)}</div>${bar(done, total)}</li>`;
+    const { tasks: own, done, total } = projectTasks(store, p);
+    const open = own.filter((t) => state(t) !== "done").map((t) => [status(t), t] as const);
+    open.sort((a, b) => a[0][0] - b[0][0] || (a[0][0] === 3 ? byQueue(a[1], b[1]) : 0));
+    const closed = own.filter((t) => state(t) === "done");
+    const list = open.map(([[, label, cls], t]) => `<li class="ptask" title="${t.id}"><span>${esc(t.title)}</span><span class="st ${cls}">${esc(label)}</span></li>`).join("");
+    const doneList = closed.length
+      ? `<details class="pdone"><summary>${closed.length} done</summary><ul>${closed.map((t) => `<li class="ptask" title="${t.id}"><span>${esc(t.title)}</span></li>`).join("")}</ul></details>`
+      : "";
+    return `<li data-key="${p.id}:${done}/${total}"><details class="project" data-id="${p.id}"><summary title="${p.id}"><div class="pname">${esc(p.title)}</div>${bar(done, total)}</summary><div class="ptasks">${list ? `<ul>${list}</ul>` : '<p class="empty">No open tasks.</p>'}${doneList}</div></details></li>`;
   });
   const activity = events.slice(0, 3).map(
     (e) => `<li class="act" data-key="${esc(e.at + e.id + e.verb)}">${clock(e.at, nowMs, "", " ago")}<span class="verb">${esc(e.verb)}</span><span class="what">${esc(e.title)}</span></li>`,

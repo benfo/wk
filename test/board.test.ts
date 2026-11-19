@@ -28,6 +28,9 @@ describe("wk board", () => {
     expect(html).toContain('<div class="eyebrow">In progress <span class="for">');
     expect(html).toContain('<label for="tab-now" title="Press 1">Now</label><label for="tab-plan" title="Press 2">Plan</label>');
     expect(html).toContain('<main class="view plan">');
+    // A project opens to its tasks and where each stands.
+    expect(html).toContain(`<details class="project" data-id="${pid}">`);
+    expect(html).toContain('<span>Record each run</span><span class="st st-now">In progress</span>');
     expect(html).toContain("prefers-color-scheme:dark");
     expect(html).not.toMatch(/<script|https?:\/\//);
     expect(fs.existsSync(p.file("board.html"))).toBe(false);
