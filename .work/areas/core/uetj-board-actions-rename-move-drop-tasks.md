@@ -1,7 +1,9 @@
 ---
 id: uetj
 kind: task
-state: inbox
+state: open
+when: later
+tags: [shape]
 created: 2026-11-20
 updated: 2026-11-20
 ---
