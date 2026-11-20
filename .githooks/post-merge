@@ -1,0 +1,3 @@
+#!/bin/sh
+# Keep the installed wk in step with this working copy.
+go run ./scripts/devinstall || echo "devinstall failed; the wk on your PATH is stale"
