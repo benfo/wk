@@ -1,1 +1,1 @@
-Done: Handoffs say only what the board can't show.
+Done: Handoff names underline only on hover.

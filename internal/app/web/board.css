@@ -53,7 +53,8 @@ body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-san
 .notes{margin:12px 0 0 22px;max-width:72ch;display:grid;gap:8px}
 .notes p{margin:0}
 .handoff{font-size:13px;color:var(--t2);white-space:pre-line}
-.handoff span[title]{text-decoration:underline dotted var(--t3);text-underline-offset:3px}
+.handoff span[title]{text-underline-offset:3px}
+.handoff span[title]:hover{text-decoration:underline dotted var(--t3)}
 .pulse{font-size:12px;color:var(--t3)}
 .notes .lead{font-weight:600;color:var(--t3);margin-right:8px}
 
