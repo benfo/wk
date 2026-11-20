@@ -1,12 +1,13 @@
 ---
 id: jttf
 kind: task
-state: review
+state: done
 when: next
 tags: []
 rank: 0
 created: 2026-11-20
 updated: 2026-11-20
+done_on: 2026-11-20
 checked: [go vet + go test ./... pass (port test flaky on Windows, passed rerun), a 88-char jot shows in full on the board]
 ---
 # Board shows a long jot's full first line, not a cut title

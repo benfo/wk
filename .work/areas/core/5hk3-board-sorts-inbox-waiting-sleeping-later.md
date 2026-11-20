@@ -1,12 +1,13 @@
 ---
 id: "5hk3"
 kind: task
-state: review
+state: done
 when: next
 tags: []
 rank: 0
 created: 2026-11-20
 updated: 2026-11-20
+done_on: 2026-11-20
 checked: [go vet + go test ./... pass (golden uncached), "5 same-day jots list oldest first, board and CLI"]
 ---
 # Board sorts inbox, waiting, sleeping, later and someday
