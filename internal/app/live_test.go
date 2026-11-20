@@ -2,6 +2,7 @@ package app
 
 import (
 	"bufio"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -83,13 +85,28 @@ func TestLiveBoardServesAndPushesReloads(t *testing.T) {
 	}
 }
 
-func TestLiveBoardMovesToTheNextFreePort(t *testing.T) {
-	taken, err := net.Listen("tcp", "127.0.0.1:0")
-	if err != nil {
-		t.Fatal(err)
+// takenPortWithFreeNext holds a port whose next one is free, so the test doesn't depend on which
+// ports the OS reserves (Windows blocks whole ranges near the ports it hands out).
+func takenPortWithFreeNext(t *testing.T) (net.Listener, int) {
+	for range 20 {
+		taken, err := net.Listen("tcp", "127.0.0.1:0")
+		if err != nil {
+			t.Fatal(err)
+		}
+		port := taken.Addr().(*net.TCPAddr).Port
+		if next, err := net.Listen("tcp", "127.0.0.1:"+strconv.Itoa(port+1)); err == nil {
+			next.Close()
+			return taken, port
+		}
+		taken.Close()
 	}
+	t.Skip("no port with a free next port")
+	return nil, 0
+}
+
+func TestLiveBoardMovesToTheNextFreePort(t *testing.T) {
+	taken, port := takenPortWithFreeNext(t)
 	defer taken.Close()
-	port := taken.Addr().(*net.TCPAddr).Port
 	live, err := serveBoard(testPlan(t), port, "")
 	if err != nil {
 		t.Fatal(err)
@@ -97,6 +114,16 @@ func TestLiveBoardMovesToTheNextFreePort(t *testing.T) {
 	defer live.Close()
 	if live.URL == "http://localhost:"+strconv.Itoa(port)+"/" {
 		t.Fatal("used the taken port")
+	}
+}
+
+func TestForbiddenPortIsSkipped(t *testing.T) {
+	forbidden := errors.New("listen tcp 127.0.0.1:49200: bind: An attempt was made to access a socket in a way forbidden by its access permissions.")
+	if !portUnavailable(forbidden) || !portUnavailable(syscall.EACCES) || !portUnavailable(syscall.EADDRINUSE) {
+		t.Fatal("a forbidden or busy port should move on to the next")
+	}
+	if portUnavailable(errors.New("listen tcp: lookup nohost: no such host")) {
+		t.Fatal("an unrelated error should not retry")
 	}
 }
 

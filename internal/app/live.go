@@ -147,7 +147,7 @@ func serveBoard(ctx *Ctx, port int, host string) (*LiveBoard, error) {
 	var err error
 	for p, left := port, portRetries; ; p, left = p+1, left-1 {
 		ln, err = net.Listen("tcp", net.JoinHostPort(host, strconv.Itoa(p)))
-		if err == nil || left == 0 || p == 0 || !errors.Is(err, syscall.EADDRINUSE) && !isAddrInUse(err) {
+		if err == nil || left == 0 || p == 0 || !portUnavailable(err) {
 			break
 		}
 	}
@@ -206,8 +206,15 @@ func serveBoard(ctx *Ctx, port int, host string) (*LiveBoard, error) {
 	return &LiveBoard{URL: "http://localhost:" + strconv.Itoa(actual) + "/", Close: closeFn}, nil
 }
 
-func isAddrInUse(err error) bool {
-	return strings.Contains(err.Error(), "address already in use") || strings.Contains(err.Error(), "Only one usage of each socket address")
+// portUnavailable is true when another port may work: this one is in use, or forbidden, as the
+// ranges Windows reserves (for Hyper-V and others) are.
+func portUnavailable(err error) bool {
+	if errors.Is(err, syscall.EADDRINUSE) || errors.Is(err, syscall.EACCES) {
+		return true
+	}
+	msg := err.Error()
+	return strings.Contains(msg, "address already in use") || strings.Contains(msg, "Only one usage of each socket address") ||
+		strings.Contains(msg, "forbidden by its access permissions")
 }
 
 // serveCommand is wk board --serve: it starts the server and keeps running until Ctrl+C.
