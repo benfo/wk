@@ -97,6 +97,12 @@ func stageSkills(src, dst string) {
 		check(os.MkdirAll(filepath.Dir(target), 0o755))
 		check(os.WriteFile(target, want, 0o644))
 		check(exec.Command("git", "add", "--", target).Run())
+		// Rewrite the copy from the index with the checkout's line endings, as the source has them,
+		// or the post-commit sync sees it differ and leaves it modified. Removed first: checkout-index
+		// skips a file whose stat matches the index, even with -f.
+		check(os.Remove(target))
+		check(exec.Command("git", "checkout-index", "--", target).Run())
+		check(exec.Command("git", "add", "--", target).Run()) // refresh the index's stat for the new file
 	}
 }
 
