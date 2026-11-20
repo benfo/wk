@@ -352,14 +352,12 @@ func done(ctx *Ctx, s *Store, raw string, o *Opts) Result {
 	}
 	note := given
 	if !hasHandoff {
-		next := "nothing queued"
-		if q := nextView(s, 1).queue; len(q) > 0 {
-			next = queueLine(q[0])
-		}
-		note = "Done: " + item.ID + " " + item.Title + ".\nNext: " + next + "."
+		// People read the handoff on the board: no id, the full title, and no "Next" that goes stale
+		// as soon as the queue changes (brief and the board show the queue live).
+		note = "Done: " + fullTitle(item) + "."
 	}
 	writeHandoff(ctx, note, fresh)
-	how := "written from the next task (pass --handoff for more)"
+	how := "written from this task (pass --handoff for more)"
 	if hasHandoff {
 		how = "saved"
 	}

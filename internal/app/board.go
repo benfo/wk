@@ -93,6 +93,16 @@ func collect(ctx *Ctx, s *Store) *Board {
 	})
 	SortStable(b.recent, func(x, y *Item) int { return LocaleCompare(str(y, "done_on"), str(x, "done_on")) })
 	b.events = readEvents(ctx, 200)
+	// An event keeps the title as it was, cut for a long jot: show the item's full title while it exists.
+	byID := map[string]*Item{}
+	for _, i := range append(append([]*Item{}, all...), s.archived()...) {
+		byID[i.ID] = i
+	}
+	for n, e := range b.events {
+		if i := byID[e.ID]; i != nil {
+			b.events[n].Title = fullTitle(i)
+		}
+	}
 	b.nowMs, _ = parseISO(nowISO())
 	b.needsYou = len(b.review) + len(b.due)
 	return b

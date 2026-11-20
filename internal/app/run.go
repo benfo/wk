@@ -283,7 +283,7 @@ func commands() *command {
 			val("handoff", "<text>", "also save the handoff (5 lines max)"), flag("fresh", "the handoff recommends a fresh session")},
 		run: func(r *runner, c *call) { r.act(func(ctx *Ctx, s *Store) Result { return check(ctx, s, c.opts) }) }})
 	add(&command{name: "done", args: []argSpec{req("id")}, desc: "finish a reviewed task",
-		opts: []optSpec{flag("force", "skip review for a trivial task"), val("handoff", "<text>", "the handoff; without it, one is written from the next task"),
+		opts: []optSpec{flag("force", "skip review for a trivial task"), val("handoff", "<text>", "the handoff; without it, one names the finished task"),
 			flag("fresh", "the handoff recommends a fresh session")},
 		run: func(r *runner, c *call) {
 			r.act(func(ctx *Ctx, s *Store) Result { return done(ctx, s, c.args[0], c.opts) })

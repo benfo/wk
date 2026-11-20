@@ -65,7 +65,7 @@ $ wk start xcma --no-branch
 now   xcma Write release notes (core)
 $ wk done xcma --force
 done  xcma Write release notes
-Handoff written from the next task (pass --handoff for more). Next task unrelated, or context heavy? Suggest a fresh session.
+Handoff written from this task (pass --handoff for more). Next task unrelated, or context heavy? Suggest a fresh session.
 $ wk project show aes8
 ! No project aes8.
 [exit 1]
@@ -87,8 +87,7 @@ Due: 4yrm Revisit the palette (start:ui). Queue, reschedule or drop each.
 Review due: no review recorded yet (wk review, wk guide review).
 No principles yet. Offer a principles session (wk guide principles).
 Handoff (<FILE-DATE>):
-  Done: xcma Write release notes.
-  Next: aes8 Write release notes (core).
+  Done: Write release notes.
 now    (nothing in progress)
 next   aes8 Write release notes (core)
 due    4yrm Revisit the palette [due] (core)
@@ -103,8 +102,7 @@ wk dev · No summary yet.
 Due: 4yrm Revisit the palette (start:ui). Queue, reschedule or drop each.
 No principles yet. Offer a principles session (wk guide principles).
 Handoff (<FILE-DATE>):
-  Done: xcma Write release notes.
-  Next: aes8 Write release notes (core).
+  Done: Write release notes.
 now    (nothing in progress)
 next   aes8 Write release notes (core)
 due    4yrm Revisit the palette [due] (core)
@@ -215,8 +213,7 @@ updated: 2026-11-10
 
 ## Acceptance
 --- project/.work/session.md
-Done: xcma Write release notes.
-Next: aes8 Write release notes (core).
+Done: Write release notes.
 --- project/.work/summary.md
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Revisit the palette","home":"core"}
@@ -334,8 +331,7 @@ updated: 2026-11-10
 
 ## Acceptance
 --- project/.work/session.md
-Done: xcma Write release notes.
-Next: aes8 Write release notes (core).
+Done: Write release notes.
 --- project/.work/summary.md
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Revisit the palette","home":"core"}
