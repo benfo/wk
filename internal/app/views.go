@@ -174,6 +174,8 @@ func brief(ctx *Ctx, s *Store) Result {
 	} else {
 		lines = append(lines, "No summary yet.")
 	}
+	// The version leads the first line, costing no line: the skill checks it against the minimum it needs.
+	lines[0] = "wk " + BuildVersion + " · " + lines[0]
 	// Judge the handoff before the cues run: firing a dated trigger saves a task, which would make it look stale.
 	written, stale := handoffAge(ctx, s)
 	// Cues go early, so the line cap never hides them.

@@ -6,7 +6,7 @@ Migrated to v2: 2 epics → projects, 4 tasks, 1 ideas → someday tasks, 2 deci
 3 principles in 2 areas, each still needing instead and because.
 2 archived. Old ids still work: wk show T-013.
 Backup of the v1 plan: <DIR>/.work.v1-backup
-Next: wk init (refreshes the skills), then follow wk guide migrate with the user.
+Next: npx skills add benfo/wk (updates the skills), then follow wk guide migrate with the user.
 $ wk migrate
 Already a v2 plan. Nothing to migrate.
 $ wk show T-001

@@ -14,33 +14,30 @@ One file, no runtime: wk is a single binary for Windows, macOS and Linux.
 
 ## Install
 
-macOS and Linux:
+Add the skills, like any other agent skill:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/benfo/wk/main/install.sh | sh
+npx skills add benfo/wk
 ```
 
-Windows (PowerShell):
+Then tell your agent "set up wk". If the `wk` CLI isn't installed, the agent asks, then installs it; the `wk-setup` skill takes it from there.
 
-```powershell
-irm https://raw.githubusercontent.com/benfo/wk/main/install.ps1 | iex
+Install the skills in the project (the default) when the plan is committed, so anyone who clones it gets them. Add `-g` to install them once for yourself, which suits a plan only you use. You get two skills: `wk` for every session and `wk-setup` for fitting wk to your workflow.
+
+To install the CLI yourself, it goes in `~/.local/bin` (Windows: `%LOCALAPPDATA%\Programs\wk`, added to your PATH):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/benfo/wk/main/install.sh | sh   # macOS, Linux
+irm https://raw.githubusercontent.com/benfo/wk/main/install.ps1 | iex       # Windows PowerShell
 ```
 
-Or just tell your agent: "install wk from github.com/benfo/wk". The installer puts `wk` in `~/.local/bin` (Windows: `%LOCALAPPDATA%\Programs\wk`, added to your PATH). Then, in each project:
-
-```bash
-wk init --store repo
-```
-
-`--store` picks where the plan lives: `repo` (committed), `ignore` (in `.gitignore`), `local` (private, in `.git/info/exclude`) or `home` (`~/.wk/`). Outside git, use `repo` or `home`. Init copies two skills to `.claude/skills/`: `wk` for every session and `wk-setup` for fitting wk to your workflow. Agents without skills follow `wk guide`, which a line in `AGENTS.md` points to.
-
-Then ask your agent to set up wk; the `wk-setup` skill takes it from there.
+`wk init --store <store>` creates the plan: `repo` (committed), `ignore` (in `.gitignore`), `local` (private, in `.git/info/exclude`) or `home` (`~/.wk/`). Outside git, use `repo` or `home`. Setup offers a line in `AGENTS.md` so agents without the skill follow `wk guide`.
 
 ## Upgrade
 
-Run the install line again.
+`npx skills update` for the skills; run the CLI install line again for `wk`. Your plan is kept.
 
-Then run `wk init` again in each project to refresh its skills. Your plan is kept. A plan from wk v1 converts once with `wk migrate`; old ids like `T-013` keep working.
+Upgrading from a wk whose `wk init` copied the skills: run `npx skills add benfo/wk` once in each project. A plan from wk v1 converts once with `wk migrate`; old ids like `T-013` keep working.
 
 ## See the plan
 

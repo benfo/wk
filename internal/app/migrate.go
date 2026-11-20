@@ -398,7 +398,7 @@ func migrate(cwd, today, home string, pick Pick) Result {
 		itoa(ruleCount) + " principles in " + itoa(rules.Len()) + " areas, each still needing instead and because.",
 		itoa(archived) + " archived. Old ids still work: wk show T-013.",
 		backupLine,
-		"Next: wk init (refreshes the skills), then follow wk guide migrate with the user.",
+		"Next: npx skills add benfo/wk (updates the skills), then follow wk guide migrate with the user.",
 	}
 	return resultData(lines, Obj("migrated", true, "map", idMap, "backup", nullable(backup)))
 }

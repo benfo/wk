@@ -13,6 +13,10 @@ If `wk` says there is no plan, ask where to keep it, then run `wk init --store <
 
 Recommend `repo` for a project you own, `local` or `home` for someone else's. Outside git, `repo` and `home` work. `wk init` also takes `--preset software|general`. It picks `software` inside a git repo, and only seeds tags and a starting area; it changes nothing else. If `wk init` lists existing plans, offer onboarding (`wk guide onboarding`). If it says the plan is v1, run `wk migrate`, then follow `wk guide migrate`.
 
+For a `repo` or `ignore` plan, offer one line in AGENTS.md so a teammate's agent without the wk skill still follows the plan. Add it only on a yes:
+
+    Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+
 ## 2. The summary
 
 If `wk brief` says "No summary yet.": what the project is, who it's for, the goal, what's out of scope, what done means. Save it with `wk summary "<text>"`, 8 lines or fewer, one `Label: …` per line, `\n` between lines.

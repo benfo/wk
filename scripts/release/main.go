@@ -64,7 +64,7 @@ func main() {
 		}
 		file := filepath.Join(dist, name)
 		env := []string{"GOOS=" + t[0], "GOARCH=" + t[1], "CGO_ENABLED=0"}
-		step(env, "go", "build", "-trimpath", "-ldflags", "-s -w", "-o", file, "./cmd/wk")
+		step(env, "go", "build", "-trimpath", "-ldflags", "-s -w -X github.com/benfo/wk/internal/app.BuildVersion="+version, "-o", file, "./cmd/wk")
 		assets = append(assets, file)
 	}
 
@@ -93,7 +93,7 @@ func main() {
 		"irm https://raw.githubusercontent.com/" + repo + "/main/install.ps1 | iex",
 		"```",
 		"",
-		"Then run `wk init` in each project to refresh its skills.",
+		"Update the skills with `npx skills update`.",
 	}, "\n")
 	notesFile := filepath.Join(dist, "notes.md")
 	check(os.WriteFile(notesFile, []byte(notes), 0o644))

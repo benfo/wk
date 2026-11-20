@@ -1,7 +1,5 @@
 $ wk init --store repo --preset general
 Created <DIR>/.work (preset: general)
-Skills: .claude/skills/wk, .claude/skills/wk-setup
-Added the wk pointer to AGENTS.md
 Next: wk brief, then the wk-setup skill (wk guide setup).
 $ wk add "Write the intro"
 Added 4yrm Write the intro (core)
@@ -18,7 +16,7 @@ queue   4yrm Write the intro (core)
 queue   aes8 Draft chapter one (core)
 someday yebg Proofread everything (core)
 $ wk brief
-No summary yet.
+wk dev · No summary yet.
 No principles yet. Offer a principles session (wk guide principles).
 Handoff: none yet.
 now    (nothing in progress)
@@ -46,7 +44,7 @@ $ wk handoff "1\n2\n3\n4\n5\n6"
 ! Handoff is 6 lines, limit is 5 (1 over). Shorten it.
 [exit 1]
 $ wk brief
-No summary yet.
+wk dev · No summary yet.
 No principles yet. Offer a principles session (wk guide principles).
 Handoff (<FILE-DATE>):
   Intro drafted.
@@ -64,8 +62,6 @@ aes8 Draft chapter one waits on: an editor
 $ wk wait --clear aes8
 aes8 Draft chapter one is no longer waiting.
 == tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-write-the-intro.md
 ---
@@ -134,8 +130,6 @@ reviewed:
 Intro drafted.
 Next: chapter one.
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Write the intro","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"aes8","title":"Draft chapter one","home":"core"}
@@ -192,8 +186,6 @@ $ wk board --out board.html
 Board: <DIR>/board.html
 Open it in a browser, or rerun with --open.
 == tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-write-the-intro.md
 ---
@@ -277,8 +269,6 @@ maybe two
 Done: yebg Proofread everything.
 Next: nothing queued.
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- project/board.html
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -426,8 +416,6 @@ Next: nothing queued.</p><div class="pulse">Last change <time class="ago" dateti
 }
 
 == final tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-write-the-intro.md
 ---
@@ -511,8 +499,6 @@ maybe two
 Done: yebg Proofread everything.
 Next: nothing queued.
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- project/board.html
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">

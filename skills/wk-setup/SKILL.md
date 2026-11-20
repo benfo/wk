@@ -5,7 +5,7 @@ description: Set up or re-fit wk to this project and the user's workflow - first
 
 # wk setup
 
-The steps live in the wk CLI so every agent gets the same ones. Run `wk guide setup` and follow it, one step at a time, waiting for the user between steps.
+The steps live in the wk CLI so every agent gets the same ones. If `wk` isn't installed, install it first as the `wk` skill says. Then run `wk guide setup` and follow it, one step at a time, waiting for the user between steps.
 
 - No plan yet, or an empty one: `wk guide setup` from the top.
 - Existing plans to bring in (TODO files, a roadmap, issues): `wk guide onboarding`.
@@ -13,4 +13,4 @@ The steps live in the wk CLI so every agent gets the same ones. Run `wk guide se
 - `wk brief` says instructions changed since setup: `wk setup`, then the instruction check in `wk guide setup` for the changed files only.
 - No principles yet, or an area without any: `wk guide principles`.
 
-Never edit the user's own instruction files without asking. wk only ever adds its one pointer line.
+Never edit the user's own instruction files without asking, the AGENTS.md pointer line included.

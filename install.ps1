@@ -32,4 +32,4 @@ if (-not (($userPath -split ';') -contains $dir)) {
   Write-Host "Added $dir to your PATH. Open a new terminal for other windows to see it."
 }
 Write-Host "Installed wk to $target"
-Write-Host 'Next, in a project: wk init --store repo   (rerun this installer to upgrade)'
+Write-Host 'Next, in a project: npx skills add benfo/wk, then ask your agent to set up wk   (rerun this installer to upgrade)'

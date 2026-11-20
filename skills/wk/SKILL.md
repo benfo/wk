@@ -7,6 +7,8 @@ description: Track this project's work with the wk CLI - tasks in projects and a
 
 Read and change the plan only through the `wk` CLI; never read the plan's files. Output is 10 lines or fewer: `--all` lifts the cap, `--json` gives fields. One-off moments (setup, onboarding, migration, triage, review, closing a project, principles) have guides, printed by `wk guide <topic>`; the CLI names the guide when its moment comes. The `wk-setup` skill covers setup.
 
+Needs the wk CLI v0.1.0 or later; `wk brief` starts with it (`dev` is a local build, fine). If `wk` is missing or older, ask, then install or upgrade it: `curl -fsSL https://raw.githubusercontent.com/benfo/wk/main/install.sh | sh` on macOS and Linux, `irm https://raw.githubusercontent.com/benfo/wk/main/install.ps1 | iex` on Windows.
+
 ## Talking to the user
 
 The user is in the zone: keep check-ins, questions and notes short. Talk about the work, not the plan: no item ids or wk commands unless asked. Say "Noted.", not "jotted as k7f2".

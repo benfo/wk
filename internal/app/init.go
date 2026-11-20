@@ -79,45 +79,25 @@ func ensureLayout(root, store string) {
 	}
 }
 
-func isPersonal(store string) bool { return store == "local" || store == "home" }
-
-// wireAgent sets up skills, ignores and the AGENTS.md pointer: shared by a fresh init and a rerun.
-func wireAgent(base, store string, git bool) []string {
-	lines := []string{"Skills: " + strings.Join(installSkills(base), ", ")}
-	skillPatterns := mapList(Skills, func(s string) string { return filepath.ToSlash(skillsDir) + "/" + s + "/" })
-	var patterns []string
-	switch store {
-	case "repo":
-	case "home":
-		patterns = skillPatterns
-	default:
-		patterns = append([]string{WorkDir + "/"}, skillPatterns...)
+// ignorePlan keeps an ignore or local plan out of git: shared by a fresh init and a rerun.
+// Skills and agent instructions are the user's: the skills install with `npx skills add`.
+func ignorePlan(base, store string, git bool) []string {
+	if !git || (store != "ignore" && store != "local") {
+		return nil
 	}
-	if len(patterns) > 0 && git {
-		file := ""
-		if store == "ignore" {
-			file = filepath.Join(base, ".gitignore")
-		} else {
-			file = excludeFile(base)
-		}
-		var added []string
-		if file != "" {
-			added = addIgnores(file, patterns)
-		}
-		if file != "" && len(added) > 0 {
-			rel, _ := filepath.Rel(base, file)
-			lines = append(lines, "Ignored in "+filepath.ToSlash(rel)+": "+strings.Join(added, " "))
-		}
+	file := excludeFile(base)
+	if store == "ignore" {
+		file = filepath.Join(base, ".gitignore")
 	}
-	if isPersonal(store) {
-		lines = append(lines, "No AGENTS.md change (personal store). For other agents, add to your own instructions:", "  "+AgentPointer)
-	} else {
-		pointed := filter([]string{"AGENTS.md", "CLAUDE.md"}, func(name string) bool { return addPointer(base, name, name == "CLAUDE.md") })
-		if len(pointed) > 0 {
-			lines = append(lines, "Added the wk pointer to "+strings.Join(pointed, " and "))
-		}
+	if file == "" {
+		return nil
 	}
-	return lines
+	added := addIgnores(file, []string{WorkDir + "/"})
+	if len(added) == 0 {
+		return nil
+	}
+	rel, _ := filepath.Rel(base, file)
+	return []string{"Ignored in " + filepath.ToSlash(rel) + ": " + strings.Join(added, " ")}
 }
 
 func initCmd(cwd string, store, preset string, hasStore, hasPreset bool, home string) Result {
@@ -132,7 +112,7 @@ func initCmd(cwd string, store, preset string, hasStore, hasPreset bool, home st
 			lines = append(lines, `Not moving it to "`+store+`". Moving a plan is not supported.`)
 		}
 		_, git := projectBase(base)
-		lines = append(lines, wireAgent(base, config.Store, git)...)
+		lines = append(lines, ignorePlan(base, config.Store, git)...)
 		return resultData(lines, Obj("root", root, "store", config.Store))
 	}
 	if !hasStore || store == "" {
@@ -167,7 +147,7 @@ func initCmd(cwd string, store, preset string, hasStore, hasPreset bool, home st
 		mkdirAll(filepath.Join(root, AreasDir, a[0]))
 		writeIfMissing(filepath.Join(root, AreasDir, a[0], AreaFile), areaText(a[0], a[1]))
 	}
-	lines := append([]string{"Created " + root + " (preset: " + preset + ")"}, wireAgent(base, store, git)...)
+	lines := append([]string{"Created " + root + " (preset: " + preset + ")"}, ignorePlan(base, store, git)...)
 	if found := sourcesLine(findSources(base, git)); found != "" {
 		lines = append(lines, found)
 	}

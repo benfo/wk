@@ -1,7 +1,5 @@
 $ wk init --store repo --preset general
 Created <DIR>/.work (preset: general)
-Skills: .claude/skills/wk, .claude/skills/wk-setup
-Added the wk pointer to AGENTS.md
 Next: wk brief, then the wk-setup skill (wk guide setup).
 $ wk area new ui "Screens, layout\nand styling"
 Area ui: Screens, layout
@@ -86,8 +84,6 @@ $ wk drop 4yrm
 ! decisions are superseded, not dropped: wk supersede <old> <new>
 [exit 1]
 == tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-use-plain-files.md
 ---
@@ -226,8 +222,6 @@ reviewed:
 --- project/.work/projects/.gitkeep
 --- project/.work/session.md
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"decided","id":"4yrm","title":"Use plain files","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"learned","id":"aes8","title":"Git stores CRLF on Windows","home":"core"}
@@ -240,8 +234,6 @@ Track work with the `wk` CLI. At the start of every session run `wk guide` once 
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"rrfd","title":"Fix the footer","home":"core"}
 
 == final tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-use-plain-files.md
 ---
@@ -380,8 +372,6 @@ reviewed:
 --- project/.work/projects/.gitkeep
 --- project/.work/session.md
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"decided","id":"4yrm","title":"Use plain files","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"learned","id":"aes8","title":"Git stores CRLF on Windows","home":"core"}

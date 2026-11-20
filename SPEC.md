@@ -272,7 +272,7 @@ On the last `wk done` in a project, or `wk project close`:
 
 ## The skill
 
-wk ships as one npm package: the CLI plus the rules. `wk init` copies two skills to `.claude/skills/` and adds a one-line pointer to `AGENTS.md` (and to `CLAUDE.md` when one exists; the personal stores `local` and `home` change neither), so any agent that can run a shell follows the same rules through `wk guide`.
+wk is agent-first and installs like any other skill: `npx skills add benfo/wk` (in the project, or `-g` for the user). The skills name the CLI as a prerequisite with a minimum version; the agent installs it with the release install script when it's missing or older. `wk init` only creates the plan. Setup offers a one-line pointer in `AGENTS.md`, added only on a yes, so any agent that can run a shell follows the same rules through `wk guide`.
 
 | Skill | Loads | Holds |
 | --- | --- | --- |

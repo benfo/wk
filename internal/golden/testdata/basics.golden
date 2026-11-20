@@ -21,13 +21,10 @@ $ wk init --store ignore
 [exit 1]
 $ wk init --store repo
 Created <DIR>/.work (preset: general)
-Skills: .claude/skills/wk, .claude/skills/wk-setup
-Added the wk pointer to AGENTS.md
 Next: wk brief, then the wk-setup skill (wk guide setup).
 $ wk init --store home
 Already set up (store: repo): <DIR>/.work
 Not moving it to "home". Moving a plan is not supported.
-Skills: .claude/skills/wk, .claude/skills/wk-setup
 $ wk add "Water the plants"
 Added 4yrm Water the plants (core)
 $ wk add "Water the plants"
@@ -285,7 +282,7 @@ created 2026-11-10 · updated 2026-11-10
 It sticks.
 Use oil.
 $ wk brief
-No summary yet.
+wk dev · No summary yet.
 No principles yet. Offer a principles session (wk guide principles).
 Handoff: none yet.
 now    (nothing in progress)
@@ -405,8 +402,6 @@ $ wk frobnicate
 ! Unknown command "frobnicate". See wk --help.
 [exit 1]
 == tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-water-the-plants.md
 ---
@@ -497,8 +492,6 @@ reviewed:
 --- project/.work/summary.md
 Name: Garden jobs
 Who: me
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Water the plants","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"aes8","title":"Water all the plants","home":"core"}
@@ -515,8 +508,6 @@ Track work with the `wk` CLI. At the start of every session run `wk guide` once 
 }
 
 == final tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-water-the-plants.md
 ---
@@ -607,8 +598,6 @@ reviewed:
 --- project/.work/summary.md
 Name: Garden jobs
 Who: me
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Water the plants","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"aes8","title":"Water all the plants","home":"core"}

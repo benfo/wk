@@ -1,19 +1,13 @@
 $ wk init --store local
 Created <DIR>/.work (preset: software)
-Skills: .claude/skills/wk, .claude/skills/wk-setup
-Ignored in .git/info/exclude: .work/ .claude/skills/wk/ .claude/skills/wk-setup/
-No AGENTS.md change (personal store). For other agents, add to your own instructions:
-  Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+Ignored in .git/info/exclude: .work/
 Existing plans: TODO.md, 2 TODO/FIXME comments. Offer onboarding (wk guide onboarding).
 Agent instructions: CLAUDE.md. Fit wk to them with the wk-setup skill (wk guide setup).
 Next: wk brief, then the wk-setup skill (wk guide setup).
 $ wk init --store local
 Already set up (store: local): <DIR>/.work
-Skills: .claude/skills/wk, .claude/skills/wk-setup
-No AGENTS.md change (personal store). For other agents, add to your own instructions:
-  Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 $ wk brief
-Empty plan. Offer setup (wk guide setup).
+wk dev · Empty plan. Offer setup (wk guide setup).
 No summary yet.
 Workflow: branching not chosen, commits not chosen. Ask before any branch or commit.
 Handoff: none yet.
@@ -142,7 +136,7 @@ Open it in a browser, or rerun with --open.
 $ wk setup --done
 Recorded 1 instruction file. wk brief will say when one changes.
 $ wk brief
-No summary yet.
+wk dev · No summary yet.
 Instructions changed since setup: AGENTS.md (new). Recheck (wk-setup skill).
 No principles yet. Offer a principles session (wk guide principles).
 Workflow: a branch per project, commit at each check; commits: short, imperative.
@@ -152,8 +146,6 @@ Handoff (<FILE-DATE>, older than the latest task change):
 now    m7sw Index titles (xcma)
 wait   yebg Write docs [waiting: review] (core)
 == tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/areas/code/area.md
 # code
 
@@ -416,8 +408,6 @@ fast()
 }
 
 == final tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/areas/code/area.md
 # code
 

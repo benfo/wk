@@ -1,7 +1,5 @@
 $ wk init --store repo --preset general
 Created <DIR>/.work (preset: general)
-Skills: .claude/skills/wk, .claude/skills/wk-setup
-Added the wk pointer to AGENTS.md
 Next: wk brief, then the wk-setup skill (wk guide setup).
 $ wk add
 ! Give a title: wk add "<title>" (or --from <file>)
@@ -107,17 +105,15 @@ $ wk guide nope
 ! No guide "nope". Topics: setup, onboarding, migrate, triage, review, close, principles.
 [exit 1]
 $ wk setup
-Instructions: AGENTS.md
+Instructions: none found in the project.
 Workflow: quick checks: npm test; full checks: make check.
 Setup not recorded yet.
 Next: read them, list the overlaps with wk (wk guide setup, step 3), store the workflow, then wk setup --done.
 $ wk setup --done
-Recorded 1 instruction file. wk brief will say when one changes.
+Recorded 0 instruction files. wk brief will say when one changes.
 $ wk setup --json
 {
-  "files": [
-    "AGENTS.md"
-  ],
+  "files": [],
   "changes": [],
   "workflow": {
     "git": {
@@ -131,13 +127,9 @@ $ wk setup --json
     },
     "tracker": null
   },
-  "recorded": {
-    "AGENTS.md": "da39a3ee5e6b"
-  }
+  "recorded": {}
 }
 == tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-spaced-out.md
 ---
@@ -184,22 +176,17 @@ workflow:
   tracker:
 tags: [bug, ux]
 reviewed:
-setup:
-  AGENTS.md: da39a3ee5e6b
+setup: {}
 --- project/.work/inbox/.gitkeep
 --- project/.work/projects/.gitkeep
 --- project/.work/session.md
 Done for today
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Spaced -- out","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"aes8","title":"--weird title","home":"core"}
 
 == final tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-spaced-out.md
 ---
@@ -246,15 +233,12 @@ workflow:
   tracker:
 tags: [bug, ux]
 reviewed:
-setup:
-  AGENTS.md: da39a3ee5e6b
+setup: {}
 --- project/.work/inbox/.gitkeep
 --- project/.work/projects/.gitkeep
 --- project/.work/session.md
 Done for today
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Spaced -- out","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"aes8","title":"--weird title","home":"core"}

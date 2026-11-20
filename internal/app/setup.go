@@ -1,8 +1,6 @@
 package app
 
 import (
-	"io/fs"
-	"os"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -11,11 +9,16 @@ import (
 	wk "github.com/benfo/wk"
 )
 
+// BuildVersion is the release this binary was built from, set at release time with
+// -ldflags "-X github.com/benfo/wk/internal/app.BuildVersion=v1.2.3". The skills name the minimum they need.
+var BuildVersion = "dev"
+
 var Skills = []string{"wk", "wk-setup"}
 var GuideTopics = []string{"setup", "onboarding", "migrate", "triage", "review", "close", "principles"}
 
 var skillsDir = filepath.Join(".claude", "skills")
 
+// AgentPointer is the line the wk-setup skill offers to add to AGENTS.md, for agents without the skill.
 const AgentPointer = "Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`."
 
 var lineBreak = regexp.MustCompile(`\r?\n`)
@@ -40,64 +43,6 @@ func guide(topic string, given bool) Result {
 		t = topic
 	}
 	return Result{Lines: lineBreak.Split(body, -1), Data: Obj("topic", t, "text", body), Full: true}
-}
-
-// installSkills copies both skills into the project; rerunning refreshes them.
-func installSkills(base string) []string {
-	out := []string{}
-	for _, name := range Skills {
-		dest := filepath.Join(base, skillsDir, name)
-		// wk owns these folders: start clean so files an older version shipped don't linger.
-		must(os.RemoveAll(dest))
-		mkdirAll(dest)
-		src := "skills/" + name
-		must(fs.WalkDir(wk.Assets, src, func(p string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return err
-			}
-			rel := strings.TrimPrefix(strings.TrimPrefix(p, src), "/")
-			target := filepath.Join(dest, filepath.FromSlash(rel))
-			if d.IsDir() {
-				return os.MkdirAll(target, 0o755)
-			}
-			b, err := wk.Assets.ReadFile(p)
-			if err != nil {
-				return err
-			}
-			return os.WriteFile(target, b, 0o644)
-		}))
-		rel, _ := filepath.Rel(base, dest)
-		out = append(out, filepath.ToSlash(rel))
-	}
-	return out
-}
-
-func hasPointer(text string) bool {
-	return strings.Contains(text, "`wk guide`") && strings.Contains(text, "`wk brief`")
-}
-
-// addPointer adds the pointer line once. With onlyIfExists, a missing file is left alone.
-func addPointer(base, name string, onlyIfExists bool) bool {
-	file := filepath.Join(base, name)
-	ex := exists(file)
-	if !ex && onlyIfExists {
-		return false
-	}
-	existing := ""
-	if ex {
-		existing = readFile(file)
-	}
-	if hasPointer(existing) {
-		return false
-	}
-	sep := "\n\n"
-	if existing == "" {
-		sep = ""
-	} else if strings.HasSuffix(existing, "\n") {
-		sep = "\n"
-	}
-	writeFile(file, existing+sep+AgentPointer+"\n")
-	return true
 }
 
 var instructionFileNames = []string{"AGENTS.md", "CLAUDE.md", "CLAUDE.local.md", "GEMINI.md", ".cursorrules", ".windsurfrules", ".github/copilot-instructions.md"}

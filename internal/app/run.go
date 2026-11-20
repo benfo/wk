@@ -158,7 +158,7 @@ func (c *call) arg(i int) (string, bool) {
 func commands() *command {
 	whenHelp := "next, queue, later, someday, after:<id>, end:<project>, start:<area>, on:<date>"
 	root := &command{name: "wk", desc: "Track work in plain text: tasks, decisions, learnings and principles, in projects and areas.",
-		opts: []optSpec{flag("json", "machine-readable output"), flag("all", "lift the 10-line output limit")}}
+		opts: []optSpec{flag("json", "machine-readable output"), flag("all", "lift the 10-line output limit"), flag("version", "print the wk version")}}
 	add := func(c *command) *command { root.subs = append(root.subs, c); return c }
 
 	add(&command{name: "init", desc: "set up the plan",
@@ -467,6 +467,9 @@ func (r *runner) dispatch(c *command, args []string, path []*command) {
 		// Help for this command when asked before any subcommand.
 		if len(args) > 0 && isHelp(args[0]) {
 			panic(helpShown{helpText(c, path)})
+		}
+		if c == r.root && len(args) > 0 && args[0] == "--version" {
+			panic(helpShown{"wk " + BuildVersion})
 		}
 		if c == r.root && len(args) > 0 && args[0] == "help" {
 			target := c

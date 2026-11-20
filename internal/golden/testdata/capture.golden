@@ -1,7 +1,5 @@
 $ wk init --store repo --preset general
 Created <DIR>/.work (preset: general)
-Skills: .claude/skills/wk, .claude/skills/wk-setup
-Added the wk pointer to AGENTS.md
 Next: wk brief, then the wk-setup skill (wk guide setup).
 $ wk jot "Idea: a dark mode"
 Jotted 4yrm Idea: a dark mode
@@ -124,7 +122,7 @@ $ wk add --from nothing.md
 ! File not found: <DIR>/nothing.md
 [exit 1]
 $ wk brief
-No summary yet.
+wk dev · No summary yet.
 Inbox: 2 to sort (wk inbox).
 No principles yet. Offer a principles session (wk guide principles).
 Handoff: none yet.
@@ -140,8 +138,6 @@ $ wk board
 Board: <HOME>/boards/project-<hash>.html
 It updates itself as the plan changes. Open it in a browser, or rerun with --open.
 == tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-idea-a-dark-mode.md
 ---
@@ -276,8 +272,6 @@ updated: 2026-11-10
 --- project/.work/projects/.gitkeep
 --- project/.work/session.md
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- project/list.md
 - [ ] Buy seeds
 * Rake leaves
@@ -672,8 +666,6 @@ details.area .why.missing{color:var(--attn)}
 }
 
 == final tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-idea-a-dark-mode.md
 ---
@@ -808,8 +800,6 @@ updated: 2026-11-10
 --- project/.work/projects/.gitkeep
 --- project/.work/session.md
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- project/list.md
 - [ ] Buy seeds
 * Rake leaves

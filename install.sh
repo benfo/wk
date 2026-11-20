@@ -39,4 +39,4 @@ case ":$PATH:" in
   *":$dir:"*) ;;
   *) echo "Add $dir to your PATH, e.g. in ~/.profile:  export PATH=\"$dir:\$PATH\"" ;;
 esac
-echo "Next, in a project: wk init --store repo   (rerun this installer to upgrade)"
+echo "Next, in a project: npx skills add benfo/wk, then ask your agent to set up wk   (rerun this installer to upgrade)"

@@ -1,2 +1,2 @@
-Done: jttf Board shows a long jot's full first line, not a cut title.
+Done: ehtp Install skills with npx skills add, not wk init.
 Next: nothing queued.

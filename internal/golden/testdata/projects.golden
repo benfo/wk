@@ -1,7 +1,5 @@
 $ wk init --store repo --preset general
 Created <DIR>/.work (preset: general)
-Skills: .claude/skills/wk, .claude/skills/wk-setup
-Added the wk pointer to AGENTS.md
 Next: wk brief, then the wk-setup skill (wk guide setup).
 $ wk area new ui "Screens"
 Area ui: Screens
@@ -84,7 +82,7 @@ Due: 4yrm Revisit the palette (start:ui)
 Project yebg Garden redesign has nothing left: close it?
 Go through these with the user in short batches, then: wk review --done
 $ wk brief
-No summary yet.
+wk dev · No summary yet.
 Due: 4yrm Revisit the palette (start:ui). Queue, reschedule or drop each.
 Review due: no review recorded yet (wk review, wk guide review).
 No principles yet. Offer a principles session (wk guide principles).
@@ -101,7 +99,7 @@ Go through these with the user in short batches, then: wk review --done
 $ wk review --done
 Review recorded (2026-12-20).
 $ wk brief
-No summary yet.
+wk dev · No summary yet.
 Due: 4yrm Revisit the palette (start:ui). Queue, reschedule or drop each.
 No principles yet. Offer a principles session (wk guide principles).
 Handoff (<FILE-DATE>):
@@ -119,8 +117,6 @@ $ wk show T-001
 ! No item T-001.
 [exit 1]
 == tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-revisit-the-palette.md
 ---
@@ -222,8 +218,6 @@ updated: 2026-11-10
 Done: xcma Write release notes.
 Next: aes8 Write release notes (core).
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Revisit the palette","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"project started","id":"yebg","title":"Garden redesign","home":"yebg"}
@@ -242,8 +236,6 @@ Track work with the `wk` CLI. At the start of every session run `wk guide` once 
 }
 
 == final tree
---- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
---- project/.claude/skills/wk/SKILL.md (packaged skill)
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-revisit-the-palette.md
 ---
@@ -345,8 +337,6 @@ updated: 2026-11-10
 Done: xcma Write release notes.
 Next: aes8 Write release notes (core).
 --- project/.work/summary.md
---- project/AGENTS.md
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"added","id":"4yrm","title":"Revisit the palette","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"project started","id":"yebg","title":"Garden redesign","home":"yebg"}
