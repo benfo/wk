@@ -1,2 +1,1 @@
-Done: xxzu Board: Linear-style list with status icons, Board and History tabs.
-Next: nothing queued.
+Static board reloads itself from a feed script beside it; no port. --serve kept for instant updates.

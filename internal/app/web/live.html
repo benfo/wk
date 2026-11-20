@@ -83,7 +83,26 @@
     if (e.key === "1") pick("board");
     if (e.key === "2") pick("history");
   });
+  // A board opened from disk can't fetch, but it can load a script: reload the feed next to it, which
+  // calls wkBoard with the board as it is now.
+  function poll(feed) {
+    var current = feed.stamp, tag = null;
+    window.wkBoard = function (stamp, html) {
+      status = "live"; showStatus();
+      if (stamp !== current) { current = stamp; swap(html); }
+    };
+    function load() {
+      if (tag) tag.remove();
+      tag = document.createElement("script");
+      tag.src = feed.src + "?t=" + Date.now();
+      tag.onerror = function () { status = "off"; showStatus(); };
+      document.head.appendChild(tag);
+    }
+    load();
+    setInterval(load, 2000);
+  }
   function connect() {
+    if (window.wkFeed) return poll(window.wkFeed);
     var es = new EventSource("/events");
     es.onopen = function () { status = "live"; showStatus(); };
     es.onerror = function () { status = "off"; showStatus(); };

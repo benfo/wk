@@ -50,13 +50,15 @@ wk board --open
 
 This writes the plan as one HTML page and opens it. The **Board** tab reads top to bottom like an issue tracker: a card for the task in progress (or what's next) with the handoff, then every task grouped by status (ready to try, due, up next, waiting, inbox, sleeping, later), each marked with a status icon, then projects with progress rings that open to their tasks. The **History** tab holds what got done this week, recent changes, areas with their principles, and decisions.
 
-For a live view, keep this running in a spare terminal and leave the tab open beside your agent:
+Leave the tab open beside your agent: it follows the plan with no server or port. Every wk command that changes the plan rewrites the page and a small feed script next to it, and the page checks the feed every two seconds and swaps in what changed. A dot in the corner shows whether it can read the feed. Edits made outside wk (a `git pull`, a hand edit) show up after the next wk command.
+
+For instant updates on any change, whoever made it, serve it instead:
 
 ```bash
 wk board --serve --open
 ```
 
-It serves the board on `http://localhost:4123/` (or the next free port) and refreshes the page within a second of any change to the plan, whoever made it. A dot in the corner shows whether it's connected. Ctrl+C stops it.
+It serves the board on `http://localhost:4123/` (or the next free port) and refreshes the page within a second of any change to the plan. Ctrl+C stops it.
 
 ## Release
 

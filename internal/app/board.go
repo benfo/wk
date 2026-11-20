@@ -99,7 +99,8 @@ func splitSentences(s string) []string {
 // boardHTML is the plan as one HTML page with two tabs: Board (where things stand, what needs you,
 // what's next, the rest of the plan) and History (done, recent changes, areas, knowledge). The tabs
 // are plain HTML and CSS, so the static page needs no scripts; live mode adds remembering the tab.
-func boardHTML(ctx *Ctx, s *Store, live bool) string {
+// A live page follows the server's events, or with a feed, polls the feed script next to its file.
+func boardHTML(ctx *Ctx, s *Store, live bool, feed *boardFeed) string {
 	b := collect(ctx, s)
 	title := headline(readSummary(ctx), filepath.Base(ctx.Base))
 	first := ""
@@ -113,8 +114,11 @@ func boardHTML(ctx *Ctx, s *Store, live bool) string {
 		count = "(" + itoa(b.needsYou) + ") "
 	}
 	script := ""
+	if feed != nil {
+		script = "<script>window.wkFeed = " + JSONStringify(Obj("src", feed.src, "stamp", feed.stamp)) + ";</script>"
+	}
 	if live {
-		script = liveScript
+		script += liveScript
 	}
 	return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -354,9 +358,15 @@ func boardCmd(ctx *Ctx, s *Store, o *Opts) Result {
 	if out, ok := o.Str("out"); ok && out != "" {
 		file = resolvePath(ctx.Cwd, out)
 	}
-	mkdirAll(filepath.Dir(file))
-	writeFile(file, boardHTML(ctx, s, false))
 	second := "Open it in a browser, or rerun with --open."
+	if out, ok := o.Str("out"); ok && out != "" {
+		// An export elsewhere is a snapshot: no script, nothing keeps it current.
+		mkdirAll(filepath.Dir(file))
+		writeFile(file, boardHTML(ctx, s, false, nil))
+	} else {
+		writeBoardFile(ctx, s, file, boardStamp(ctx))
+		second = "It updates itself as the plan changes. Open it in a browser, or rerun with --open."
+	}
 	if o.Flag("open") {
 		openURL(file)
 		second = "Opened in your browser."

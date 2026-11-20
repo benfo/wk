@@ -138,6 +138,7 @@ func (r *runner) act(fn func(ctx *Ctx, s *Store) Result) {
 		now = nowISO()
 	}
 	appendEvents(ctx, diffSnapshots(before, takeSnapshot(after), archived), now)
+	refreshBoard(ctx)
 }
 
 func flag(long, desc string) optSpec       { return optSpec{long: long, desc: desc} }

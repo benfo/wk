@@ -32,7 +32,7 @@ Every item lives in one home: a **project** (has an end: `wk project new "<title
 
 `when` says when a task comes back: `next` (front of the queue), `queue` (default), `later`, `someday`, or a trigger: `after:<id>`, `end:<project>`, `start:<area>`, `on:<YYYY-MM-DD>`. A fired trigger makes the item due; queue, reschedule or drop it with the user. Promote an idea with `wk move <id> --when next`. Sorting advice: `wk guide triage`.
 
-To show the plan: `wk board --open`. For a view that follows the work live, suggest the user run `wk board --serve --open` in a spare terminal; it keeps running, so don't start it yourself.
+To show the plan: `wk board --open`. The page updates itself as the plan changes, with no server; leave it open beside the work.
 
 ## Checking work
 

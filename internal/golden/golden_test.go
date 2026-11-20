@@ -234,6 +234,12 @@ func dumpTree(e env) string {
 				continue
 			}
 			data, _ := os.ReadFile(filepath.Join(root, filepath.FromSlash(f)))
+			if strings.HasPrefix(f, "boards/") && strings.HasSuffix(f, ".js") {
+				// A board's feed repeats the board page beside it: its stamp line is enough.
+				line, _, _ := strings.Cut(string(data), "\n")
+				fmt.Fprintf(&b, "--- %s/%s (board feed)\n%s\n", label, f, line)
+				continue
+			}
 			fmt.Fprintf(&b, "--- %s/%s\n%s", label, f, string(data))
 			if len(data) > 0 && data[len(data)-1] != '\n' {
 				b.WriteString("\n[no newline]\n")

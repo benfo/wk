@@ -83,7 +83,7 @@ func serveBoard(ctx *Ctx, port int, host string) (*LiveBoard, error) {
 		}()
 		fresh := *ctx
 		fresh.Config = readConfig(ctx.Root)
-		return boardHTML(&fresh, NewStore(&fresh), true), nil
+		return boardHTML(&fresh, NewStore(&fresh), true, nil), nil
 	}
 
 	mux := http.NewServeMux()

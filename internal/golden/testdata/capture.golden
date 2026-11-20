@@ -138,7 +138,7 @@ Board: <DIR>/out/board.html
 Open it in a browser, or rerun with --open.
 $ wk board
 Board: <HOME>/boards/project-<hash>.html
-Open it in a browser, or rerun with --open.
+It updates itself as the plan changes. Open it in a browser, or rerun with --open.
 == tree
 --- project/.claude/skills/wk-setup/SKILL.md (packaged skill)
 --- project/.claude/skills/wk/SKILL.md (packaged skill)
@@ -524,12 +524,131 @@ details.area .why.missing{color:var(--attn)}
 <div id="app" data-needs="0" data-first="">
 <input type="radio" name="tab" value="board" id="tab-board" class="tab-radio" checked><input type="radio" name="tab" value="history" id="tab-history" class="tab-radio">
 <header class="top"><h1><span>Project</span></h1>
-<div class="right"><nav class="tabs" aria-label="Views"><label for="tab-board" title="Press 1">Board</label><label for="tab-history" title="Press 2">History</label></nav></div></header>
+<div class="right"><button id="notify" class="notify" hidden>Notify me</button><span id="live" class="live" title="Connecting">live</span><nav class="tabs" aria-label="Views"><label for="tab-board" title="Press 1">Board</label><label for="tab-history" title="Press 2">History</label></nav></div></header>
 <main class="tab tab-board"><section class="focus idle" data-key="yebg:open:queue:::Bug: header overlaps">
 <div class="fl"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="lbl">Nothing in progress. Next up</span><span class="chip">core</span></div>
 <h2 class="ft" title="id yebg">Bug: header overlaps</h2><div class="pulse">Last change <time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time>: added <span class="t2">Sweep the path</span></div></section><details class="g s-todo" open><summary><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><b>After that</b><span class="c">5</span></summary><ul><li class="r" data-key="m7sw:open:queue:::Buy seeds" title="id m7sw"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Buy seeds</div></div><span class="chip">core</span></li><li class="r" data-key="xr8y:open:queue:::Rake leaves" title="id xr8y"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Rake leaves</div></div><span class="chip">core</span></li><li class="r" data-key="xewh:open:queue:::Fix hose" title="id xewh"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Fix hose</div></div><span class="chip">core</span></li><li class="r" data-key="vn5c:open:queue:::Sweep the path" title="id vn5c"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Sweep the path</div></div><span class="chip">core</span></li><li class="r" data-key="rrfd:open:queue:::Oil the hinges" title="id rrfd"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Oil the hinges</div></div><span class="chip">core</span></li></ul></details><details class="g s-inbox" open><summary><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><b>Inbox, to sort</b><span class="c">2</span></summary><ul><li class="r" data-key="aes8:inbox::::A very long first line that keeps going and going well past the…" title="id aes8"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">A very long first line that keeps going and going well past the…</div></div></li><li class="r" data-key="xcma:inbox::::x" title="id xcma"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">x</div></div></li></ul></details><details class="g s-later" open><summary><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><b>Later</b><span class="c">1</span></summary><ul><li class="r" data-key="4yrm:open:someday:::Idea: a dark mode" title="id 4yrm"><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><div class="body"><div class="tt">Idea: a dark mode</div></div><span class="m">someday</span><span class="chip">core</span></li></ul></details></main>
 <main class="tab tab-history"><details class="g" open><summary><b>Just happened</b><span class="c">10</span></summary><ul><li class="act" data-key="2026-11-10T09:00:00.000Zvn5cadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Sweep the path</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zrrfdadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Oil the hinges</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxr8yadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Rake leaves</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxewhadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Fix hose</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zm7swadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Buy seeds</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Idea: a dark mode</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zaes8jotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">A very long first line that keeps going and going well past the…</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Idea: a dark mode</span></li></ul></details><details class="g" open><summary><b>Areas and principles</b><span class="c">1</span></summary><ul><li><details class="area"><summary><span>core</span><span class="c">7 open, 0 rules</span></summary><div class="desc">Always in scope. Its principles load for every task; items with no better home live here.</div></details></li></ul></details></main>
-</div></body></html>
+</div><script>window.wkFeed = {
+  "src": "project-22df416cff96.js",
+  "stamp": "6ca54844bdedd907"
+};</script><script>
+(function () {
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var status = "live";
+  function app() { return document.getElementById("app"); }
+  function keys() { var s = {}; document.querySelectorAll("[data-key]").forEach(function (e) { s[e.getAttribute("data-key")] = 1; }); return s; }
+  function showStatus() {
+    var dot = document.getElementById("live");
+    if (!dot) return;
+    dot.className = "live " + (status === "live" ? "on" : status === "off" ? "off" : "");
+    dot.title = status === "live" ? "Live: updates as the plan changes" : "Reconnecting";
+  }
+  function needs() { return Number(app().getAttribute("data-needs") || 0); }
+  function icon(n) {
+    var c = document.createElement("canvas"); c.width = c.height = 32;
+    var g = c.getContext("2d");
+    g.fillStyle = "#3d5afe"; g.beginPath(); g.roundRect(2, 2, 28, 28, 7); g.fill();
+    g.fillStyle = "#fff"; g.font = "bold 15px system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("wk", 16, 17);
+    if (n) { g.fillStyle = "#f59e0b"; g.beginPath(); g.arc(25, 7, 7, 0, 7); g.fill(); }
+    var link = document.querySelector("link[rel=icon]") || document.head.appendChild(Object.assign(document.createElement("link"), { rel: "icon" }));
+    link.href = c.toDataURL();
+  }
+  function tick() {
+    var now = Date.now();
+    document.querySelectorAll("time.ago").forEach(function (t) {
+      var m = Math.max(0, Math.round((now - Date.parse(t.getAttribute("datetime"))) / 60000));
+      var n = m < 1 ? "" : m < 60 ? m + " min" : m < 1440 ? Math.round(m / 60) + " h" : Math.round(m / 1440) + " d";
+      var pre = t.getAttribute("data-prefix") || "", suf = t.getAttribute("data-suffix") || "";
+      t.textContent = n ? pre + n + suf : (suf ? pre + "just now" : pre + "a moment");
+    });
+  }
+  function send(title, body) {
+    try { new Notification(title, { body: body, tag: "wk", renotify: true }); } catch (e) { console.warn("wk: notification failed", e); }
+  }
+  function notifyButton() {
+    var b = document.getElementById("notify");
+    if (!b) return;
+    b.hidden = false;
+    if (!("Notification" in window)) { b.textContent = "Notifications unsupported"; b.disabled = true; return; }
+    var p = Notification.permission;
+    if (p === "default") {
+      b.textContent = "Notify me"; b.title = "Get a desktop notification when something new needs you";
+      b.onclick = function () { Notification.requestPermission().then(function (r) { notifyButton(); if (r === "granted") send("wk notifications are on", "You will hear from this board when something new needs you."); }); };
+    } else if (p === "granted") {
+      b.remove();
+    } else {
+      b.textContent = "Notifications blocked"; b.title = "Allow notifications for this site in the browser (the icon left of the address), then reload.";
+      b.onclick = null;
+    }
+  }
+  function swap(html) {
+    var doc = new DOMParser().parseFromString(html, "text/html");
+    var next = doc.getElementById("app");
+    if (!next) return;
+    var before = keys(), was = needs(), opened = {};
+    document.querySelectorAll("details[data-id]").forEach(function (d) { if (d.open) opened[d.getAttribute("data-id")] = 1; });
+    next.querySelectorAll("details[data-id]").forEach(function (d) { if (opened[d.getAttribute("data-id")]) d.open = true; });
+    app().replaceWith(next);
+    document.title = doc.title;
+    showTab(); showStatus(); notifyButton(); icon(needs()); tick();
+    // Notify whenever you are not looking at the board: another window has focus, or the tab is hidden.
+    if (needs() > was && (document.hidden || !document.hasFocus()) && "Notification" in window && Notification.permission === "granted") {
+      send(app().getAttribute("data-first") || "Something needs you", document.title);
+    }
+    if (reduce) return;
+    // Tint what changed, then let it fade (the transition runs once the class goes).
+    var fresh = [];
+    document.querySelectorAll("[data-key]").forEach(function (e) { if (!before[e.getAttribute("data-key")]) { e.classList.add("fresh"); fresh.push(e); } });
+    setTimeout(function () { fresh.forEach(function (e) { e.classList.remove("fresh"); }); }, 800);
+  }
+  // The tab you are on survives refreshes and visits; 1 and 2 switch tabs.
+  function savedTab() { try { return localStorage.getItem("wk-board-view") || "board"; } catch (e) { return "board"; } }
+  function pick(tab) {
+    var r = document.getElementById("tab-" + tab);
+    if (!r) return;
+    r.checked = true;
+    try { localStorage.setItem("wk-board-view", tab); } catch (e) { /* storage blocked: the tab just isn't remembered */ }
+  }
+  function showTab() { var r = document.getElementById("tab-" + savedTab()); if (r) r.checked = true; }
+  document.addEventListener("change", function (e) { if (e.target.name === "tab") pick(e.target.value); });
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || /^(TEXTAREA|SELECT)$/.test(e.target.tagName) || (e.target.tagName === "INPUT" && e.target.type !== "radio")) return;
+    if (e.key === "1") pick("board");
+    if (e.key === "2") pick("history");
+  });
+  // A board opened from disk can't fetch, but it can load a script: reload the feed next to it, which
+  // calls wkBoard with the board as it is now.
+  function poll(feed) {
+    var current = feed.stamp, tag = null;
+    window.wkBoard = function (stamp, html) {
+      status = "live"; showStatus();
+      if (stamp !== current) { current = stamp; swap(html); }
+    };
+    function load() {
+      if (tag) tag.remove();
+      tag = document.createElement("script");
+      tag.src = feed.src + "?t=" + Date.now();
+      tag.onerror = function () { status = "off"; showStatus(); };
+      document.head.appendChild(tag);
+    }
+    load();
+    setInterval(load, 2000);
+  }
+  function connect() {
+    if (window.wkFeed) return poll(window.wkFeed);
+    var es = new EventSource("/events");
+    es.onopen = function () { status = "live"; showStatus(); };
+    es.onerror = function () { status = "off"; showStatus(); };
+    es.onmessage = function () { fetch("/", { cache: "no-store" }).then(function (r) { return r.text(); }).then(swap); };
+  }
+  status = "connecting"; showTab(); showStatus(); notifyButton(); icon(needs()); tick();
+  setInterval(tick, 30000);
+  connect();
+})();
+</script></body></html>
+--- home/boards/project-22df416cff96.js (board feed)
+// wk board feed 6ca54844bdedd907
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"4yrm","title":"Idea: a dark mode","home":"inbox"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"aes8","title":"A very long first line that keeps going and going well past the…","home":"inbox"}
@@ -935,12 +1054,131 @@ details.area .why.missing{color:var(--attn)}
 <div id="app" data-needs="0" data-first="">
 <input type="radio" name="tab" value="board" id="tab-board" class="tab-radio" checked><input type="radio" name="tab" value="history" id="tab-history" class="tab-radio">
 <header class="top"><h1><span>Project</span></h1>
-<div class="right"><nav class="tabs" aria-label="Views"><label for="tab-board" title="Press 1">Board</label><label for="tab-history" title="Press 2">History</label></nav></div></header>
+<div class="right"><button id="notify" class="notify" hidden>Notify me</button><span id="live" class="live" title="Connecting">live</span><nav class="tabs" aria-label="Views"><label for="tab-board" title="Press 1">Board</label><label for="tab-history" title="Press 2">History</label></nav></div></header>
 <main class="tab tab-board"><section class="focus idle" data-key="yebg:open:queue:::Bug: header overlaps">
 <div class="fl"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><span class="lbl">Nothing in progress. Next up</span><span class="chip">core</span></div>
 <h2 class="ft" title="id yebg">Bug: header overlaps</h2><div class="pulse">Last change <time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time>: added <span class="t2">Sweep the path</span></div></section><details class="g s-todo" open><summary><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><b>After that</b><span class="c">5</span></summary><ul><li class="r" data-key="m7sw:open:queue:::Buy seeds" title="id m7sw"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Buy seeds</div></div><span class="chip">core</span></li><li class="r" data-key="xr8y:open:queue:::Rake leaves" title="id xr8y"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Rake leaves</div></div><span class="chip">core</span></li><li class="r" data-key="xewh:open:queue:::Fix hose" title="id xewh"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Fix hose</div></div><span class="chip">core</span></li><li class="r" data-key="vn5c:open:queue:::Sweep the path" title="id vn5c"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Sweep the path</div></div><span class="chip">core</span></li><li class="r" data-key="rrfd:open:queue:::Oil the hinges" title="id rrfd"><svg class="ic s-todo" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Up next"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><div class="body"><div class="tt">Oil the hinges</div></div><span class="chip">core</span></li></ul></details><details class="g s-inbox" open><summary><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><b>Inbox, to sort</b><span class="c">2</span></summary><ul><li class="r" data-key="aes8:inbox::::A very long first line that keeps going and going well past the…" title="id aes8"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">A very long first line that keeps going and going well past the…</div></div></li><li class="r" data-key="xcma:inbox::::x" title="id xcma"><svg class="ic s-inbox" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Inbox"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/><circle cx="7" cy="7" r="1.6" fill="currentColor"/></svg><div class="body"><div class="tt">x</div></div></li></ul></details><details class="g s-later" open><summary><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><b>Later</b><span class="c">1</span></summary><ul><li class="r" data-key="4yrm:open:someday:::Idea: a dark mode" title="id 4yrm"><svg class="ic s-later" width="14" height="14" viewBox="0 0 14 14" role="img" aria-label="Later"><circle cx="7" cy="7" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2.2 2.2"/></svg><div class="body"><div class="tt">Idea: a dark mode</div></div><span class="m">someday</span><span class="chip">core</span></li></ul></details></main>
 <main class="tab tab-history"><details class="g" open><summary><b>Just happened</b><span class="c">10</span></summary><ul><li class="act" data-key="2026-11-10T09:00:00.000Zvn5cadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Sweep the path</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zrrfdadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Oil the hinges</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxr8yadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Rake leaves</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zxewhadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Fix hose</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zm7swadded"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">added</span><span class="what">Buy seeds</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmsorted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">sorted</span><span class="what">Idea: a dark mode</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zyebgjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Bug: header overlaps</span></li><li class="act" data-key="2026-11-10T09:00:00.000Zaes8jotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">A very long first line that keeps going and going well past the…</span></li><li class="act" data-key="2026-11-10T09:00:00.000Z4yrmjotted"><time class="ago" datetime="2026-11-10T09:00:00.000Z" data-prefix="" data-suffix=" ago">just now</time><span class="verb">jotted</span><span class="what">Idea: a dark mode</span></li></ul></details><details class="g" open><summary><b>Areas and principles</b><span class="c">1</span></summary><ul><li><details class="area"><summary><span>core</span><span class="c">7 open, 0 rules</span></summary><div class="desc">Always in scope. Its principles load for every task; items with no better home live here.</div></details></li></ul></details></main>
-</div></body></html>
+</div><script>window.wkFeed = {
+  "src": "project-22df416cff96.js",
+  "stamp": "6ca54844bdedd907"
+};</script><script>
+(function () {
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var status = "live";
+  function app() { return document.getElementById("app"); }
+  function keys() { var s = {}; document.querySelectorAll("[data-key]").forEach(function (e) { s[e.getAttribute("data-key")] = 1; }); return s; }
+  function showStatus() {
+    var dot = document.getElementById("live");
+    if (!dot) return;
+    dot.className = "live " + (status === "live" ? "on" : status === "off" ? "off" : "");
+    dot.title = status === "live" ? "Live: updates as the plan changes" : "Reconnecting";
+  }
+  function needs() { return Number(app().getAttribute("data-needs") || 0); }
+  function icon(n) {
+    var c = document.createElement("canvas"); c.width = c.height = 32;
+    var g = c.getContext("2d");
+    g.fillStyle = "#3d5afe"; g.beginPath(); g.roundRect(2, 2, 28, 28, 7); g.fill();
+    g.fillStyle = "#fff"; g.font = "bold 15px system-ui, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("wk", 16, 17);
+    if (n) { g.fillStyle = "#f59e0b"; g.beginPath(); g.arc(25, 7, 7, 0, 7); g.fill(); }
+    var link = document.querySelector("link[rel=icon]") || document.head.appendChild(Object.assign(document.createElement("link"), { rel: "icon" }));
+    link.href = c.toDataURL();
+  }
+  function tick() {
+    var now = Date.now();
+    document.querySelectorAll("time.ago").forEach(function (t) {
+      var m = Math.max(0, Math.round((now - Date.parse(t.getAttribute("datetime"))) / 60000));
+      var n = m < 1 ? "" : m < 60 ? m + " min" : m < 1440 ? Math.round(m / 60) + " h" : Math.round(m / 1440) + " d";
+      var pre = t.getAttribute("data-prefix") || "", suf = t.getAttribute("data-suffix") || "";
+      t.textContent = n ? pre + n + suf : (suf ? pre + "just now" : pre + "a moment");
+    });
+  }
+  function send(title, body) {
+    try { new Notification(title, { body: body, tag: "wk", renotify: true }); } catch (e) { console.warn("wk: notification failed", e); }
+  }
+  function notifyButton() {
+    var b = document.getElementById("notify");
+    if (!b) return;
+    b.hidden = false;
+    if (!("Notification" in window)) { b.textContent = "Notifications unsupported"; b.disabled = true; return; }
+    var p = Notification.permission;
+    if (p === "default") {
+      b.textContent = "Notify me"; b.title = "Get a desktop notification when something new needs you";
+      b.onclick = function () { Notification.requestPermission().then(function (r) { notifyButton(); if (r === "granted") send("wk notifications are on", "You will hear from this board when something new needs you."); }); };
+    } else if (p === "granted") {
+      b.remove();
+    } else {
+      b.textContent = "Notifications blocked"; b.title = "Allow notifications for this site in the browser (the icon left of the address), then reload.";
+      b.onclick = null;
+    }
+  }
+  function swap(html) {
+    var doc = new DOMParser().parseFromString(html, "text/html");
+    var next = doc.getElementById("app");
+    if (!next) return;
+    var before = keys(), was = needs(), opened = {};
+    document.querySelectorAll("details[data-id]").forEach(function (d) { if (d.open) opened[d.getAttribute("data-id")] = 1; });
+    next.querySelectorAll("details[data-id]").forEach(function (d) { if (opened[d.getAttribute("data-id")]) d.open = true; });
+    app().replaceWith(next);
+    document.title = doc.title;
+    showTab(); showStatus(); notifyButton(); icon(needs()); tick();
+    // Notify whenever you are not looking at the board: another window has focus, or the tab is hidden.
+    if (needs() > was && (document.hidden || !document.hasFocus()) && "Notification" in window && Notification.permission === "granted") {
+      send(app().getAttribute("data-first") || "Something needs you", document.title);
+    }
+    if (reduce) return;
+    // Tint what changed, then let it fade (the transition runs once the class goes).
+    var fresh = [];
+    document.querySelectorAll("[data-key]").forEach(function (e) { if (!before[e.getAttribute("data-key")]) { e.classList.add("fresh"); fresh.push(e); } });
+    setTimeout(function () { fresh.forEach(function (e) { e.classList.remove("fresh"); }); }, 800);
+  }
+  // The tab you are on survives refreshes and visits; 1 and 2 switch tabs.
+  function savedTab() { try { return localStorage.getItem("wk-board-view") || "board"; } catch (e) { return "board"; } }
+  function pick(tab) {
+    var r = document.getElementById("tab-" + tab);
+    if (!r) return;
+    r.checked = true;
+    try { localStorage.setItem("wk-board-view", tab); } catch (e) { /* storage blocked: the tab just isn't remembered */ }
+  }
+  function showTab() { var r = document.getElementById("tab-" + savedTab()); if (r) r.checked = true; }
+  document.addEventListener("change", function (e) { if (e.target.name === "tab") pick(e.target.value); });
+  document.addEventListener("keydown", function (e) {
+    if (e.ctrlKey || e.metaKey || e.altKey || /^(TEXTAREA|SELECT)$/.test(e.target.tagName) || (e.target.tagName === "INPUT" && e.target.type !== "radio")) return;
+    if (e.key === "1") pick("board");
+    if (e.key === "2") pick("history");
+  });
+  // A board opened from disk can't fetch, but it can load a script: reload the feed next to it, which
+  // calls wkBoard with the board as it is now.
+  function poll(feed) {
+    var current = feed.stamp, tag = null;
+    window.wkBoard = function (stamp, html) {
+      status = "live"; showStatus();
+      if (stamp !== current) { current = stamp; swap(html); }
+    };
+    function load() {
+      if (tag) tag.remove();
+      tag = document.createElement("script");
+      tag.src = feed.src + "?t=" + Date.now();
+      tag.onerror = function () { status = "off"; showStatus(); };
+      document.head.appendChild(tag);
+    }
+    load();
+    setInterval(load, 2000);
+  }
+  function connect() {
+    if (window.wkFeed) return poll(window.wkFeed);
+    var es = new EventSource("/events");
+    es.onopen = function () { status = "live"; showStatus(); };
+    es.onerror = function () { status = "off"; showStatus(); };
+    es.onmessage = function () { fetch("/", { cache: "no-store" }).then(function (r) { return r.text(); }).then(swap); };
+  }
+  status = "connecting"; showTab(); showStatus(); notifyButton(); icon(needs()); tick();
+  setInterval(tick, 30000);
+  connect();
+})();
+</script></body></html>
+--- home/boards/project-22df416cff96.js (board feed)
+// wk board feed 6ca54844bdedd907
 --- home/events/<hash>.jsonl
 {"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"4yrm","title":"Idea: a dark mode","home":"inbox"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"jotted","id":"aes8","title":"A very long first line that keeps going and going well past the…","home":"inbox"}
