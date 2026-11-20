@@ -1,1 +1,1 @@
-Static board reloads itself from a feed script beside it; no port. --serve kept for instant updates.
+Board lists keep queue order, same-day ties by event-log time; notify button hidden on file:// boards. Idea jotted: act on tasks from the board.

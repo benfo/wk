@@ -52,7 +52,7 @@ func jot(ctx *Ctx, s *Store, raw string, o *Opts) Result {
 
 func inboxItems(s *Store) []*Item {
 	items := filter(s.list(), func(i *Item) bool { return state(i) == "inbox" })
-	SortStable(items, func(a, b *Item) int { return LocaleCompare(str(a, "created"), str(b, "created")) })
+	SortStable(items, byAge(firstSeen(s.ctx)))
 	return items
 }
 

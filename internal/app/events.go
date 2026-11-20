@@ -193,3 +193,39 @@ func lastEvent(events []PlanEvent, id, verb string) *PlanEvent {
 	}
 	return nil
 }
+
+// firstSeen maps each id to the time of its oldest logged event: when it was made, to the
+// millisecond, for items still in the log. Plans only store the day.
+func firstSeen(ctx *Ctx) map[string]string {
+	seen := map[string]string{}
+	for _, e := range readEvents(ctx, keepEvents*2) { // newest first: the last write wins
+		seen[e.ID] = e.At
+	}
+	return seen
+}
+
+// byAge is the queue order with same-day ties broken by the logged time. Ids not in the log come
+// last: on the same day that means a command that failed partway, not one that aged out.
+func byAge(seen map[string]string) func(a, b *Item) int {
+	return func(a, b *Item) int {
+		if d := rank(a) - rank(b); d != 0 {
+			if d < 0 {
+				return -1
+			}
+			return 1
+		}
+		if c := LocaleCompare(str(a, "created"), str(b, "created")); c != 0 {
+			return c
+		}
+		if sa, sb := seen[a.ID], seen[b.ID]; sa != sb {
+			switch {
+			case sa == "":
+				return 1
+			case sb == "":
+				return -1
+			}
+			return strings.Compare(sa, sb)
+		}
+		return LocaleCompare(a.ID, b.ID)
+	}
+}

@@ -19,8 +19,8 @@ $ wk jot "x" --file missing.png
 $ wk inbox
 4yrm Idea: a dark mode
 aes8 A very long first line that keeps going and going well past the…
-xcma x
 yebg Bug: header overlaps
+xcma x
 Sort each: wk move <id> --in <home> [--when <when>], or wk drop <id>. Knowledge: wk decide / wk learn, then drop the jot.
 $ wk inbox --json
 [
@@ -47,17 +47,6 @@ $ wk inbox --json
     "archived": false
   },
   {
-    "id": "xcma",
-    "kind": "task",
-    "state": "inbox",
-    "created": "2026-11-10",
-    "updated": "2026-11-10",
-    "title": "x",
-    "body": "",
-    "home": "inbox",
-    "archived": false
-  },
-  {
     "id": "yebg",
     "kind": "task",
     "state": "inbox",
@@ -68,6 +57,17 @@ $ wk inbox --json
       "yebg-2.png"
     ],
     "title": "Bug: header overlaps",
+    "body": "",
+    "home": "inbox",
+    "archived": false
+  },
+  {
+    "id": "xcma",
+    "kind": "task",
+    "state": "inbox",
+    "created": "2026-11-10",
+    "updated": "2026-11-10",
+    "title": "x",
     "body": "",
     "home": "inbox",
     "archived": false
@@ -569,6 +569,8 @@ details.area .why.missing{color:var(--attn)}
   function notifyButton() {
     var b = document.getElementById("notify");
     if (!b) return;
+    // Browsers refuse notifications to a page opened from disk; only wk board --serve can offer them.
+    if (location.protocol === "file:") { b.remove(); return; }
     b.hidden = false;
     if (!("Notification" in window)) { b.textContent = "Notifications unsupported"; b.disabled = true; return; }
     var p = Notification.permission;
@@ -1099,6 +1101,8 @@ details.area .why.missing{color:var(--attn)}
   function notifyButton() {
     var b = document.getElementById("notify");
     if (!b) return;
+    // Browsers refuse notifications to a page opened from disk; only wk board --serve can offer them.
+    if (location.protocol === "file:") { b.remove(); return; }
     b.hidden = false;
     if (!("Notification" in window)) { b.textContent = "Notifications unsupported"; b.disabled = true; return; }
     var p = Notification.permission;

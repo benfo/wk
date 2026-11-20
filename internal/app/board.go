@@ -47,6 +47,9 @@ func collect(ctx *Ctx, s *Store) *Board {
 	projects := s.projects()
 	all := s.list()
 	tasks := filter(all, func(i *Item) bool { return i.Kind == "task" })
+	// Files are read in id order, which is random: every list below keeps the queue order (rank,
+	// then oldest first) unless it sorts itself.
+	SortStable(tasks, byAge(firstSeen(ctx)))
 	b := &Board{ctx: ctx, store: s, all: all, tasks: tasks}
 	b.v = View{homeNames: map[string]string{}, hues: map[string]int{}}
 	for n, p := range projects {
@@ -62,7 +65,6 @@ func collect(ctx *Ctx, s *Store) *Board {
 	b.review = filter(tasks, func(t *Item) bool { return state(t) == "review" })
 	b.due = filter(tasks, func(t *Item) bool { return isDue(t) && state(t) == "open" && !isQueued(t) })
 	b.queue = filter(tasks, func(t *Item) bool { return isQueued(t) && !isWaiting(t) })
-	SortStable(b.queue, byQueue)
 	resting := filter(tasks, func(t *Item) bool { return state(t) == "open" && !isQueued(t) && !isDue(t) && !isWaiting(t) })
 	b.openProjects = filter(projects, func(p *Project) bool { return pstate(p) != "done" })
 	if b.now == nil && len(b.queue) > 0 {
@@ -71,6 +73,19 @@ func collect(ctx *Ctx, s *Store) *Board {
 	b.inbox = filter(tasks, func(t *Item) bool { return state(t) == "inbox" })
 	b.waiting = filter(tasks, func(t *Item) bool { return isWaiting(t) && state(t) != "done" })
 	b.sleeping = filter(resting, func(t *Item) bool { _, _, ok := triggerOf(when(t)); return ok })
+	// Dated wake-ups first, soonest on top; the rest wait on other work and keep the queue order.
+	SortStable(b.sleeping, func(x, y *Item) int {
+		dx, dy := wakeDate(x), wakeDate(y)
+		switch {
+		case dx == dy:
+			return 0
+		case dx == "":
+			return 1
+		case dy == "":
+			return -1
+		}
+		return strings.Compare(dx, dy)
+	})
 	b.later = filter(resting, func(t *Item) bool { return when(t) == "later" })
 	b.someday = filter(resting, func(t *Item) bool { return when(t) == "someday" })
 	b.recent = filter(tasks, func(t *Item) bool {
@@ -83,7 +98,15 @@ func collect(ctx *Ctx, s *Store) *Board {
 	return b
 }
 
-var sentenceSplit = regexp.MustCompile(`\.\s+`)
+// wakeDate is an on:<date> trigger's date; "" for other triggers.
+func wakeDate(t *Item) string {
+	if kind, arg, ok := triggerOf(when(t)); ok && kind == "on" {
+		return arg
+	}
+	return ""
+}
+
+var sentenceSplit =regexp.MustCompile(`\.\s+`)
 
 // splitSentences is title.split(/(?<=\.)\s+/): the dot stays with the sentence before it.
 func splitSentences(s string) []string {

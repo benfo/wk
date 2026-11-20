@@ -35,6 +35,8 @@
   function notifyButton() {
     var b = document.getElementById("notify");
     if (!b) return;
+    // Browsers refuse notifications to a page opened from disk; only wk board --serve can offer them.
+    if (location.protocol === "file:") { b.remove(); return; }
     b.hidden = false;
     if (!("Notification" in window)) { b.textContent = "Notifications unsupported"; b.disabled = true; return; }
     var p = Notification.permission;
