@@ -103,6 +103,8 @@ A fired trigger makes the item **due**: `wk brief` lists it under `Due:` until i
 
 Thin, cross-cutting labels: `bug`, `quick`, `perf`, `ux`. Areas are homes, not tags. `wk add` notes a tag never seen before, suggesting the nearest known one ("New tag: bugs. Did you mean bug?"). `wk tags` lists them with counts.
 
+One tag is wk's own and always known: `shape` marks a task whose what-to-build isn't agreed yet. `wk start` on it says to grill it with the user before building, and prints the `wk edit --tags` command that drops the tag once the body holds what was agreed. Tasks without it are taken as ready; the agent still stops when a real choice is open.
+
 ### Fields
 
 ```markdown

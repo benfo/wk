@@ -1,1 +1,1 @@
-Done: Agents add and start a task for every new request, however small.
+Done: Shape tag cues grilling at start; fresh-session start rule.

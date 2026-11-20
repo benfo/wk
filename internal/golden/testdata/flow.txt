@@ -34,3 +34,7 @@ $ wk show yebg
 now 2026-11-10T11:30:00.000Z
 $ wk board --out board.html
 tree
+$ wk add "Plan the index" --tags shape,quick
+$ wk start m7sw
+$ wk edit m7sw --tags "quick"
+$ wk show m7sw

@@ -66,7 +66,7 @@ func newTagNotes(ctx *Ctx, s *Store, tags []string, self *Item) []string {
 		return nil
 	}
 	known := uniq(append(append([]string{}, ctx.Config.Tags...), flatTags(filter(s.list(), func(i *Item) bool { return i != self }))...))
-	knownSet := map[string]bool{}
+	knownSet := map[string]bool{shapeTag: true} // wk's own tag is always known
 	for _, k := range known {
 		knownSet[k] = true
 	}

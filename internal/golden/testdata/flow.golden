@@ -413,6 +413,20 @@ details.area .why.missing{color:var(--attn)}
   "asked": []
 }
 
+$ wk add "Plan the index" --tags shape,quick
+Added m7sw Plan the index (core)
+$ wk start m7sw
+now   m7sw Plan the index (core)
+
+Not agreed yet (tagged shape): grill it with the user before building.
+Once agreed: rewrite the body with what was agreed, wk decide the key choices, then wk edit m7sw --tags "quick".
+$ wk edit m7sw --tags "quick"
+Updated m7sw Plan the index
+$ wk show m7sw
+m7sw  task · now · queue · core
+Plan the index
+tags: quick
+created 2026-11-10 · updated 2026-11-10
 == final tree
 --- project/.work/archive/.gitkeep
 --- project/.work/areas/core/4yrm-write-the-intro.md
@@ -450,6 +464,18 @@ wait_since: 2026-11-10
 # core
 
 Always in scope. Its principles load for every task; items with no better home live here.
+--- project/.work/areas/core/m7sw-plan-the-index.md
+---
+id: m7sw
+kind: task
+state: now
+when: queue
+tags: [quick]
+rank: 3
+created: 2026-11-10
+updated: 2026-11-10
+---
+# Plan the index
 --- project/.work/areas/core/yebg-proofread-everything.md
 ---
 id: yebg
@@ -630,6 +656,8 @@ details.area .why.missing{color:var(--attn)}
 {"at":"2026-11-10T09:00:00.000Z","verb":"paused","id":"aes8","title":"Draft chapter one","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"waiting","id":"aes8","title":"Draft chapter one","home":"core"}
 {"at":"2026-11-10T09:00:00.000Z","verb":"done","id":"yebg","title":"Proofread everything","home":"core"}
+{"at":"2026-11-10T11:30:00.000Z","verb":"added","id":"m7sw","title":"Plan the index","home":"core"}
+{"at":"2026-11-10T11:30:00.000Z","verb":"started","id":"m7sw","title":"Plan the index","home":"core"}
 --- home/sessions/v2-<hash>.json
 {
   "started": "2026-11-10T09:00:00.000Z",

@@ -3,6 +3,7 @@ package app
 import (
 	"path/filepath"
 	"regexp"
+	"slices"
 	"strings"
 )
 
@@ -149,11 +150,28 @@ func start(ctx *Ctx, s *Store, raw string, branchFlag *bool) Result {
 	if body := nonBlank(splitLines(item.Body)); len(body) > 0 {
 		lines = append(append(lines, ""), body...)
 	}
+	lines = append(lines, startShape(item)...)
 	lines = append(lines, startPrinciples(ctx, s, item)...)
 	lines = append(lines, startTriggers(ctx, s, item)...)
 	lines = append(lines, startRelated(ctx, s, item)...)
 	lines = append(lines, startChecks(ctx, s, item)...)
 	return Result{Lines: lines, Data: Obj("id", item.ID, "state", "now", "branch", nullable(branch), "home_switch", switched, "body", item.Body), Full: true}
+}
+
+// shapeTag marks a task whose what-to-build is not agreed yet.
+const shapeTag = "shape"
+
+// startShape stops a not-yet-agreed task from going straight to building, and names the command
+// that marks it agreed, so the agent never has to work out the remaining tags itself.
+func startShape(item *Item) []string {
+	tags := tagsOf(item)
+	if !slices.Contains(tags, shapeTag) {
+		return nil
+	}
+	rest := filter(tags, func(t string) bool { return t != shapeTag })
+	return []string{"",
+		"Not agreed yet (tagged " + shapeTag + "): grill it with the user before building.",
+		"Once agreed: rewrite the body with what was agreed, wk decide the key choices, then wk edit " + item.ID + " --tags \"" + strings.Join(rest, ",") + "\"."}
 }
 
 var testLineRe = regexp.MustCompile(`(?i)^Test:\s*`)
