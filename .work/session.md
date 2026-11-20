@@ -1,1 +1,1 @@
-Done: Shape tag cues grilling at start; fresh-session start rule.
+Done: Commit hook refreshes .claude/skills after the commit, so every….

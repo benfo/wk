@@ -1,0 +1,3 @@
+#!/bin/sh
+# Put the staged skills' tracked copy in .claude/skills into this same commit.
+go run ./scripts/devinstall --stage

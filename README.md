@@ -69,6 +69,6 @@ It runs the checks, builds a binary for each platform, tags and pushes, and crea
 
 Needs Go 1.26 or later. `go build -o wk.exe ./cmd/wk` (or `-o wk` off Windows) builds a working copy; `go test ./...` runs the checks. `internal/golden/testdata` holds scripted sessions with their expected output and files: a change in behaviour shows up there as a diff, and `go test ./internal/golden -update` rewrites them once it's intended.
 
-To use your working copy as the `wk` on your PATH, run `go run ./scripts/devinstall`: it builds into the installer's location and copies `skills/` into `.claude/skills`. `git config core.hooksPath .githooks` runs it after every commit, merge, checkout and rebase.
+To use your working copy as the `wk` on your PATH, run `go run ./scripts/devinstall`: it builds into the installer's location and copies `skills/` into `.claude/skills`. `git config core.hooksPath .githooks` runs it after every commit, merge, checkout and rebase, and before each commit stages the skill copies, so they land in the same commit.
 
 To test skill edits in other projects, `go run ./scripts/devlink` links `skills/` into `~/.claude/skills` and `~/.agents/skills`, which take priority over a project's installed copy; edits apply at the next agent session. `go run ./scripts/devlink --remove` takes the links away again.

@@ -5,6 +5,11 @@
 // It builds wk into the installer's location (Windows: %LOCALAPPDATA%\Programs\wk, else ~/.local/bin)
 // and copies skills/ into .claude/skills so this repo's agent uses the skills being worked on.
 // The git hooks in .githooks run it after each commit, merge, checkout and rebase.
+//
+//	go run ./scripts/devinstall --stage
+//
+// The pre-commit hook runs this instead: it copies the staged skill files into .claude/skills and
+// stages them, so the tracked copy lands in the same commit rather than leaving a change behind.
 package main
 
 import (
@@ -13,9 +18,14 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 func main() {
+	if len(os.Args) > 1 && os.Args[1] == "--stage" {
+		stageSkills("skills", ".claude/skills")
+		return
+	}
 	dest := installPath()
 	check(os.MkdirAll(filepath.Dir(dest), 0o755))
 
@@ -73,6 +83,21 @@ func syncSkills(src, dst string) int {
 		return os.WriteFile(target, want, 0o644)
 	}))
 	return n
+}
+
+// stageSkills copies each staged file under src (git paths, forward slashes) to the same path under
+// dst, from the index rather than the working tree, and stages the copy.
+func stageSkills(src, dst string) {
+	out, err := exec.Command("git", "diff", "--cached", "--name-only", "--diff-filter=ACMR", "--", src).Output()
+	check(err)
+	for path := range strings.FieldsSeq(string(out)) {
+		want, err := exec.Command("git", "show", ":"+path).Output()
+		check(err)
+		target := dst + strings.TrimPrefix(path, src)
+		check(os.MkdirAll(filepath.Dir(target), 0o755))
+		check(os.WriteFile(target, want, 0o644))
+		check(exec.Command("git", "add", "--", target).Run())
+	}
 }
 
 func check(err error) {
