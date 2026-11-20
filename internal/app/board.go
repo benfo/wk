@@ -38,7 +38,9 @@ type Board struct {
 	someday  []*Item
 	recent   []*Item
 	events   []PlanEvent
-	nowMs    float64
+	// names maps every item and project id to what the board shows instead of it.
+	names map[string]string
+	nowMs float64
 	// needsYou counts only what asks you to act now; the inbox can wait for a sort.
 	needsYou int
 }
@@ -102,6 +104,13 @@ func collect(ctx *Ctx, s *Store) *Board {
 		if i := byID[e.ID]; i != nil {
 			b.events[n].Title = fullTitle(i)
 		}
+	}
+	b.names = map[string]string{}
+	for id, i := range byID {
+		b.names[id] = fullTitle(i)
+	}
+	for _, p := range projects {
+		b.names[p.ID] = p.Title
 	}
 	b.nowMs, _ = parseISO(nowISO())
 	b.needsYou = len(b.review) + len(b.due)
@@ -231,11 +240,14 @@ func focus(b *Board) string {
 	pulse := ""
 	if len(b.events) > 0 {
 		last := b.events[0]
-		pulse = `<div class="pulse">Last change ` + clock(last.At, b.nowMs, "", " ago") + `: ` + esc(last.Verb) + ` <span class="t2">` + esc(last.Title) + `</span></div>`
+		pulse = `<p class="pulse"><span class="lead">Last change ` + clock(last.At, b.nowMs, "", " ago") + `</span>` + esc(last.Verb) + ` <span class="t2">` + esc(last.Title) + `</span></p>`
 	}
 	notes := pulse
 	if handoff != "" {
-		notes = `<p class="handoff">` + esc(handoff) + `</p>` + pulse
+		notes = `<p class="handoff"><span class="lead">Handoff</span>` + named(handoff, b.names) + `</p>` + pulse
+	}
+	if notes != "" {
+		notes = `<div class="notes">` + notes + `</div>`
 	}
 	if t == nil {
 		return `<section class="focus idle"><div class="fl">` + icon("later") + `<span class="lbl">Nothing in progress, nothing queued</span></div>` + notes + `</section>`
@@ -352,15 +364,12 @@ func areaRows(b *Board) []string {
 			}
 			return `<li><div>` + esc(r.Title) + `</div><div class="why` + cls + `">` + why + `</div></li>`
 		}), "")
-		word := "rules"
-		if len(rules) == 1 {
-			word = "rule"
-		}
+		count := pluralMany(open, "open task", "open tasks") + ", " + pluralMany(len(rules), "principle", "principles")
 		ol := ""
 		if list != "" {
 			ol = `<ol>` + list + `</ol>`
 		}
-		return `<li><details class="area"><summary><span>` + esc(a) + `</span><span class="c">` + itoa(open) + ` open, ` + itoa(len(rules)) + ` ` + word + `</span></summary><div class="desc">` +
+		return `<li><details class="area"><summary><span>` + esc(a) + `</span><span class="c">` + count + `</span></summary><div class="desc">` +
 			esc(splitLines(b.store.areaDescription(a))[0]) + `</div>` + ol + `</details></li>`
 	})
 }

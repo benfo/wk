@@ -38,3 +38,5 @@ $ wk add "Plan the index" --tags shape,quick
 $ wk start m7sw
 $ wk edit m7sw --tags "quick"
 $ wk show m7sw
+$ wk handoff "Next: m7sw, not zzzz."
+$ wk board --out board.html

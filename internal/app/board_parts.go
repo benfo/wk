@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"math"
 	"regexp"
 	"strconv"
@@ -284,6 +285,27 @@ func capped(rows []string, show int) string {
 		return strings.Join(rows, "")
 	}
 	return strings.Join(rows[:show], "") + `<li><details class="more"><summary>` + itoa(len(rows)-show) + ` more</summary><ul>` + strings.Join(rows[show:], "") + `</ul></details></li>`
+}
+
+var idWordRe = regexp.MustCompile(`\b[0-9a-z]{4}\b`)
+
+// named is text as escaped HTML with each known id replaced by its name, the id kept as a tooltip:
+// handoffs are written for agents, which want ids, but read on the board by people, who want names.
+func named(text string, names map[string]string) string {
+	var b strings.Builder
+	last := 0
+	for _, m := range idWordRe.FindAllStringIndex(text, -1) {
+		id := text[m[0]:m[1]]
+		name, ok := names[id]
+		if !ok {
+			continue
+		}
+		b.WriteString(esc(text[last:m[0]]))
+		fmt.Fprintf(&b, `<span title="%s">%s</span>`, esc(id), esc(name))
+		last = m[1]
+	}
+	b.WriteString(esc(text[last:]))
+	return b.String()
 }
 
 // fullTitle undoes a long jot's cut title: jot keeps the whole first line at the top of the body.

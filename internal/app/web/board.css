@@ -49,9 +49,13 @@ body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-san
 .working .fl .lbl{color:var(--st-now)}
 .focus.idle[style]{border-color:color-mix(in srgb,var(--pc) 35%,transparent);background:color-mix(in srgb,var(--pc) 8%,var(--s1))}
 .fl .prog{display:inline-flex;align-items:center;gap:6px}
-.ft{font-size:16px;font-weight:600;line-height:1.4;margin:8px 0 0 22px;text-wrap:pretty}
-.handoff{font-size:13px;color:var(--t2);margin:8px 0 0 22px;max-width:72ch;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-.pulse{font-size:12px;color:var(--t3);margin:12px 0 0 22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ft{font-size:16px;font-weight:600;line-height:1.4;margin:8px 0 0 22px;max-width:60ch;text-wrap:pretty}
+.notes{margin:12px 0 0 22px;max-width:72ch;display:grid;gap:8px}
+.notes p{margin:0}
+.handoff{font-size:13px;color:var(--t2);white-space:pre-line}
+.handoff span[title]{text-decoration:underline dotted var(--t3);text-underline-offset:3px}
+.pulse{font-size:12px;color:var(--t3)}
+.notes .lead{font-weight:600;color:var(--t3);margin-right:8px}
 
 /* Status groups */
 .g{margin-top:8px}
@@ -89,13 +93,13 @@ body{background:var(--bg);color:var(--t1);font:14px/1.5 "Inter var",Inter,ui-san
 .project>summary::-webkit-details-marker{display:none}
 .project>summary:hover .pn{color:var(--t1)}
 .project[open]>summary .pn{font-weight:600}
-.pn{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pn{flex:1;min-width:0}
 .project>ul{margin-left:19px;border-left:2px solid color-mix(in srgb,var(--pc,var(--line2)) 45%,transparent)}
 
 /* History */
 .act{display:grid;grid-template-columns:5em 6.5em minmax(0,1fr);gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:13px}
 .act time,.act .verb{color:var(--t3);font-variant-numeric:tabular-nums}
-.act .what{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act .what{min-width:0}
 details.area{padding:10px 12px;border-bottom:1px solid var(--line)}
 details.area summary{display:flex;justify-content:space-between;gap:12px;cursor:pointer;list-style:none}
 details.area summary::-webkit-details-marker{display:none}
@@ -105,5 +109,5 @@ details.area ol li{padding-left:12px;border-left:2px solid var(--line2);font-siz
 details.area .why{font-size:12px;color:var(--t2)}
 details.area .why.missing{color:var(--attn)}
 
-@media (max-width:640px){#app{padding:16px 12px 64px}.chip{display:none}.ft,.handoff,.pulse{margin-left:0}}
+@media (max-width:640px){#app{padding:16px 12px 64px}.chip{display:none}.ft,.notes{margin-left:0}}
 @media (prefers-reduced-motion:reduce){.r{transition:none}}
