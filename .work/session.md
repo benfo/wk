@@ -1,1 +1,1 @@
-Board lists keep queue order, same-day ties by event-log time; notify button hidden on file:// boards. Idea jotted: act on tasks from the board.
+Board rows show a long jot's full first line and wrap instead of clamping. Activity feed lines still truncate to one line.

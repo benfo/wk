@@ -258,7 +258,7 @@ func row(v View, t *Item, o rowOpts) string {
 	if o.noProject {
 		project = ""
 	}
-	return `<li class="r" data-key="` + key(t) + `" title="id ` + t.ID + `">` + icon(kind) + `<div class="body"><div class="tt">` + esc(t.Title) + `</div>` + note + `</div>` + right + project + `</li>`
+	return `<li class="r" data-key="` + key(t) + `" title="id ` + t.ID + `">` + icon(kind) + `<div class="body"><div class="tt">` + esc(fullTitle(t)) + `</div>` + note + `</div>` + right + project + `</li>`
 }
 
 // group is a status group: a header bar with the icon, name and count, then its rows.
@@ -284,4 +284,17 @@ func capped(rows []string, show int) string {
 		return strings.Join(rows, "")
 	}
 	return strings.Join(rows[:show], "") + `<li><details class="more"><summary>` + itoa(len(rows)-show) + ` more</summary><ul>` + strings.Join(rows[show:], "") + `</ul></details></li>`
+}
+
+// fullTitle undoes a long jot's cut title: jot keeps the whole first line at the top of the body.
+func fullTitle(i *Item) string {
+	head := strings.TrimSuffix(i.Title, "…")
+	if head == i.Title {
+		return i.Title
+	}
+	first, _, _ := strings.Cut(i.Body, "\n")
+	if first = Trim(first); strings.HasPrefix(first, head) {
+		return first
+	}
+	return i.Title
 }

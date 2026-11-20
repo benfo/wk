@@ -249,7 +249,7 @@ func focus(b *Board) string {
 	}
 	return `<section class="focus ` + cls + `"` + style + ` data-key="` + key(t) + `">
 <div class="fl">` + icon(kind) + `<span class="lbl">` + label + `</span>` + facts + `</div>
-<h2 class="ft" title="id ` + t.ID + `">` + esc(t.Title) + `</h2>` + notes + `</section>`
+<h2 class="ft" title="id ` + t.ID + `">` + esc(fullTitle(t)) + `</h2>` + notes + `</section>`
 }
 
 // reviewRow is a task waiting for you to try it: what to try and how long it has waited.
@@ -317,7 +317,7 @@ func historyTab(b *Board) string {
 	})
 	SortStable(knowledgeItems, func(x, y *Item) int { return LocaleCompare(str(y, "created"), str(x, "created")) })
 	knowledge := mapList(head(knowledgeItems, 10), func(i *Item) string {
-		return `<li class="r" data-key="` + i.ID + `" title="id ` + i.ID + `"><span class="kind">` + i.Kind + `</span><div class="body"><div class="tt">` + esc(i.Title) + `</div></div>` + chip(b.v, i) + `</li>`
+		return `<li class="r" data-key="` + i.ID + `" title="id ` + i.ID + `"><span class="kind">` + i.Kind + `</span><div class="body"><div class="tt">` + esc(fullTitle(i)) + `</div></div>` + chip(b.v, i) + `</li>`
 	})
 	body := group("done", "Done this week", len(done), capped(done, 12), false) +
 		group("", "Just happened", len(changes), strings.Join(changes, ""), false) +
