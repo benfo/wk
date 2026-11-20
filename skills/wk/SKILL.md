@@ -23,9 +23,9 @@ The user is in the zone: keep check-ins, questions and notes short. Talk about t
    - Anything else: `wk jot "<text>"`. Describe a screenshot in words: what is wrong, where, when. Say "Noted." and carry on.
 4. **New work you find yourself** is jotted too. Don't grow the current task.
 5. **Work through the whole task, then stop once.** Stop early only when blocked (`wk wait <id> "<on what>"`), when a decision is the user's (fair options with different trade-offs, or hard to undo), or when the task needs new work first.
-6. **End of task:** run the checks (the `Workflow:` line names them), then one call: `wk check --checked "<result>" --test "<for the user>" --handoff "<text>"`. It lists what was jotted during the task.
+6. **End of task:** run the checks (the `Workflow:` line names them), then one call: `wk check --checked "<result>" --test "<for the user>" --handoff "<text>"` (the handoff as in step 8). It lists what was jotted during the task.
 7. **Check in** (below). The user's "looks good" accepts the task, the sorting and the `Next:` line: `wk done <id>`; file each jot with `wk move <id> --in <home> --when <when>` (or `wk decide`/`wk learn`, then `wk drop` the jot); start the next task, or stop if you recommended a fresh session.
-8. **Other stops** (the user stops, before suggesting a clear, after a compaction): `wk handoff "<text>" [--fresh]`, 5 lines or fewer: where we stopped, what's half done, what to do first.
+8. **Other stops** (the user stops, before suggesting a clear, after a compaction): `wk handoff "<text>" [--fresh]`, 5 lines or fewer: where we stopped, what's half done, what to do first. A handoff carries only what the plan can't: skip the next task's name, due items and what got done, which the brief and board already show.
 9. **Git** follows the `Workflow:` line; never branch, commit or push beyond it. The repo's own commit rules apply. Plan changes ride along with the task's commit.
 
 ## Homes and timing

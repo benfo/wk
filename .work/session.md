@@ -1,1 +1,1 @@
-Done: Board text: full last-change line, names instead of ids in the handoff.
+Done: Handoffs say only what the board can't show.
