@@ -1,1 +1,1 @@
-Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`. Every change, however small, belongs to a task: the current one if it fits, else a planned one (`wk ls` to find it, then `wk start`), else a new one (`wk add`, then `wk start`). Follow the wk loop through `wk check`.

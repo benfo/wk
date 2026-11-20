@@ -1,1 +1,1 @@
-Grilled tracker design, then shelved it: trackers stay link-only (ref) until work use shows friction. Tracker task is now a trial, waiting on real use in work. Next: sort the inbox (board actions, MCP server idea).
+Done: Agents add and start a task for every new request, however small.

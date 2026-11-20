@@ -1,6 +1,6 @@
 ---
 name: wk
-description: Track this project's work with the wk CLI - tasks in projects and areas, an inbox for thoughts that come up mid-task, decisions, learnings and principles. Use at the start and end of every session, for "what's next" or "where were we", to start, check or finish work, whenever the user drops a thought mid-task ("idea:", "bug:", "todo:", "note that…", a screenshot of something wrong), to record a decision or learning, or to show the plan.
+description: Track this project's work with the wk CLI - tasks in projects and areas, an inbox for thoughts that come up mid-task, decisions, learnings and principles. Use at the start and end of every session, for "what's next" or "where were we", before acting on any request to change something, to start, check or finish work, whenever the user drops a thought mid-task ("idea:", "bug:", "todo:", "note that…", a screenshot of something wrong), to record a decision or learning, or to show the plan.
 ---
 
 # wk
@@ -16,7 +16,7 @@ The user is in the zone: keep check-ins, questions and notes short. Talk about t
 ## Session loop
 
 1. **Start with `wk brief`.** It prints the summary, the `Workflow:` line, the handoff, now and next, and cues: `Due:`, `Inbox:`, `Review due`, changed instructions. Raise cues at the next natural pause, never mid-task. "What's next" means `wk next`, summarised in a few lines.
-2. **Before working on a task:** `wk start <id>`. It prints the body, the principles that apply, anything due now and related items. Follow the principles. One task is `now` at a time.
+2. **Every change, however small** (a one-line request, a screenshot), **belongs to a task.** One that fits the task in progress or under review is part of it (step 3). Otherwise `wk start <id>` the planned item that covers it (`wk ls <words>` to find it), or `wk add "<title>" --when next` first when none does. `wk start` prints the body, the principles that apply, anything due now and related items. Follow the principles. One task is `now` at a time.
 3. **The user drops something mid-task** (an idea, a bug, a todo, an observation, a screenshot):
    - Tiny and inside this task: do it now; list it under `Also:` at the check-in.
    - A choice made: `wk decide "<what>" --why "<why>"`. Something surprising: `wk learn "<text>"`.

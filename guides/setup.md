@@ -15,7 +15,7 @@ Recommend `repo` for a project you own, `local` or `home` for someone else's. Ou
 
 For a `repo` or `ignore` plan, offer one line in AGENTS.md so a teammate's agent without the wk skill still follows the plan. Add it only on a yes:
 
-    Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`.
+    Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`. Every change, however small, belongs to a task: the current one if it fits, else a planned one (`wk ls` to find it, then `wk start`), else a new one (`wk add`, then `wk start`). Follow the wk loop through `wk check`.
 
 ## 2. The summary
 

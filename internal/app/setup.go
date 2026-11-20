@@ -19,7 +19,10 @@ var GuideTopics = []string{"setup", "onboarding", "migrate", "triage", "review",
 var skillsDir = filepath.Join(".claude", "skills")
 
 // AgentPointer is the line the wk-setup skill offers to add to AGENTS.md, for agents without the skill.
-const AgentPointer = "Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`."
+const AgentPointer = "Track work with the `wk` CLI. At the start of every session run `wk guide` once (skip it if the wk skill is loaded), then `wk brief`. Every change, however small, belongs to a task: the current one if it fits, else a planned one (`wk ls` to find it, then `wk start`), else a new one (`wk add`, then `wk start`). Follow the wk loop through `wk check`."
+
+// pointerPrefix starts every version of AgentPointer, so an older pointer line never counts as drift.
+const pointerPrefix = "Track work with the `wk` CLI."
 
 var lineBreak = regexp.MustCompile(`\r?\n`)
 
@@ -73,7 +76,7 @@ func instructionFiles(base string) []string {
 // fingerprint ignores line endings and wk's own pointer line, so refreshing wk never looks like drift.
 func fingerprint(base, rel string) string {
 	lines := strings.Split(crlf(readFile(filepath.Join(base, filepath.FromSlash(rel)))), "\n")
-	lines = filter(lines, func(l string) bool { return Trim(l) != AgentPointer })
+	lines = filter(lines, func(l string) bool { return !strings.HasPrefix(Trim(l), pointerPrefix) })
 	return sha1Hex(Trim(strings.Join(lines, "\n")))[:12]
 }
 
